@@ -26,7 +26,7 @@ CYKL_SEKUND = float(os.environ.get("CYKL", 60))
 GENY = int(os.environ.get("GENY", 64))
 WYMIARY = int(os.environ.get("WYMIARY", 4))     # tylko przy tworzeniu świata; potem z ciała
 DWOJE = True                                     # zawsze dwoje rodziców
-ISTOT = max(2, min(32, int(os.environ.get("ISTOT", "2"))))   # ile istot z cudu na start (co najmniej dwie)
+ISTOT = max(2, min(64, int(os.environ.get("ISTOT", "2"))))   # ile istot z cudu na start (co najmniej dwie)
 ROZMIAR = os.environ.get("ROZMIAR", "zwykly")    # ciasny / zwykly / rozlegly: miejsc na łąkę i szansa odkryć
 JEZYK = os.environ.get("JEZYK", "pl")            # język nazw czynów w tym świecie (pl / en); tylko przy powołaniu
 ROZMIARY = {"ciasny": (3, 0.1, 400), "zwykly": (5, 1 / 3, 100000), "rozlegly": (8, 0.5, 100000)}
@@ -78,7 +78,7 @@ def byt_do_slownika(b):
         "spala": b.spala, "lownosc": getattr(b, "lownosc", 0.0), "pora": b.pora,
         "idzie": b.idzie, "krokow": b.krokow, "srednio": b.srednio,
         "dobre_miejsce": b.dobre_miejsce, "dobre_ile": b.dobre_ile, "zrozumiane": sorted(b.zrozumiane),
-        "poprzednio_zjadl": b.poprzednio_zjadl, "ryt": b.ryt, "zimy": getattr(b, "zimy", 0), "spuscizna": getattr(b, "spuscizna", False),
+        "poprzednio_zjadl": b.poprzednio_zjadl, "ryt": b.ryt, "zimy": getattr(b, "zimy", 0), "spuscizna": getattr(b, "spuscizna", False), "u_kresu": getattr(b, "u_kresu", False), "wyryte": sorted(getattr(b, "wyryte", set())),
         "ozdoba": b.ozdoba, "gust": b.gust, "troska": b.troska, "odpornosc": b.odpornosc, "chora": list(b.chora) if b.chora else None, "przechorowane": sorted(b.przechorowane),
         "po_slowie": {k: {"n": v["n"], "v": [round(x, 4) for x in v["v"]], "b": round(v["b"], 3)} for k, v in b.po_slowie.items() if "n" in v}, "czeka_skutek": b.czeka_skutek,
         "sen": b.sen, "otwarcia": b.otwarcia, "najdluzsza": b.najdluzsza, "dzieci": b.dzieci,
@@ -107,7 +107,7 @@ def byt_ze_slownika(d):
     b.rodzic = d.get("rodzic"); b.rodzic2 = d.get("rodzic2"); b.urodzony_w_cyklu = d.get("urodzony_w_cyklu")
     b.miejsce = str(d.get("miejsce", 0)); b.poprzednie = d.get("poprzednie"); b.kierunek = d.get("kierunek", 1)
     b.wytrwalosc = d.get("wytrwalosc", 2); b.sila = d.get("sila", b.sila); b.ciekawosc = d.get("ciekawosc", b.ciekawosc); b.optimum = d.get("optimum", b.optimum); b.tolerancja = d.get("tolerancja", b.tolerancja); b.staz = d.get("staz", 0); b.nauczone = d.get("nauczone", 0); b.plec = d.get("plec", b.plec); b.stadnosc = d.get("stadnosc", b.stadnosc); b.dlugowiecznosc = d.get("dlugowiecznosc", b.dlugowiecznosc); b.rozmowy = d.get("rozmowy", 0); b.zle = d.get("zle", 0)
-    b.mapa = d.get("mapa", {}) or {}; b.pojetnosc = d.get("pojetnosc", b.pojetnosc); b.towarzyskosc = d.get("towarzyskosc", b.towarzyskosc); b.uprawa = float(d.get("uprawa", 0.0) or 0.0); b.spichlerz = float(d.get("spichlerz", 0.0) or 0.0); b.przechodzil = d.get("przechodzil", False); b.ryt = float(d.get("ryt", 0.0) or 0.0); b.zimy = int(d.get("zimy", 0) or 0); b.spuscizna = bool(d.get("spuscizna", False))
+    b.mapa = d.get("mapa", {}) or {}; b.pojetnosc = d.get("pojetnosc", b.pojetnosc); b.towarzyskosc = d.get("towarzyskosc", b.towarzyskosc); b.uprawa = float(d.get("uprawa", 0.0) or 0.0); b.spichlerz = float(d.get("spichlerz", 0.0) or 0.0); b.przechodzil = d.get("przechodzil", False); b.ryt = float(d.get("ryt", 0.0) or 0.0); b.zimy = int(d.get("zimy", 0) or 0); b.spuscizna = bool(d.get("spuscizna", False)); b.u_kresu = bool(d.get("u_kresu", False)); b.wyryte = set(d.get("wyryte", []) or [])
     b.przylapala = tuple(d["przylapala"]) if d.get("przylapala") else None; b.temat = tuple(d["temat"]) if d.get("temat") else None
     b.wypowiedz = d.get("wypowiedz"); b.wyszlo = d.get("wyszlo", []) or []; b.spala = d.get("spala", False); b.lownosc = d.get("lownosc", 0.0); b.pora = d.get("pora"); b.ufnosc = d.get("ufnosc", b.ufnosc); b.szczerosc = d.get("szczerosc", b.szczerosc); b.deklarowal = d.get("deklarowal", False); b.klamcy = set(d.get("klamcy", [])); b.bliscy = {int(k): v for k, v in (d.get("bliscy") or {}).items()}; b.unikaj = d.get("unikaj") or {}; b.unikani = {int(k): v for k, v in (d.get("unikani") or {}).items()}; b.bolalo = tuple(d["bolalo"]) if d.get("bolalo") else None
     b.idzie = d.get("idzie", False); b.krokow = d.get("krokow", 0); b.srednio = d.get("srednio", 2.0)
@@ -184,7 +184,7 @@ OGNISKO = (25, 70)         # ile cykli choroba utrzymuje się w skażonym miejsc
 ROZWLEKA = 0.10            # szansa, że chora istota skazi łąkę, na której stoi (nowe ognisko)
 ROZLEWA = 0.02             # szansa na cykl, że ognisko przenosi się na sąsiednią łąkę samo (woda, padlina, owady)
 OGNISK_MAX = 0.05          # zaraza nie zajmuje więcej niż tyle części świata naraz: nawet epidemia ma swoją granicę
-DRAPIEZNIK = 0.25          # szansa na cykl, że na którejś zamieszkanej łące zjawia się drapieżnik
+DRAPIEZNIK = 0.1           # szansa na cykl, że na którejś zamieszkanej łące zjawia się drapieżnik (było 0,25: w 147 cyklach 21 wizyt i 50 szarpnięć na 32 istoty)
 DRAPIEZNIK_MIN = 3         # nie opłaca mu się polować tam, gdzie stoi mniej niż tyle istot
 LOWY = 0.5                 # szansa, że drapieżnik w danym cyklu w ogóle kogoś dopadnie (jedna ofiara na cykl)
 POSTOJ = (3, 8)            # ile cykli drapieżnik zostaje
@@ -793,32 +793,30 @@ def main():
                     ryty.remove(stary)
                     ryty.append({"kl": kl, "n": d["n"], "v": d["v"], "b": d["b"], "sila": 1.0, "nr": b.nr, "cykl": swiat["cykl_swiata"]})
                 zdarzenie(swiat, "ryt", nr=b.nr, miejsce=tu, co=kl, odnowiony=stary is not None and stary.get("kl") == kl)
-            # spuścizna: u kresu ryje wszystko, co rozumie (albo sam głos), i umiera. Nagrobek albo książka.
+            # spuścizna: u kresu ryje jeden wpis na cykl, od najważniejszego, póki żyje. Nagrobek albo książka.
             if getattr(b, "spuscizna_teraz", None):
+                kl, d, rodzaj = b.spuscizna_teraz
                 ryty = mm.setdefault("ryty", [])
-                ile = 0
-                for kl, d in b.spuscizna_teraz:
-                    stary = next((r for r in ryty if r.get("kl") == kl), None)
-                    wpis = {"kl": kl, "sila": 1.0, "nr": b.nr, "cykl": swiat["cykl_swiata"], "spuscizna": True}
-                    if d is not None:
-                        wpis.update({"n": d["n"], "v": d["v"], "b": d["b"]})
-                    else:
-                        wpis["znaki"] = word.glos_na_znaki(b.glos)
-                    if stary is not None:
-                        stary.update(wpis)
-                    elif len(ryty) < word.RYTOW_NA_LACE:
-                        ryty.append(wpis)
-                    else:
-                        najslabszy = min(ryty, key=lambda r: r.get("sila", 1.0))
-                        zdarzenie(swiat, "ryt_zatarty", miejsce=tu, nr=najslabszy.get("nr"), co=najslabszy.get("kl"))
-                        ryty.remove(najslabszy)
-                        ryty.append(wpis)
-                    ile += 1
-                zdarzenie(swiat, "spuscizna", nr=b.nr, miejsce=tu, ile=ile, glos=b.spuscizna_teraz[0][1] is None, wiek=b.wiek)
+                wpis = {"kl": kl, "rodzaj": rodzaj, "sila": 1.0, "nr": b.nr, "cykl": swiat["cykl_swiata"], "spuscizna": True}
+                if d is not None:
+                    wpis.update(d)
+                else:
+                    wpis["znaki"] = word.glos_na_znaki(b.glos)
+                stary = next((r for r in ryty if r.get("kl") == kl), None)
+                if stary is not None:
+                    stary.update(wpis)
+                elif len(ryty) < word.RYTOW_NA_LACE:
+                    ryty.append(wpis)
+                else:
+                    najslabszy = min(ryty, key=lambda r: r.get("sila", 1.0))
+                    zdarzenie(swiat, "ryt_zatarty", miejsce=tu, nr=najslabszy.get("nr"), co=najslabszy.get("kl"))
+                    ryty.remove(najslabszy)
+                    ryty.append(wpis)
+                zdarzenie(swiat, "spuscizna", nr=b.nr, miejsce=tu, co=kl, rodzaj=rodzaj, glos=rodzaj == "glos", wiek=b.wiek, ile=len(b.wyryte))
                 b.spuscizna_teraz = None
             # odczyt: kto zostaje na łące z rytami i ma dość ciekawości, znajduje jeden, którego jeszcze nie zna
             elif mm.get("ryty") and not b.ruszyl and b.zyje() and random.random() < word.ODCZYT * b.ciekawosc:
-                nieznane = [r for r in mm["ryty"] if "n" in r and r.get("kl") not in b.po_slowie]
+                nieznane = [r for r in mm["ryty"] if r.get("rodzaj", "znaczenie") != "glos" and r.get("kl") not in b.po_slowie and r.get("kl") not in b.wyryte]
                 if nieznane:
                     r = random.choice(nieznane)
                     if b.odczytaj(r):

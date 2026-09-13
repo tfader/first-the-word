@@ -41,6 +41,9 @@ def stan_dla_strony():
         doc = most.stan()
         slowa = most.slowa_swiata()
     doc["proces_zyje"] = True if ARCHIWUM else proces_zyje()
+    # świeżo powołany świat: proces już chodzi, a ciała jeszcze nie ma albo nie zapisało pierwszego cyklu.
+    # Bez tego odświeżona strona pokazywała „nikt nie żyje” i formularz powołania, jakby nic się nie stało.
+    doc["rodzi_sie"] = bool(doc["proces_zyje"]) and not ARCHIWUM and (doc.get("brak_ciala") or (not doc.get("zywych") and not doc.get("zmarlych") and not doc.get("wygasla")))
     doc["archiwum"] = int(ARCHIWUM) if ARCHIWUM else None
     doc["dwoje"] = most.czytaj_json(most.CIALO, {}).get("dwoje", False)
     doc["slowa"] = sorted(
@@ -577,7 +580,7 @@ def cywilizacja():
                     if typ == "spuscizna" and x.get("glos"):
                         continue                                    # nagrobek z samym głosem to nie książka: w dziejach tylko spuścizna ze znaczeniami
                     w = {"cykl": c, "typ": "polowanie" if typ == "upolowana" else typ}
-                    for k in ("miejsce", "ilu", "ile", "szczep", "nr", "od", "co", "powod", "ostatni", "wiek"):
+                    for k in ("miejsce", "ilu", "ile", "szczep", "nr", "od", "co", "powod", "ostatni", "wiek", "rodzaj"):
                         if k in x:
                             w[k] = x[k]
                     wazne.append(w)
@@ -689,7 +692,7 @@ def nowy_swiat(geny=None, dwoje=False, cykl=None, wymiary=None, istot=None, rozm
     cykl = max(1.0, min(3600.0, liczba(cykl, os.environ.get("CYKL", "60"))))
     wymiary = max(2, min(64, int(liczba(wymiary, 4))))
     dwoje = True                                              # zawsze dwoje rodziców
-    istot = max(2, min(32, int(liczba(istot, 2))))
+    istot = max(2, min(64, int(liczba(istot, 2))))
     rozmiar = rozmiar if rozmiar in ("ciasny", "zwykly", "rozlegly") else "zwykly"
     pojemnosc = max(10, min(20000, int(liczba(pojemnosc, os.environ.get("POJEMNOSC_SWIATA", "2000")))))   # ilu żywych świat uniesie
     jezyk = jezyk if jezyk in ("pl", "en") else os.environ.get("JEZYK", "pl")   # język nazw czynów w tym świecie

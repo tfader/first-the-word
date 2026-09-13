@@ -1579,3 +1579,21 @@ nagrobek; tego nikt nie odczyta, ale zostaje. Gen: troska (już dziedziczna,
 z mutacją). Bagaż nie jest genem: krótko żyjąca zostawia imię, długo żyjąca
 książkę. Umiejętność rytu niepotrzebna: to instynkt, jak łosoś. W dziejach
 cywilizacji tylko spuścizny ze znaczeniami; nagrobki w kronice.
+
+## Doprecyzowanie (2026-09-13): spuścizna to czas
+Zapis to czas. U kresu istota nie ryje wszystkiego naraz: jeden wpis na
+cykl, póki żyje, od najważniejszego. Ważne to to, co najwięcej ważyło
+w energii: znaczenie po sumie bilansu (zysk albo strata, byle duże), łąka
+z mapy po tym, ile tam jadła, przyłapany kłamca ze stałą wagą. Krótko
+żyjąca zdąży jeden wpis; kto nic nie ma, zostawia głos. Kto w tym cyklu
+się broni albo boli, nie ryje: nie ma na to czasu. Za życia więcej ryje
+syta i mądra (umiejętność rytu), bo ma czas. Czytająca bierze to, co jej
+ciało umie użyć: znaczenie (skutek jest wspólny), łąkę (zapach jest
+wspólny, wchodzi do mapy słabiej), kłamcę; głos zmarłej zostaje
+nieodczytany, jak nieznane pismo.
+
+## Kalibracja (2026-09-13): drapieżnik rzadszy
+Świat z 32 istot skończył się w cyklu 147 (jedna płeć). Drapieżnik w tym
+czasie przyszedł 21 razy i szarpnął 50 razy, nikogo nie upolował, ale każde
+szarpnięcie zabiera 20% energii, a wszystkie zgony były z głodu. Szansa
+przyjścia z 0,25 na 0,1 na cykl. Drapieżnik ma być zdarzeniem, nie pogodą.

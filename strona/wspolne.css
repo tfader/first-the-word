@@ -331,3 +331,9 @@ canvas.echo { width: 100%; height: 28px; display: block; }
 /* słownik z obserwacji: znaki | reakcja | pewność */
 .log .r.slownik-z.slownik-o { grid-template-columns: minmax(200px, 1.1fr) minmax(220px, 1.4fr) minmax(120px, .7fr); }
 .slownik-o .mono { font-family: var(--mono); letter-spacing: .04em; }
+
+/* odśwież: przy nazwie, inny niż przyciski okien */
+.top .marka { display: flex; align-items: center; gap: 14px; }
+.odswiez { font: 500 13px/1 var(--sans); color: var(--life); background: var(--life-soft); border: 1px solid var(--life); border-radius: 4px; padding: 8px 12px; cursor: pointer; }   /* kształt jak przyciski okien, kolor życia */
+.odswiez:hover { border-color: var(--life); }
+.odswiez:active { transform: translateY(1px); }

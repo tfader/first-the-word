@@ -345,6 +345,8 @@ class Byt:
         self.ryt = 0.0                             # NABYTE: umiejętność rycia znaczeń w miejscu (0..1); odkrycie po spichlerzu i zimie, nauka od rodzica albo z odczytu
         self.zimy = 0                              # ile zim przeżyła (warunek odkrycia rytu)
         self.ryje = None                           # co w tym cyklu ryje: (klucz, skojarzenie) albo None; wykonuje świat
+        self.u_kresu = False                       # wie, że umrze: resztę czasu oddaje na spuściznę
+        self.wyryte = set()                        # klucze już wyryte u kresu (żeby nie ryć dwa razy tego samego)
         self.odklada = 0.0                         # ile w tym cyklu odłożyła do spichlerza (świat dopisuje do łąki)
         self.pobiera = 0.0                         # ile chce wziąć ze spichlerza (świat daje, ile jest)
         self.gromadzila = False                    # czy w tym cyklu miała do czynienia ze spichlerzem (temat mowy)
@@ -615,11 +617,50 @@ class Byt:
                 out.append((kl, d))
         return out
 
+    def najwazniejsze(self):
+        """Co u kresu wyryć najpierw: to, co najwięcej ważyło w energii. Znaczenie: suma bilansu, jaki po słowie
+        zostawał (zysk albo strata, byle duże). Łąka z mapy na tę porę: ile tam jadła (na 5 cykli). Kłamca: stała waga.
+        Kto nie ma nic, zostawia głos. None, gdy wszystko już wyryte."""
+        kand = []
+        for kl, d in self.znaczenia_rozumiane():
+            kand.append((abs(float(d.get("b", 0.0))), kl, "znaczenie", {"n": d["n"], "v": [float(x) for x in d["v"]], "b": float(d["b"])}))
+        for pora, m in self.mapa.items():
+            for miejsce, v in m.items():
+                kand.append((float(v) * 5.0, "laka:%s:%s" % (miejsce, pora), "laka", {"miejsce": str(miejsce), "pora": pora, "ile": float(v)}))
+        for nr in self.klamcy:
+            kand.append((3.0, "klamca:%d" % int(nr), "klamca", {"nr": int(nr)}))
+        kand = [k for k in kand if k[1] not in self.wyryte]
+        if kand:
+            w, kl, rodzaj, d = max(kand, key=lambda k: k[0])
+            return (kl, d, rodzaj)
+        glos = "@glos:%d" % self.nr
+        return None if glos in self.wyryte else (glos, None, "glos")
+
     def odczytaj(self, ryt):
         """Odczytanie rytu w miejscu: znaczenie wchodzi jak tradycja od rodzica, ale słabiej (pismo bez nauczyciela),
         i tym słabiej, im bardziej ryt zbladł. Kto odczytał, wie też, że ryć się da. Zwraca True, gdy czegoś się nauczyła."""
         kl = ryt.get("kl")
-        if not kl or kl in self.po_slowie or len(self.po_slowie) >= PAMIEC_SLOW or "n" not in ryt:
+        if not kl:
+            return False
+        rodzaj = ryt.get("rodzaj", "znaczenie")
+        if rodzaj == "laka":
+            m = self.mapa.setdefault(ryt.get("pora") or self.pora or "lato", {})
+            k = str(ryt.get("miejsce"))
+            nowe = float(ryt.get("ile", 0.0)) * RYT_SLABIEJ * float(ryt.get("sila", 1.0))
+            if m.get(k, 0.0) >= nowe:
+                return False
+            m[k] = nowe                                              # łąka z cudzej pamięci: słabiej, jak od rodzica
+            self.ryt = max(self.ryt, 0.1)
+            self.nauczone = getattr(self, "nauczone", 0) + 1
+            return True
+        if rodzaj == "klamca":
+            nr = int(ryt.get("nr", -1))
+            if nr < 0 or nr == self.nr or nr in self.klamcy:
+                return False
+            self.klamcy.add(nr)
+            self.ryt = max(self.ryt, 0.1)
+            return True
+        if kl in self.po_slowie or len(self.po_slowie) >= PAMIEC_SLOW or "n" not in ryt:
             return False
         waga = KULTURA_ZNACZEN * RYT_SLABIEJ * float(ryt.get("sila", 1.0)) * (0.5 + self.pojetnosc)
         self.po_slowie[kl] = {"n": max(1, int(round(ryt["n"] * waga))), "v": [float(x) * waga for x in ryt["v"]], "b": float(ryt["b"]) * waga}
@@ -1081,17 +1122,21 @@ class Byt:
                 self.ryje = (kl, {"n": d["n"], "v": [float(x) for x in d["v"]], "b": float(d["b"])})
                 self.energia -= KOSZT_RYTU
                 self.ryt = min(1.0, self.ryt + PRAKTYKA)
-        # spuścizna: u kresu (nie zapłaci następnego cyklu, nie ma tu co jeść) troskliwa oddaje resztę sił na ryt tego,
-        # co rozumie. Kto nic nie rozumie, ryje sam swój głos: imię bez znaczenia, nagrobek. Zapisz i umrzyj.
-        # Gen: troska (dziedziczna). Bagaż nie jest genem: znaczenia z życia. Umiejętność rytu niepotrzebna: to instynkt.
+        # spuścizna: u kresu (nie zapłaci następnego cyklu, nie ma tu co jeść) troskliwa wie, że umrze, i resztę czasu
+        # oddaje na ryt. Zapis to czas: jeden wpis na cykl, od najważniejszego (najcięższego w energii). Krótko żyjąca
+        # zdąży jeden. Kto się broni albo boli, nie ryje. Kto nic nie ma, ryje sam głos: imię, nagrobek.
+        # Gen: troska (dziedziczna). Bagaż nie jest genem. Umiejętność rytu niepotrzebna: to instynkt.
         self.spuscizna_teraz = None
-        if not getattr(self, "spuscizna", False) and 0.0 < self.energia < PROG_KRESU and self.zjadl <= 0.0 \
+        if not getattr(self, "u_kresu", False) and 0.0 < self.energia < PROG_KRESU and self.zjadl <= 0.0 \
                 and random.random() < getattr(self, "troska", 0.5):
+            self.u_kresu = True
             self.spuscizna = True
-            roz = self.znaczenia_rozumiane()
-            self.spuscizna_teraz = [(kl, {"n": d["n"], "v": [float(x) for x in d["v"]], "b": float(d["b"])}) for kl, d in roz] \
-                or [("@glos:%d" % self.nr, None)]
-            self.energia = 0.0
+        if getattr(self, "u_kresu", False) and self.energia > 0.0 and self.bolalo is None and getattr(self, "czyn_verb", None) != "bron":
+            wpis = self.najwazniejsze()
+            if wpis is not None:
+                self.spuscizna_teraz = wpis
+                self.wyryte.add(wpis[0])
+                self.energia -= KOSZT_RYTU
         self.otwarcia += len(o_r) + len(o_p) + len(o_e) + len(o_s) + len(o_i)
         self.najdluzsza = max(self.najdluzsza, len(o_r), len(o_p), len(o_e), len(o_s), len(o_i))
         self.wyszlo = w_r + w_p + w_e + w_s + w_i

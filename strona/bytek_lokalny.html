@@ -8,7 +8,7 @@
 <div class="page" data-i18n-title="tytul">
   <header class="top">
     <div class="brand">
-      <h1 data-i18n="marka">istota</h1>
+      <div class="marka"><h1 data-i18n="marka">istota</h1><button type="button" id="odswiezBtn" class="odswiez" title="odśwież"><span aria-hidden="true">↻</span> <span data-i18n="odswiez.btn">odśwież</span></button></div>
       <div class="akcje" id="akcje"><!-- @@SERWER_START --><button type="button" class="btn ghost" data-otworz="dlgDrzewo" data-i18n="rod.tytul">ród</button><button type="button" class="btn ghost" data-otworz="dlgCzas" data-i18n="rod.czas">linia czasu</button><button type="button" class="btn ghost" data-otworz="dlgDzieje" data-i18n="dz.btn">cywilizacja</button><button type="button" class="btn ghost" data-otworz="mapa" data-i18n="mapa.tytul">mapa</button><button type="button" class="btn ghost" data-otworz="dlgSlownik" data-i18n="slownik.tytul">słownik</button><button type="button" class="btn ghost" data-otworz="dlgGenomSwiata" data-i18n="gs.btn">genom</button><button type="button" class="btn ghost" data-otworz="dlgKronika" data-i18n="kr.tytul">kronika</button><button type="button" class="btn ghost" data-otworz="dlgIstoty" data-i18n="istoty.btn">istoty</button><button type="button" class="btn ghost" data-otworz="dlgMowa" data-i18n="powiedz.menu">powiedz</button><button type="button" class="btn ghost" data-otworz="dlgPowiadomienia" data-i18n="pow.btn">powiadomienia</button><button type="button" id="zatrzymajBtn" class="btn ghost" style="color:var(--dying)" data-i18n="stop.btn">zatrzymaj świat</button><!-- @@SERWER_END --></div>
       <select id="lang" class="lang"></select>
     </div>
@@ -177,7 +177,8 @@
           <option value="4" selected>4</option>
           <option value="8">8</option>
           <option value="16">16</option>
-          <option value="32" data-i18n="nowy.istot.32"></option>
+          <option value="32">32</option>
+          <option value="64" data-i18n="nowy.istot.64"></option>
         </select></label>
       <label><span data-i18n="nowy.jezyk"></span>
         <select id="jezykSwiata" class="pick">
@@ -211,7 +212,7 @@
   let ostatniStan = null;
   let czekamNaSwiat = 0;                     // chwila powołania świata: do tego czasu formularz się nie pokazuje
   let swiatSieRodzi = false;                 // podsumowanie stwierdziło, że świat nie zapisał jeszcze ciała
-  const rodzacySie = () => swiatSieRodzi || Date.now() - czekamNaSwiat < 30000;
+  const rodzacySie = () => swiatSieRodzi || Date.now() - czekamNaSwiat < 30000 || !!(ostatniStan && ostatniStan.rodzi_sie);   // po odświeżeniu strony pamięć znika: serwer mówi, że świat się rodzi
 
   function rysujOddech(cv, b) {
     const ctx = cv.getContext("2d"), W = cv.width, cx = W / 2, cy = W / 2;
@@ -377,7 +378,8 @@
     if (x.typ === "ryt") return t(x.odnowiony ? "zd.ryt.odnowiony" : "zd.ryt", { nr: x.nr, m: x.miejsce });
     if (x.typ === "odczytanie") return t(x.autor_zyje ? "zd.odczytanie" : "zd.odczytanie.zmarly", { nr: x.nr, od: x.od, m: x.miejsce });
     if (x.typ === "ryt_zatarty") return t("zd.ryt_zatarty", { nr: x.nr, m: x.miejsce });
-    if (x.typ === "spuscizna") return t(x.glos ? "zd.spuscizna.glos" : "zd.spuscizna", { nr: x.nr, m: x.miejsce, ile: x.ile, w: x.wiek });
+    if (x.typ === "spuscizna") return t(x.glos ? "zd.spuscizna.glos" : "zd.spuscizna", { nr: x.nr, m: x.miejsce, ile: x.ile, w: x.wiek, r: t("zd.rodzaj." + (x.rodzaj || "znaczenie")) });
+    if (x.typ === "odczytanie" && x.rodzaj && x.rodzaj !== "znaczenie") return t(x.autor_zyje ? "zd.odczytanie" : "zd.odczytanie.zmarly", { nr: x.nr, od: x.od, m: x.miejsce });
     if (x.typ === "znaczenie") return t("zd.znaczenie", { nr: x.nr, od: x.od, czyn: x.ludzko || x.czyn });
     if (x.typ === "zaraza") return t("zd.zaraza", { s: x.szczep, nr: x.nr, m: x.miejsce, z: x.zarazliwosc, k: x.koszt });
     if (x.typ === "zarazila_sie") return t("zd.zarazila_sie", { nr: x.nr, s: x.szczep, m: x.miejsce });
@@ -785,7 +787,7 @@
     $("dziejeLista").textContent = (d.zdarzenia || []).length ? "" : t("dz.cisza");
   }
   function opisDziejow(z) {
-    return t("dz.cykl", { n: z.cykl }) + " · " + t("dz.opis." + z.typ, { m: z.miejsce ?? "?", ilu: z.ilu ?? "?", ile: z.ile ?? "?", nr: z.nr ?? "?", z: z.z ?? "?", na: z.na ?? "?", od: z.typ === "odczytanie" ? (z.od ?? "?") : (z.od_cyklu ?? "?"), ostatni: (z.ostatni || []).join(", "), w: z.wiek ?? "?" });
+    return t("dz.cykl", { n: z.cykl }) + " · " + t("dz.opis." + z.typ, { m: z.miejsce ?? "?", ilu: z.ilu ?? "?", ile: z.ile ?? "?", nr: z.nr ?? "?", z: z.z ?? "?", na: z.na ?? "?", od: z.typ === "odczytanie" ? (z.od ?? "?") : (z.od_cyklu ?? "?"), ostatni: (z.ostatni || []).join(", "), w: z.wiek ?? "?", r: t("zd.rodzaj." + (z.rodzaj || "znaczenie")) });
   }
   async function otworzDzieje() {
     $("dlgDzieje").showModal();
@@ -1222,7 +1224,7 @@
       b.disabled = false;
     } catch (e) { $("nowyHint").textContent = t("brak_serwera"); b.disabled = false; }
   });
-  window.i18n.start().then(() => { odswiez(); setInterval(odswiez, 20000); setTimeout(cywilizacja, 400); setInterval(cywilizacja, 20000); zdarzenia(); setInterval(zdarzenia, 5000); if (location.hash === "#mapa") setTimeout(otworzMape, 800); if (location.hash === "#rod") setTimeout(() => { odswiezRod(); $("dlgDrzewo").showModal(); }, 800); if (location.hash === "#slownik") setTimeout(otworzSlownik, 800); if (location.hash === "#dzieje") setTimeout(otworzDzieje, 800); if (location.hash === "#gs") setTimeout(otworzGenomSwiata, 800); if (location.hash === "#portret") setTimeout(portret, 1200); if (location.hash === "#napisy") setTimeout(async () => { await napisyKoncowe(); const bx = $("napisyTresc"); bx.style.animation = "none"; bx.style.top = "60px"; }, 1500); if (location.hash === "#genom") setTimeout(async () => { if (ostatniStan && ostatniStan.byty.length) { await otworzDialog(ostatniStan.byty[0], ostatniStan); setTimeout(() => { $("dlg").close(); otworzGenom(); }, 1500); } }, 1200); });
+  window.i18n.start().then(() => { odswiez(); setTimeout(cywilizacja, 400); zdarzenia(); setInterval(zdarzenia, 5000); $("odswiezBtn").addEventListener("click", () => { odswiez(); cywilizacja(); zdarzenia(); }); /* strona nie odświeża się sama: tylko przycisk; powiadomienia dalej nasłuchują */ if (location.hash === "#mapa") setTimeout(otworzMape, 800); if (location.hash === "#rod") setTimeout(() => { odswiezRod(); $("dlgDrzewo").showModal(); }, 800); if (location.hash === "#slownik") setTimeout(otworzSlownik, 800); if (location.hash === "#dzieje") setTimeout(otworzDzieje, 800); if (location.hash === "#gs") setTimeout(otworzGenomSwiata, 800); if (location.hash === "#portret") setTimeout(portret, 1200); if (location.hash === "#napisy") setTimeout(async () => { await napisyKoncowe(); const bx = $("napisyTresc"); bx.style.animation = "none"; bx.style.top = "60px"; }, 1500); if (location.hash === "#genom") setTimeout(async () => { if (ostatniStan && ostatniStan.byty.length) { await otworzDialog(ostatniStan.byty[0], ostatniStan); setTimeout(() => { $("dlg").close(); otworzGenom(); }, 1500); } }, 1200); });
   /* @@ZRODLO_END */
 })();
 </script>
