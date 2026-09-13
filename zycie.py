@@ -544,8 +544,9 @@ def main():
         # życie zaczyna się tam, gdzie jest pokarm: istoty rozdzielone po łąkach
         zyznosc = nowe_pole(ISTOT)
         laki = [p for p in range(len(zyznosc)) if zyznosc[p] >= 0.99]   # środki łąk, równo po kole
-        # cztery grupy na start, rozrzucone po świecie: co czwarta łąka z równo rozłożonych, czyli najdalej, jak się da
-        grup = min(4, len(laki), max(1, ISTOT // 2))
+        # grupy na start po cztery istoty, każda na własnej łące, równo po kole (było: najwyżej cztery grupy,
+        # więc 64 istoty na start to 16 na łąkę i 43 zgony z głodu w 68 cykli; 32 dawało 8 na łąkę)
+        grup = min(len(laki), max(1, ISTOT // 4))
         wybrane = [laki[int(k * len(laki) / grup)] for k in range(grup)]
         for i, b in enumerate(pierwsi):
             b.miejsce = str(wybrane[i % grup])

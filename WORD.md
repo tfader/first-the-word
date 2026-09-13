@@ -1597,3 +1597,10 @@ nieodczytany, jak nieznane pismo.
 czasie przyszedł 21 razy i szarpnął 50 razy, nikogo nie upolował, ale każde
 szarpnięcie zabiera 20% energii, a wszystkie zgony były z głodu. Szansa
 przyjścia z 0,25 na 0,1 na cykl. Drapieżnik ma być zdarzeniem, nie pogodą.
+
+## Kalibracja (2026-09-13): grupy na start
+Świat z 64 istot stracił 43 w 68 cykli (4 narodziny), przy 80 starciach
+i 350 odwrotach. Przyczyna: na start były najwyżej cztery grupy, więc
+64 istoty to 16 na jednej łące (32 dawało 8). Teraz grupa to cztery istoty
+na własnej łące, łąk jest tyle, ile grup, równo po kole. Gęstość na start
+nie zależy od liczby istot. Reszta bez zmian.
