@@ -320,7 +320,49 @@ def wpis_zmarlej(b, swiat, ostatnia=False):
             "rozmowy": getattr(b, "rozmowy", 0), "slownik": sorted(b.slownik.keys()), "krokow": b.krokow, "sen": b.sen}
 
 
-POJEMNOSC_SWIATA = int(os.environ.get("POJEMNOSC_SWIATA", "2000"))   # tylu żywych świat uniesie: powyżej nie ma urodzeń
+POJEMNOSC_SWIATA = int(os.environ.get("POJEMNOSC_SWIATA", "2000"))
+WARUNKI_TRYB = os.environ.get("WARUNKI", "stale")   # stale: wartości domyślne; losowe: świat losuje swoją planetę raz, przy powołaniu
+GESTOSC = 4                                          # istot na łąkę na start (z warunków)
+# macierz warunków X: pokrętła planety, którymi dotąd kręciliśmy ręką. Każdy świat dostaje je raz i żyje pod nimi.
+# (nazwa, moduł, atrybut, min, max, domyślna, całkowita?). Losowanie jednostajne w skali logarytmicznej.
+WARUNKI = [
+    ("hojnosc", "word", "HOJNOSC", 9.0, 27.0, 18.0, False),
+    ("odrastanie", "word", "ODRASTANIE", 0.03, 0.12, 0.06, False),
+    ("wyjadanie", "word", "WYJADANIE", 0.0015, 0.006, 0.0015, False),
+    ("kleska", "zycie", "KLESKA", 1 / 40000, 1 / 10000, 1 / 20000, False),
+    ("drapieznik", "zycie", "DRAPIEZNIK", 0.05, 0.25, 0.1, False),
+    ("lowy", "zycie", "LOWY", 0.3, 0.7, 0.5, False),
+    ("wybuch", "zycie", "WYBUCH", 1 / 240, 1 / 60, 1 / 120, False),
+    ("zarazliwosc", "zycie", "ZARAZLIWOSC", 0.03, 0.12, 0.07, False),
+    ("rok", "zycie", "ROK", 240, 720, 480, True),
+    ("starzenie", "word", "STARZENIE", 0.001, 0.004, 0.002, False),
+    ("gestosc", "zycie", "GESTOSC", 2, 8, 4, True),
+]
+
+
+def losuj_warunki(tryb):
+    """Warunki świata: domyślne albo wylosowane raz (log-jednostajnie: małe i duże równie prawdopodobne)."""
+    import math
+    out = {}
+    for nazwa, _, _, lo, hi, dom, calk in WARUNKI:
+        if tryb == "losowe":
+            v = math.exp(random.uniform(math.log(lo), math.log(hi)))
+            out[nazwa] = int(round(v)) if calk else float(f"{v:.4g}")
+        else:
+            out[nazwa] = dom
+    return out
+
+
+def zastosuj_warunki(swiat):
+    """Świat żyje pod swoimi warunkami: wpisujemy je do stałych modułów. Stare światy bez warunków dostają domyślne."""
+    w = swiat.get("warunki") or losuj_warunki("stale")
+    for nazwa, modul, attr, lo, hi, dom, calk in WARUNKI:
+        v = w.get(nazwa, dom)
+        if modul == "word":
+            setattr(word, attr, v)
+        else:
+            globals()[attr] = v
+   # tylu żywych świat uniesie: powyżej nie ma urodzeń
 
 
 def sygnatura(swiat, nazwa):
@@ -348,7 +390,7 @@ def pora_roku(swiat):
 def nowe_pole(istot=1):
     """Żyzność pierwszych miejsc: łąk tyle, ile trzeba dla istot na start (co najmniej 3,
     jedna na dwie istoty), koło rośnie razem z liczbą łąk (5 miejsc na łąkę, co najmniej 16)."""
-    laki = max(4, -(-istot // 4))                                   # co najmniej cztery łąki: cztery grupy na start, daleko od siebie
+    laki = max(4, -(-istot // GESTOSC))                             # co najmniej cztery łąki; tyle grup, ile potrzeba przy tej gęstości
     na_lake = ROZMIARY.get(ROZMIAR, ROZMIARY["zwykly"])[0]
     n = max(word.MIEJSC if na_lake >= 5 else 9, na_lake * laki)
     zyznosc = [0.05] * n
@@ -542,19 +584,21 @@ def main():
             b.plec = "n" if i % 2 == 0 else "d"                     # na start po równo
             pierwsi.append(b)
         Byt.licznik = ISTOT
+        warunki = losuj_warunki(WARUNKI_TRYB)                    # planeta tego świata: raz, na zawsze
+        zastosuj_warunki({"warunki": warunki})
         # życie zaczyna się tam, gdzie jest pokarm: istoty rozdzielone po łąkach
         zyznosc = nowe_pole(ISTOT)
         laki = [p for p in range(len(zyznosc)) if zyznosc[p] >= 0.99]   # środki łąk, równo po kole
         # grupy na start po cztery istoty, każda na własnej łące, równo po kole (było: najwyżej cztery grupy,
         # więc 64 istoty na start to 16 na łąkę i 43 zgony z głodu w 68 cykli; 32 dawało 8 na łąkę)
-        grup = min(len(laki), max(1, ISTOT // 4))
+        grup = min(len(laki), max(1, ISTOT // GESTOSC))
         wybrane = [laki[int(k * len(laki) / grup)] for k in range(grup)]
         for i, b in enumerate(pierwsi):
             b.miejsce = str(wybrane[i % grup])
         swiat = {
             "narodziny": time.time(), "cykl_swiata": 0, "losowan_cudu": proby, "dwoje": DWOJE,
             "cykl_sekund": CYKL_SEKUND, "wymiary": WYMIARY, "istot_na_start": ISTOT, "geny": GENY, "rozmiar": ROZMIAR,
-            "pojemnosc_swiata": POJEMNOSC_SWIATA, "jezyk": JEZYK,
+            "pojemnosc_swiata": POJEMNOSC_SWIATA, "jezyk": JEZYK, "warunki": warunki, "warunki_tryb": WARUNKI_TRYB,
             "miejsca": nowe_miejsca(zyznosc), "kolejnosc": [str(i) for i in range(len(zyznosc))],
             "pole": list(zyznosc),
             "kierunek_rany": word.KIERUNEK_RANY, "kierunek_pokarmu": word.KIERUNEK_POKARMU,
@@ -574,6 +618,7 @@ def main():
         uzupelnij_tlumaczenia(swiat)
 
     CYKL_SEKUND = float(swiat.get("cykl_sekund", CYKL_SEKUND))
+    zastosuj_warunki(swiat)                                       # planeta tego świata (stare światy: domyślna)
     word.ustaw_wymiary(swiat.get("wymiary", 4))
     if "kierunek_wolania" not in swiat:
         swiat["kierunek_wolania"] = word.losowy_kierunek()

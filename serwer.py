@@ -45,7 +45,11 @@ def stan_dla_strony():
     # Bez tego odświeżona strona pokazywała „nikt nie żyje” i formularz powołania, jakby nic się nie stało.
     doc["rodzi_sie"] = bool(doc["proces_zyje"]) and not ARCHIWUM and (doc.get("brak_ciala") or (not doc.get("zywych") and not doc.get("zmarlych") and not doc.get("wygasla")))
     doc["archiwum"] = int(ARCHIWUM) if ARCHIWUM else None
-    doc["dwoje"] = most.czytaj_json(most.CIALO, {}).get("dwoje", False)
+    cialo_ = most.czytaj_json(most.CIALO, {})
+    doc["dwoje"] = cialo_.get("dwoje", False)
+    import zycie as _zycie
+    doc["warunki"] = cialo_.get("warunki") or _zycie.losuj_warunki("stale")   # planeta tego świata; stary świat: domyślna
+    doc["warunki_tryb"] = cialo_.get("warunki_tryb")
     doc["slowa"] = sorted(
         [{"tekst": s["tekst"], "status": s["status"], "czas": s.get("czas", 0), "do": s.get("do")} for s in slowa.values()],
         key=lambda s: -(s["czas"] or 0))[:40]
@@ -680,7 +684,7 @@ def wznow_zycie():
     return 200, {"wznowiony": True, "pid": proc.pid}
 
 
-def nowy_swiat(geny=None, dwoje=False, cykl=None, wymiary=None, istot=None, rozmiar=None, pojemnosc=None, jezyk=None):
+def nowy_swiat(geny=None, dwoje=False, cykl=None, wymiary=None, istot=None, rozmiar=None, pojemnosc=None, jezyk=None, warunki=None):
     """Stary świat idzie do archiwum (rzeczywistość równoległa), rusza nowy proces życia.
     Tylko gdy w obecnym świecie nikt nie żyje. geny: ile genów ma mieć pierwszy byt."""
     def liczba(x, dom):
@@ -696,6 +700,7 @@ def nowy_swiat(geny=None, dwoje=False, cykl=None, wymiary=None, istot=None, rozm
     rozmiar = rozmiar if rozmiar in ("ciasny", "zwykly", "rozlegly") else "zwykly"
     pojemnosc = max(10, min(20000, int(liczba(pojemnosc, os.environ.get("POJEMNOSC_SWIATA", "2000")))))   # ilu żywych świat uniesie
     jezyk = jezyk if jezyk in ("pl", "en") else os.environ.get("JEZYK", "pl")   # język nazw czynów w tym świecie
+    warunki = warunki if warunki in ("stale", "losowe") else "stale"          # planeta: domyślna albo wylosowana raz
     swiat = most.czytaj_json(most.CIALO, None)
     if proces_zyje():
         return 409, {"blad": "proces życia jeszcze działa"}
@@ -722,7 +727,7 @@ def nowy_swiat(geny=None, dwoje=False, cykl=None, wymiary=None, istot=None, rozm
     with open(os.path.join(KATALOG, "zycie.log"), "a") as log:
         proc = subprocess.Popen([sys.executable, os.path.join(KATALOG, "zycie.py")],
                             cwd=KATALOG, stdout=log, stderr=subprocess.STDOUT,
-                            env={**os.environ, "CYKL": str(cykl), "GENY": str(geny), "DWOJE": "1" if dwoje else "0", "WYMIARY": str(wymiary), "ISTOT": str(istot), "ROZMIAR": rozmiar, "POJEMNOSC_SWIATA": str(pojemnosc), "JEZYK": jezyk},
+                            env={**os.environ, "CYKL": str(cykl), "GENY": str(geny), "DWOJE": "1" if dwoje else "0", "WYMIARY": str(wymiary), "ISTOT": str(istot), "ROZMIAR": rozmiar, "POJEMNOSC_SWIATA": str(pojemnosc), "JEZYK": jezyk, "WARUNKI": warunki},
                             start_new_session=True)
     with open(ZYCIE_PID, "w") as f:
         f.write(str(proc.pid))
@@ -936,7 +941,7 @@ class Bytek(BaseHTTPRequestHandler):
         if sciezka == "/api/nowy_swiat":
             try:
                 with BLOKADA:
-                    kod, odp = nowy_swiat(dane.get("geny"), bool(dane.get("dwoje")), dane.get("cykl"), dane.get("wymiary"), dane.get("istot"), dane.get("rozmiar"), dane.get("pojemnosc"), dane.get("jezyk"))
+                    kod, odp = nowy_swiat(dane.get("geny"), bool(dane.get("dwoje")), dane.get("cykl"), dane.get("wymiary"), dane.get("istot"), dane.get("rozmiar"), dane.get("pojemnosc"), dane.get("jezyk"), dane.get("warunki"))
             except (TypeError, ValueError):
                 return self._json(400, {"blad": "złe parametry"})
             return self._json(kod, odp)

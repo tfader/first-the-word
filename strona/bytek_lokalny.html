@@ -166,6 +166,11 @@
           <option value="zwykly" selected data-i18n="nowy.rozmiar.zwykly"></option>
           <option value="rozlegly" data-i18n="nowy.rozmiar.rozlegly"></option>
         </select></label>
+      <label><span data-i18n="nowy.warunki"></span>
+        <select id="warunki" class="pick">
+          <option value="stale" selected data-i18n="nowy.warunki.stale"></option>
+          <option value="losowe" data-i18n="nowy.warunki.losowe"></option>
+        </select></label>
       <label><span data-i18n="nowy.istot"></span>
         <select id="istot" class="pick">
           <option value="2" data-i18n="nowy.istot.2"></option>
@@ -718,6 +723,11 @@
     } catch (e) { box.innerHTML = `<p class="hint err">${t("brak_serwera")}</p>`; }
   }
 
+  function fmtWar(k, v) {
+    if (k === "kleska" || k === "wybuch") return "1 / " + Math.round(1 / v);
+    if (k === "rok" || k === "gestosc") return String(v);
+    return String(+(+v).toPrecision(3));
+  }
   /* dzieje cywilizacji: ile istot żyło w każdym cyklu i najważniejsze zdarzenia */
   const DZ_TYPY = ["zaraza", "pozar", "powodz", "polowanie", "gatunki", "wymieranie", "odkrycie", "koniec"];
   let ostatnieCyw = null;
@@ -982,6 +992,10 @@
       ${wiersz(t("cyw.rozmnazanie"), s2.dwoje ? t("rozm.dwoje") : t("rozm.jedno"))}
       ${wiersz(t("cyw.ozdoba"), `${p.ozdoba ?? "—"} / ${p.gust ?? "—"}`)}
       </div></div>
+      <div><h4>${t("cyw.planeta")}</h4><div class="wiersze">
+      ${wiersz(t("cyw.planeta.tryb"), s2.warunki_tryb ? t("nowy.warunki." + s2.warunki_tryb) : t("nowy.warunki.stale"))}
+      ${["hojnosc", "odrastanie", "wyjadanie", "kleska", "drapieznik", "lowy", "wybuch", "zarazliwosc", "rok", "starzenie", "gestosc"].map((k) => wiersz(t("war." + k), s2.warunki && s2.warunki[k] != null ? fmtWar(k, s2.warunki[k]) : "—")).join("")}
+      </div></div>
       <div><h4>${t("cyw.zagrozenia")}</h4><div class="wiersze">
       ${wiersz(t("cyw.chorych"), t("cyw.chorych.v", { n: p.chorych ?? 0, o: p.odpornosc ?? "—" }))}
       ${wiersz(t("cyw.ognisk"), p.ogniska ?? 0)}
@@ -1190,7 +1204,7 @@
   $("nowySwiat").addEventListener("click", async () => {
     const b = $("nowySwiat"); b.disabled = true; $("nowyHint").textContent = t("nowy.trwa");
     try {
-      const r = await fetch("/api/nowy_swiat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ geny: +$("geny").value, dwoje: true, cykl: +$("cykl").value, wymiary: +$("wymiary").value, istot: +$("istot").value, rozmiar: $("rozmiar").value, pojemnosc: +$("pojemnosc").value, jezyk: $("jezykSwiata").value }) });
+      const r = await fetch("/api/nowy_swiat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ geny: +$("geny").value, dwoje: true, cykl: +$("cykl").value, wymiary: +$("wymiary").value, istot: +$("istot").value, rozmiar: $("rozmiar").value, pojemnosc: +$("pojemnosc").value, jezyk: $("jezykSwiata").value, warunki: $("warunki").value }) });
       const o = await r.json();
       if (!r.ok) { $("nowyHint").textContent = o.blad || t("nowy.blad"); b.disabled = false; return; }
       $("nowyHint").textContent = t("nowy.ok", { ile: o.istot, geny: o.geny, gdzie: o.poprzedni_w ? o.poprzedni_w.split("/").slice(-2).join("/") : "—" });

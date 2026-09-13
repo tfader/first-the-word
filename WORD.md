@@ -1635,3 +1635,33 @@ Odruch ucieczki nie jest wspólny dla wszystkich: gen płochliwości
 prawdopodobieństwem istota na zagrożenie ucieka, a z jakim zostaje.
 Ucieczka kosztuje krok i łąkę, zostanie może kosztować życie. Dobór wybierze;
 średnia po pokoleniach w tabeli cech.
+
+## Propozycja (2026-09-13): macierz warunków X, do uzgodnienia
+Pokrętła, którymi kręciliśmy, mają przestać być nasze. Każdy powołany świat
+losuje swoje warunki raz, na początku, zapisuje je w ciele i dalej żyje pod
+nimi; my ich nie zmieniamy w trakcie. Do macierzy wchodzą warunki świata
+(planeta), nie mechanika istot (ciało): to, co u nas kręciliśmy.
+Przedziały z historii kalibracji (gdzie była), inaczej ±połowa wokół dziś:
+- hojność łąk 9–27 (było 4,5 → 9 → 18)
+- odrastanie łąk 0,03–0,12
+- wyjadanie 0,0015–0,006 (było 0,006)
+- klęski (pożar/powódź) 1/40000–1/10000 na miejsce i cykl
+- drapieżnik 0,05–0,25 na cykl (było 0,25 → 0,1); skuteczność łowów 0,3–0,7
+- nowy szczep choroby 1/240–1/60 na cykl; zaraźliwość 0,03–0,12
+- rok 240–720 cykli (było 480)
+- starzenie 0,001–0,004 (dziś 0,002: połowa absorpcji po 250 cyklach)
+- gęstość na start: 2–8 istot na łąkę (było 8 i 16, dziś 4)
+Losowanie jednostajne w skali logarytmicznej (małe i duże równie
+prawdopodobne). Warunki widać na stronie w podsumowaniu świata, żeby było
+wiadomo, jaki świat oglądamy. Od tej pory kalibracja to zmiana przedziału,
+nie wartości, i tylko między światami.
+
+## Kawałek 98 (2026-09-13): macierz warunków X
+Parametr przy powołaniu: warunki stałe (jak dotąd) albo losowe. Przy losowych
+świat raz, na początku, losuje swoją planetę z przedziałów (log-jednostajnie):
+hojność łąk 9–27, odrastanie 0,03–0,12, wyjadanie 0,0015–0,006, klęski
+1/40000–1/10000, drapieżnik 0,05–0,25, łowy 0,3–0,7, nowy szczep 1/240–1/60,
+zaraźliwość 0,03–0,12, rok 240–720, starzenie 0,001–0,004, gęstość na start
+2–8 istot na łąkę. Warunki zapisane w ciele świata, widoczne w podsumowaniu
+jako „planeta”. Biologia istot zostaje stała: światy różnią się planetą, nie
+gatunkiem. Od tej pory kalibracja to zmiana przedziału, między światami.
