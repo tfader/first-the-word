@@ -638,7 +638,7 @@ def main():
                     b.krok(dk)
                     b.przechodzi = dalej is not None and str(dk) != dalej   # cel dalej: tu tylko przechodzi
                     b.energia -= word.KOSZT_RUCHU * 0.5 * klimat_miejsca(swiat, tu_start, swiat["miejsca"][tu_start])["wiatr"]   # pod wiatr
-            elif b.energia > word.SYTOSC and not b.ruszyl and random.random() < 0.07 * b.ciekawosc:   # zwiad rzadziej: kto ma łąkę, niech na niej siedzi
+            elif b.energia > word.SYTOSC and not b.ruszyl and random.random() < 0.14 * b.ciekawosc:   # zwiad: syta czasem sprawdza, czy obok nie jest lepiej
                 # zwiad: syta czasem rusza, gdy obok pachnie lepiej. Ryzyko, ale i szansa na lepsze miejsce.
                 dk = dokad(swiat, b, zwiad=True, zywi=zywi)
                 if dk is not None and b.energia > word.KOSZT_RUCHU * 2:

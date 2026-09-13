@@ -70,7 +70,7 @@ MIEJSC = 16                  # świat to koło z tylu miejsc
 DZIECINSTWO = 8              # tyle cykli potomek jest karmiony przez rodziców; potem pępowina odcięta
 KARMIENIE = 0.8              # tyle energii rodzic oddaje dziecku na cykl, jeśli sam nie głoduje
 KOSZT_RUCHU = 0.3            # przejście do sąsiedniego miejsca
-GLOD_RUCHU = 0.25            # poniżej takiego głodu byt nie rusza się z miejsca
+GLOD_RUCHU = 0.15            # poniżej takiego głodu byt nie rusza się z miejsca
 ODRASTANIE = 0.06           # gęstość pokarmu wraca do żyzności o tyle na cykl (stada ogryzały swoje łąki szybciej, niż odrastały)
 WYJADANIE = 0.0015           # o tyle maleje gęstość łąki na jednostkę zjedzonego (było 0,006: plon urósł 4×, wyjadanie musi zmaleć 4×, inaczej tłum zjada łąkę w kilkanaście cykli)
 KOSZT_SILY = 0.25            # silna istota płaci za trwanie do tyle więcej (mięśnie kosztują)
@@ -478,7 +478,7 @@ class Byt:
         if self.spala:
             return self.idzie                            # po śnie nie ocenia łąki: nie żerowała, więc nic nie wie
         self.srednio = 0.7 * self.srednio + 0.3 * self.zjadl
-        glodno_tu = self.srednio < KOSZT_TRWANIA
+        glodno_tu = self.srednio < KOSZT_TRWANIA * 1.4      # chudo to nie dopiero głód: łąka, która ledwo starczy na trwanie, już nie wystarcza
         if not self.idzie:
             self.zle = self.zle + 1 if glodno_tu else 0
             if glod >= GLOD_RUCHU and self.zle >= self.wytrwalosc:
