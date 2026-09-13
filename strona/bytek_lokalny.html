@@ -9,7 +9,7 @@
   <header class="top">
     <div class="brand">
       <div class="marka"><h1 data-i18n="marka">istota</h1><button type="button" id="odswiezBtn" class="odswiez" title="odśwież"><span aria-hidden="true">↻</span> <span data-i18n="odswiez.btn">odśwież</span></button></div>
-      <div class="akcje" id="akcje"><!-- @@SERWER_START --><button type="button" class="btn ghost" data-otworz="dlgDrzewo" data-i18n="rod.tytul">ród</button><button type="button" class="btn ghost" data-otworz="dlgCzas" data-i18n="rod.czas">linia czasu</button><button type="button" class="btn ghost" data-otworz="dlgDzieje" data-i18n="dz.btn">cywilizacja</button><button type="button" class="btn ghost" data-otworz="mapa" data-i18n="mapa.tytul">mapa</button><button type="button" class="btn ghost" data-otworz="dlgSlownik" data-i18n="slownik.tytul">słownik</button><button type="button" class="btn ghost" data-otworz="dlgGenomSwiata" data-i18n="gs.btn">genom</button><button type="button" class="btn ghost" data-otworz="dlgKronika" data-i18n="kr.tytul">kronika</button><button type="button" class="btn ghost" data-otworz="dlgIstoty" data-i18n="istoty.btn">istoty</button><button type="button" class="btn ghost" data-otworz="dlgMowa" data-i18n="powiedz.menu">powiedz</button><button type="button" class="btn ghost" data-otworz="dlgPowiadomienia" data-i18n="pow.btn">powiadomienia</button><button type="button" id="zatrzymajBtn" class="btn ghost" style="color:var(--dying)" data-i18n="stop.btn">zatrzymaj świat</button><!-- @@SERWER_END --></div>
+      <div class="akcje" id="akcje"><!-- @@SERWER_START --><button type="button" class="btn ghost" data-otworz="dlgDrzewo" data-i18n="rod.tytul">ród</button><button type="button" class="btn ghost" data-otworz="dlgDzieje" data-i18n="dz.btn">cywilizacja</button><button type="button" class="btn ghost" data-otworz="mapa" data-i18n="mapa.tytul">mapa</button><button type="button" class="btn ghost" data-otworz="dlgSlownik" data-i18n="slownik.tytul">słownik</button><button type="button" class="btn ghost" data-otworz="dlgGenomSwiata" data-i18n="gs.btn">genom</button><button type="button" class="btn ghost" data-otworz="dlgKronika" data-i18n="kr.tytul">kronika</button><button type="button" class="btn ghost" data-otworz="dlgIstoty" data-i18n="istoty.btn">istoty</button><button type="button" class="btn ghost" data-otworz="dlgMowa" data-i18n="powiedz.menu">powiedz</button><button type="button" class="btn ghost" data-otworz="dlgPowiadomienia" data-i18n="pow.btn">powiadomienia</button><button type="button" id="zatrzymajBtn" class="btn ghost" style="color:var(--dying)" data-i18n="stop.btn">zatrzymaj świat</button><!-- @@SERWER_END --></div>
       <select id="lang" class="lang"></select>
     </div>
   </header>
@@ -132,11 +132,6 @@
     <div class="pre" id="dziejeLista" style="margin-top:12px"></div>
   </dialog>
 
-  <dialog id="dlgCzas" class="dlg szeroki">
-    <div class="dlg-head"><h3 data-i18n="rod.czas">linia czasu świata</h3><button type="button" class="btn ghost" data-zamknij="dlgCzas" data-i18n="dlg.zamknij">Zamknij</button></div>
-    <p class="hint" data-i18n="rod.czas.lead" style="margin-bottom:12px"></p>
-    <div class="drzewo"><svg id="czasSvg" width="640" height="120"></svg></div>
-  </dialog>
 
   <!-- @@KONIEC_START -->
   <section id="koniec" class="panel" hidden aria-label="Nowy świat">
@@ -596,22 +591,6 @@
       const t3 = el("text", { x: 8, y: 50, class: "d" }); t3.textContent = o.dzieci ? t("dzieci", { n: o.dzieci }) : (o.zyje ? "E " + o.energia : t("rod.bez_dzieci")); gN.appendChild(t3);
       svg.appendChild(gN);
     });
-    const cz = $("czasSvg"); cz.innerHTML = "";
-    const T = Math.max(1, d.cykl_swiata), L = 56, R = 16, rowH = 18, top = 22;
-    const cw = Math.max(640, Math.min(2400, T * 4 + L + R)), ch = top + osoby.length * rowH + 30;
-    cz.setAttribute("width", cw); cz.setAttribute("height", ch);
-    const sx = (c) => L + (cw - L - R) * (c / T);
-    cz.appendChild(el("line", { x1: L, y1: ch - 22, x2: cw - R, y2: ch - 22, class: "os" }));
-    const krok = T > 400 ? 100 : T > 150 ? 50 : T > 60 ? 20 : 10;
-    for (let c = 0; c <= T; c += krok) { cz.appendChild(el("line", { x1: sx(c), y1: ch - 22, x2: sx(c), y2: ch - 17, class: "os" })); const tk = el("text", { x: sx(c), y: ch - 6, class: "tick", "text-anchor": "middle" }); tk.textContent = c; cz.appendChild(tk); }
-    const tn = el("text", { x: sx(T), y: 12, class: "tick", "text-anchor": "end" }); tn.textContent = t("rod.teraz", { n: T }); cz.appendChild(tn);
-    osoby.forEach((o, i) => {
-      const y = top + i * rowH, od = o.urodzony ?? 0, doC = o.zyje ? T : (o.zmarl ?? od + o.wiek);
-      const lb = el("text", { x: L - 6, y: y + 12, class: "lbl", "text-anchor": "end" }); lb.textContent = t("nr", { nr: o.nr }); cz.appendChild(lb);
-      cz.appendChild(el("rect", { x: sx(od), y: y + 3, width: Math.max(2, sx(doC) - sx(od)), height: rowH - 6, rx: 2, class: "bar" + (o.zyje ? " zyje" : "") }));
-      if (o.rodzic == null) cz.appendChild(el("circle", { cx: sx(od), cy: y + rowH / 2, r: 4, class: "cud" }));
-    });
-    const lg = el("text", { x: L, y: 12, class: "tick" }); lg.textContent = t("rod.legenda"); cz.appendChild(lg);
   }
   let ostatniRod = null;
   async function odswiezRod() {
@@ -740,7 +719,7 @@
   }
 
   /* dzieje cywilizacji: ile istot żyło w każdym cyklu i najważniejsze zdarzenia */
-  const DZ_TYPY = ["zaraza", "pozar", "powodz", "polowanie", "gatunki", "wymieranie", "odkrycie", "odczytanie", "spuscizna", "koniec"];
+  const DZ_TYPY = ["zaraza", "pozar", "powodz", "polowanie", "gatunki", "wymieranie", "odkrycie", "koniec"];
   let ostatnieCyw = null;
   function rysujDzieje(d) {
     ostatnieCyw = d;
@@ -806,7 +785,7 @@
     odswiezRod(); $(id).showModal();
   }));
   document.querySelectorAll("[data-zamknij]").forEach((b) => b.addEventListener("click", () => $(b.getAttribute("data-zamknij")).close()));
-  ["dlgDrzewo", "dlgCzas", "dlgDzieje", "dlgSlownik", "dlgGenom", "dlgGenomSwiata", "dlgKronika", "dlgPortret"].forEach((id) => $(id).addEventListener("click", (e) => { if (e.target === $(id)) $(id).close(); }));
+  ["dlgDrzewo", "dlgDzieje", "dlgSlownik", "dlgGenom", "dlgGenomSwiata", "dlgKronika", "dlgPortret"].forEach((id) => $(id).addEventListener("click", (e) => { if (e.target === $(id)) $(id).close(); }));
 
   // --- mapa miejsc: sieć, układ siłowy ---
   const uklad = {};

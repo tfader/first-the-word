@@ -530,7 +530,7 @@ def dzieje():
     }
 
 
-WAZNE_ZDARZENIA = ("zaraza", "pozar", "powodz", "upolowana", "gatunki", "odczytanie", "odkrycie", "koniec", "spuscizna")   # rzadkie i dotykające wielu istot naraz
+WAZNE_ZDARZENIA = ("zaraza", "pozar", "powodz", "upolowana", "gatunki", "odkrycie", "koniec")   # spuścizna i odczytanie to sprawy jednej istoty: zostają w kronice   # rzadkie i dotykające wielu istot naraz
 # drapieżnik przychodzi co kilka cykli i zwykle odchodzi z niczym, więc liczy się dopiero polowanie z ofiarą;
 # spis gatunków robi się co 50 cykli, więc liczy się dopiero zmiana ich liczby
 

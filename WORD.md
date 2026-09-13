@@ -1604,3 +1604,8 @@ i 350 odwrotach. Przyczyna: na start były najwyżej cztery grupy, więc
 64 istoty to 16 na jednej łące (32 dawało 8). Teraz grupa to cztery istoty
 na własnej łące, łąk jest tyle, ile grup, równo po kole. Gęstość na start
 nie zależy od liczby istot. Reszta bez zmian.
+
+## Doprecyzowanie (2026-09-13): dzieje bez spuścizn
+Spuścizna i odczytanie rytu to sprawy jednej istoty i zdarzają się często,
+więc na osi dziejów cywilizacji ich nie ma; zostają w kronice. Na osi
+zostaje odkrycie rytu (przełom) i to, co dotyka wielu naraz.
