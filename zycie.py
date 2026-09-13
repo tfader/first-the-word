@@ -78,7 +78,7 @@ def byt_do_slownika(b):
         "spala": b.spala, "lownosc": getattr(b, "lownosc", 0.0), "pora": b.pora,
         "idzie": b.idzie, "krokow": b.krokow, "srednio": b.srednio,
         "dobre_miejsce": b.dobre_miejsce, "dobre_ile": b.dobre_ile, "zrozumiane": sorted(b.zrozumiane),
-        "poprzednio_zjadl": b.poprzednio_zjadl, "ryt": b.ryt, "zimy": getattr(b, "zimy", 0),
+        "poprzednio_zjadl": b.poprzednio_zjadl, "ryt": b.ryt, "zimy": getattr(b, "zimy", 0), "spuscizna": getattr(b, "spuscizna", False),
         "ozdoba": b.ozdoba, "gust": b.gust, "troska": b.troska, "odpornosc": b.odpornosc, "chora": list(b.chora) if b.chora else None, "przechorowane": sorted(b.przechorowane),
         "po_slowie": {k: {"n": v["n"], "v": [round(x, 4) for x in v["v"]], "b": round(v["b"], 3)} for k, v in b.po_slowie.items() if "n" in v}, "czeka_skutek": b.czeka_skutek,
         "sen": b.sen, "otwarcia": b.otwarcia, "najdluzsza": b.najdluzsza, "dzieci": b.dzieci,
@@ -107,7 +107,7 @@ def byt_ze_slownika(d):
     b.rodzic = d.get("rodzic"); b.rodzic2 = d.get("rodzic2"); b.urodzony_w_cyklu = d.get("urodzony_w_cyklu")
     b.miejsce = str(d.get("miejsce", 0)); b.poprzednie = d.get("poprzednie"); b.kierunek = d.get("kierunek", 1)
     b.wytrwalosc = d.get("wytrwalosc", 2); b.sila = d.get("sila", b.sila); b.ciekawosc = d.get("ciekawosc", b.ciekawosc); b.optimum = d.get("optimum", b.optimum); b.tolerancja = d.get("tolerancja", b.tolerancja); b.staz = d.get("staz", 0); b.nauczone = d.get("nauczone", 0); b.plec = d.get("plec", b.plec); b.stadnosc = d.get("stadnosc", b.stadnosc); b.dlugowiecznosc = d.get("dlugowiecznosc", b.dlugowiecznosc); b.rozmowy = d.get("rozmowy", 0); b.zle = d.get("zle", 0)
-    b.mapa = d.get("mapa", {}) or {}; b.pojetnosc = d.get("pojetnosc", b.pojetnosc); b.towarzyskosc = d.get("towarzyskosc", b.towarzyskosc); b.uprawa = float(d.get("uprawa", 0.0) or 0.0); b.spichlerz = float(d.get("spichlerz", 0.0) or 0.0); b.przechodzil = d.get("przechodzil", False); b.ryt = float(d.get("ryt", 0.0) or 0.0); b.zimy = int(d.get("zimy", 0) or 0)
+    b.mapa = d.get("mapa", {}) or {}; b.pojetnosc = d.get("pojetnosc", b.pojetnosc); b.towarzyskosc = d.get("towarzyskosc", b.towarzyskosc); b.uprawa = float(d.get("uprawa", 0.0) or 0.0); b.spichlerz = float(d.get("spichlerz", 0.0) or 0.0); b.przechodzil = d.get("przechodzil", False); b.ryt = float(d.get("ryt", 0.0) or 0.0); b.zimy = int(d.get("zimy", 0) or 0); b.spuscizna = bool(d.get("spuscizna", False))
     b.przylapala = tuple(d["przylapala"]) if d.get("przylapala") else None; b.temat = tuple(d["temat"]) if d.get("temat") else None
     b.wypowiedz = d.get("wypowiedz"); b.wyszlo = d.get("wyszlo", []) or []; b.spala = d.get("spala", False); b.lownosc = d.get("lownosc", 0.0); b.pora = d.get("pora"); b.ufnosc = d.get("ufnosc", b.ufnosc); b.szczerosc = d.get("szczerosc", b.szczerosc); b.deklarowal = d.get("deklarowal", False); b.klamcy = set(d.get("klamcy", [])); b.bliscy = {int(k): v for k, v in (d.get("bliscy") or {}).items()}; b.unikaj = d.get("unikaj") or {}; b.unikani = {int(k): v for k, v in (d.get("unikani") or {}).items()}; b.bolalo = tuple(d["bolalo"]) if d.get("bolalo") else None
     b.idzie = d.get("idzie", False); b.krokow = d.get("krokow", 0); b.srednio = d.get("srednio", 2.0)
@@ -793,9 +793,32 @@ def main():
                     ryty.remove(stary)
                     ryty.append({"kl": kl, "n": d["n"], "v": d["v"], "b": d["b"], "sila": 1.0, "nr": b.nr, "cykl": swiat["cykl_swiata"]})
                 zdarzenie(swiat, "ryt", nr=b.nr, miejsce=tu, co=kl, odnowiony=stary is not None and stary.get("kl") == kl)
+            # spuścizna: u kresu ryje wszystko, co rozumie (albo sam głos), i umiera. Nagrobek albo książka.
+            if getattr(b, "spuscizna_teraz", None):
+                ryty = mm.setdefault("ryty", [])
+                ile = 0
+                for kl, d in b.spuscizna_teraz:
+                    stary = next((r for r in ryty if r.get("kl") == kl), None)
+                    wpis = {"kl": kl, "sila": 1.0, "nr": b.nr, "cykl": swiat["cykl_swiata"], "spuscizna": True}
+                    if d is not None:
+                        wpis.update({"n": d["n"], "v": d["v"], "b": d["b"]})
+                    else:
+                        wpis["znaki"] = word.glos_na_znaki(b.glos)
+                    if stary is not None:
+                        stary.update(wpis)
+                    elif len(ryty) < word.RYTOW_NA_LACE:
+                        ryty.append(wpis)
+                    else:
+                        najslabszy = min(ryty, key=lambda r: r.get("sila", 1.0))
+                        zdarzenie(swiat, "ryt_zatarty", miejsce=tu, nr=najslabszy.get("nr"), co=najslabszy.get("kl"))
+                        ryty.remove(najslabszy)
+                        ryty.append(wpis)
+                    ile += 1
+                zdarzenie(swiat, "spuscizna", nr=b.nr, miejsce=tu, ile=ile, glos=b.spuscizna_teraz[0][1] is None, wiek=b.wiek)
+                b.spuscizna_teraz = None
             # odczyt: kto zostaje na łące z rytami i ma dość ciekawości, znajduje jeden, którego jeszcze nie zna
             elif mm.get("ryty") and not b.ruszyl and b.zyje() and random.random() < word.ODCZYT * b.ciekawosc:
-                nieznane = [r for r in mm["ryty"] if r.get("kl") not in b.po_slowie]
+                nieznane = [r for r in mm["ryty"] if "n" in r and r.get("kl") not in b.po_slowie]
                 if nieznane:
                     r = random.choice(nieznane)
                     if b.odczytaj(r):

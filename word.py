@@ -53,6 +53,7 @@ RYT_SLABIEJ = 0.7            # odczytane znaczenie jest słabsze niż od rodzica
 RYT_BLEDNIE = 0.004          # o tyle blednie ryt na cykl (bez odnowienia zaciera się po ~250 cyklach)
 RYTOW_NA_LACE = 8            # więcej się nie mieści
 KOSZT_WSKAZANIA = 0.2       # tyle kosztuje wskazanie głodnemu łąki z pamięci (mowa o tym, czego słuchacz nie widzi)
+PROG_KRESU = 1.0             # poniżej tylu energii, bez jedzenia, istota jest u kresu: nie zapłaci następnego cyklu
 PRZEKAZ = 0.8                # ile poziomu nauczyciela dostaje uczeń ze słowa (było 0,6: umiejętność gasła z każdym przekazem)
 ODKLADANIE = 0.3             # spichlerz: tyle nadwyżki ponad sytość odkłada na cykl przy umiejętności 1 (najwyżej 3)
 STRATA_SPICHLERZA = 0.1      # tyle ginie przy odkładaniu (część pokarmu się psuje)
@@ -1080,6 +1081,17 @@ class Byt:
                 self.ryje = (kl, {"n": d["n"], "v": [float(x) for x in d["v"]], "b": float(d["b"])})
                 self.energia -= KOSZT_RYTU
                 self.ryt = min(1.0, self.ryt + PRAKTYKA)
+        # spuścizna: u kresu (nie zapłaci następnego cyklu, nie ma tu co jeść) troskliwa oddaje resztę sił na ryt tego,
+        # co rozumie. Kto nic nie rozumie, ryje sam swój głos: imię bez znaczenia, nagrobek. Zapisz i umrzyj.
+        # Gen: troska (dziedziczna). Bagaż nie jest genem: znaczenia z życia. Umiejętność rytu niepotrzebna: to instynkt.
+        self.spuscizna_teraz = None
+        if not getattr(self, "spuscizna", False) and 0.0 < self.energia < PROG_KRESU and self.zjadl <= 0.0 \
+                and random.random() < getattr(self, "troska", 0.5):
+            self.spuscizna = True
+            roz = self.znaczenia_rozumiane()
+            self.spuscizna_teraz = [(kl, {"n": d["n"], "v": [float(x) for x in d["v"]], "b": float(d["b"])}) for kl, d in roz] \
+                or [("@glos:%d" % self.nr, None)]
+            self.energia = 0.0
         self.otwarcia += len(o_r) + len(o_p) + len(o_e) + len(o_s) + len(o_i)
         self.najdluzsza = max(self.najdluzsza, len(o_r), len(o_p), len(o_e), len(o_s), len(o_i))
         self.wyszlo = w_r + w_p + w_e + w_s + w_i

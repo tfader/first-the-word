@@ -377,6 +377,7 @@
     if (x.typ === "ryt") return t(x.odnowiony ? "zd.ryt.odnowiony" : "zd.ryt", { nr: x.nr, m: x.miejsce });
     if (x.typ === "odczytanie") return t(x.autor_zyje ? "zd.odczytanie" : "zd.odczytanie.zmarly", { nr: x.nr, od: x.od, m: x.miejsce });
     if (x.typ === "ryt_zatarty") return t("zd.ryt_zatarty", { nr: x.nr, m: x.miejsce });
+    if (x.typ === "spuscizna") return t(x.glos ? "zd.spuscizna.glos" : "zd.spuscizna", { nr: x.nr, m: x.miejsce, ile: x.ile, w: x.wiek });
     if (x.typ === "znaczenie") return t("zd.znaczenie", { nr: x.nr, od: x.od, czyn: x.ludzko || x.czyn });
     if (x.typ === "zaraza") return t("zd.zaraza", { s: x.szczep, nr: x.nr, m: x.miejsce, z: x.zarazliwosc, k: x.koszt });
     if (x.typ === "zarazila_sie") return t("zd.zarazila_sie", { nr: x.nr, s: x.szczep, m: x.miejsce });
@@ -398,7 +399,7 @@
   const TYPY_ZDARZEN = ["znaczenie", "dzwiek_z_nowego_genu", "zaraza", "ognisko", "ognisko_wygaslo",
     "zarazila_sie", "wyzdrowienie", "drapieznik", "drapieznik_odszedl", "atak", "upolowana",
     "duplikacja", "utrata_genu", "gatunki", "narodziny", "smierc", "koniec", "pozar", "powodz",
-    "odkrycie", "zrozumienie", "starcie", "odwrot", "klamstwo", "przejscie", "bliskosc", "ryt", "odczytanie", "ryt_zatarty", "pokarm"];
+    "odkrycie", "zrozumienie", "starcie", "odwrot", "klamstwo", "przejscie", "bliskosc", "ryt", "odczytanie", "ryt_zatarty", "pokarm", "spuscizna"];
   let POWIADOMIENIA = new Set(["znaczenie", "dzwiek_z_nowego_genu", "zaraza", "upolowana", "koniec", "pozar", "powodz", "odczytanie"]);
   try {
     const zapis = localStorage.getItem("powiadomienia");
@@ -737,7 +738,7 @@
   }
 
   /* dzieje cywilizacji: ile istot żyło w każdym cyklu i najważniejsze zdarzenia */
-  const DZ_TYPY = ["zaraza", "pozar", "powodz", "polowanie", "gatunki", "wymieranie", "odkrycie", "odczytanie", "koniec"];
+  const DZ_TYPY = ["zaraza", "pozar", "powodz", "polowanie", "gatunki", "wymieranie", "odkrycie", "odczytanie", "spuscizna", "koniec"];
   let ostatnieCyw = null;
   function rysujDzieje(d) {
     ostatnieCyw = d;
@@ -784,7 +785,7 @@
     $("dziejeLista").textContent = (d.zdarzenia || []).length ? "" : t("dz.cisza");
   }
   function opisDziejow(z) {
-    return t("dz.cykl", { n: z.cykl }) + " · " + t("dz.opis." + z.typ, { m: z.miejsce ?? "?", ilu: z.ilu ?? "?", ile: z.ile ?? "?", nr: z.nr ?? "?", z: z.z ?? "?", na: z.na ?? "?", od: z.typ === "odczytanie" ? (z.od ?? "?") : (z.od_cyklu ?? "?"), ostatni: (z.ostatni || []).join(", ") });
+    return t("dz.cykl", { n: z.cykl }) + " · " + t("dz.opis." + z.typ, { m: z.miejsce ?? "?", ilu: z.ilu ?? "?", ile: z.ile ?? "?", nr: z.nr ?? "?", z: z.z ?? "?", na: z.na ?? "?", od: z.typ === "odczytanie" ? (z.od ?? "?") : (z.od_cyklu ?? "?"), ostatni: (z.ostatni || []).join(", "), w: z.wiek ?? "?" });
   }
   async function otworzDzieje() {
     $("dlgDzieje").showModal();

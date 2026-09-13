@@ -527,7 +527,7 @@ def dzieje():
     }
 
 
-WAZNE_ZDARZENIA = ("zaraza", "pozar", "powodz", "upolowana", "gatunki", "odczytanie", "odkrycie", "koniec")   # rzadkie i dotykające wielu istot naraz
+WAZNE_ZDARZENIA = ("zaraza", "pozar", "powodz", "upolowana", "gatunki", "odczytanie", "odkrycie", "koniec", "spuscizna")   # rzadkie i dotykające wielu istot naraz
 # drapieżnik przychodzi co kilka cykli i zwykle odchodzi z niczym, więc liczy się dopiero polowanie z ofiarą;
 # spis gatunków robi się co 50 cykli, więc liczy się dopiero zmiana ich liczby
 
@@ -574,8 +574,10 @@ def cywilizacja():
                         continue                                    # liczy się odczyt po zmarłym: kultura przeżyła śmierć
                     if typ == "odkrycie" and x.get("co") != "ryt":
                         continue                                    # uprawę i spichlerz odkrywa się dziesiątki razy; ryt to przełom
+                    if typ == "spuscizna" and x.get("glos"):
+                        continue                                    # nagrobek z samym głosem to nie książka: w dziejach tylko spuścizna ze znaczeniami
                     w = {"cykl": c, "typ": "polowanie" if typ == "upolowana" else typ}
-                    for k in ("miejsce", "ilu", "ile", "szczep", "nr", "od", "co", "powod", "ostatni"):
+                    for k in ("miejsce", "ilu", "ile", "szczep", "nr", "od", "co", "powod", "ostatni", "wiek"):
                         if k in x:
                             w[k] = x[k]
                     wazne.append(w)

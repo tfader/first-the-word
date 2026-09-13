@@ -1567,3 +1567,15 @@ już wyuczone znaczenie, idzie tam; skutek (jedzenie) uczy go znaczenia.
 Nic więcej nie projektujemy: zostaną linie, w których troska się opłaciła.
 Miara w korpusie: udział słów o zapachu, w których cel różni się od miejsca
 mówiącego.
+
+## Kawałek 95 (2026-09-13): spuścizna, czyli zapisz i umrzyj
+Ryt za życia to umiejętność (trzeci stopień po uprawie i spichlerzu), ale
+żal, że przepadnie to, co się przeżyło, ma inne źródło: troskę zwróconą ku
+własnemu doświadczeniu. Dlatego u kresu (energia poniżej 1, nic tu do
+jedzenia, czyli następnego cyklu nie zapłaci) istota z prawdopodobieństwem
+równym trosce oddaje resztę sił na ryt wszystkiego, co rozumie, i umiera
+w tym cyklu. Kto nic nie rozumie, ryje sam swój głos: imię bez znaczenia,
+nagrobek; tego nikt nie odczyta, ale zostaje. Gen: troska (już dziedziczna,
+z mutacją). Bagaż nie jest genem: krótko żyjąca zostawia imię, długo żyjąca
+książkę. Umiejętność rytu niepotrzebna: to instynkt, jak łosoś. W dziejach
+cywilizacji tylko spuścizny ze znaczeniami; nagrobki w kronice.

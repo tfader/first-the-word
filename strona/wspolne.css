@@ -321,6 +321,7 @@ canvas.echo { width: 100%; height: 28px; display: block; }
 .drzewo.dzieje .gatunki { stroke: var(--life); fill: var(--life); } .kropka.gatunki { background: var(--life); }
 .drzewo.dzieje .odkrycie { stroke: #B08D2A; fill: #B08D2A; } .kropka.odkrycie { background: #B08D2A; }
 .drzewo.dzieje .odczytanie { stroke: #2A7FB0; fill: #2A7FB0; } .kropka.odczytanie { background: #2A7FB0; }
+.drzewo.dzieje .spuscizna { stroke: #5C4A8A; fill: #5C4A8A; } .kropka.spuscizna { background: #5C4A8A; }
 .drzewo.dzieje .koniec { stroke: var(--dying); fill: var(--dying); } .kropka.koniec { background: var(--dying); }
 .drzewo.dzieje .wymieranie { stroke: var(--ink); fill: var(--ink); } .kropka.wymieranie { background: var(--ink); }
 .dz-legenda { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font: 400 12px/1.4 var(--mono); color: var(--muted); }
