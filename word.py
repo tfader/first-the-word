@@ -45,6 +45,14 @@ ODKRYCIE_UPRAWY = 0.05       # odkrycie uprawy na cykl: × ciekawość × (0,5 +
 KOSZT_UPRAWY = 0.2           # praca na łące: tyle energii na cykl przy umiejętności 1
 UPRAWA_ODROST = 0.02         # o tyle rośnie gęstość łąki na cykl pracy przy umiejętności 1 (mniej więcej tyle, ile zjada jedna istota)
 PRAKTYKA = 0.02              # o tyle rośnie umiejętność za cykl pracy (było 0,01)
+ODKRYCIE_RYTU = 0.02         # odkrycie rytu na cykl: × ciekawość × (0,5 + pojętność); tylko ze spichlerzem, po zimie, z ≥3 znaczeniami
+KOSZT_RYTU = 0.5             # tyle energii kosztuje wyrycie jednego znaczenia
+RYCIE = 0.1                  # szansa na cykl (× umiejętność), że syta z umiejętnością coś wyryje
+ODCZYT = 0.3                 # szansa na cykl (× ciekawość), że istota na łące z rytami znajdzie jeden i odczyta
+RYT_SLABIEJ = 0.7            # odczytane znaczenie jest słabsze niż od rodzica (pismo bez nauczyciela)
+RYT_BLEDNIE = 0.004          # o tyle blednie ryt na cykl (bez odnowienia zaciera się po ~250 cyklach)
+RYTOW_NA_LACE = 8            # więcej się nie mieści
+KOSZT_WSKAZANIA = 0.2       # tyle kosztuje wskazanie głodnemu łąki z pamięci (mowa o tym, czego słuchacz nie widzi)
 PRZEKAZ = 0.8                # ile poziomu nauczyciela dostaje uczeń ze słowa (było 0,6: umiejętność gasła z każdym przekazem)
 ODKLADANIE = 0.3             # spichlerz: tyle nadwyżki ponad sytość odkłada na cykl przy umiejętności 1 (najwyżej 3)
 STRATA_SPICHLERZA = 0.1      # tyle ginie przy odkładaniu (część pokarmu się psuje)
@@ -333,6 +341,9 @@ class Byt:
         self.uprawa = 0.0                          # NABYTE, nie dziedziczne: umiejętność uprawy łąki (0..1); odkrycie albo nauka ze słowa
         self.uprawiala = False                     # czy w tym cyklu pracowała na łące
         self.spichlerz = 0.0                       # NABYTE: umiejętność odkładania pokarmu na łące (0..1); odkrycie jesienią albo nauka ze słowa
+        self.ryt = 0.0                             # NABYTE: umiejętność rycia znaczeń w miejscu (0..1); odkrycie po spichlerzu i zimie, nauka od rodzica albo z odczytu
+        self.zimy = 0                              # ile zim przeżyła (warunek odkrycia rytu)
+        self.ryje = None                           # co w tym cyklu ryje: (klucz, skojarzenie) albo None; wykonuje świat
         self.odklada = 0.0                         # ile w tym cyklu odłożyła do spichlerza (świat dopisuje do łąki)
         self.pobiera = 0.0                         # ile chce wziąć ze spichlerza (świat daje, ile jest)
         self.gromadzila = False                    # czy w tym cyklu miała do czynienia ze spichlerzem (temat mowy)
@@ -588,7 +599,32 @@ class Byt:
                 self.wchlon(nr, wek)
         if rodzic.dobre_miejsce is not None and self.dobre_miejsce is None:
             self.dobre_miejsce, self.dobre_ile = rodzic.dobre_miejsce, rodzic.dobre_ile * 0.5
+        if getattr(rodzic, "ryt", 0.0) > 0.0:
+            self.ryt = max(self.ryt, PRZEKAZ * (0.7 + 0.6 * self.pojetnosc) * rodzic.ryt)   # umiejętność rytu idzie jak inne: przez naukę
         self.nauczone = getattr(self, "nauczone", 0) + 1
+
+    def znaczenia_rozumiane(self):
+        """Skojarzenia słowo -> skutek, które są już pewne (n ≥ 3, wektory się nie rozjeżdżają). To można wyryć."""
+        out = []
+        for kl, d in self.po_slowie.items():
+            if not isinstance(d, dict) or d.get("n", 0) < 3:
+                continue
+            v = np.asarray(d["v"], dtype=float)
+            if float(np.linalg.norm(v)) / d["n"] >= 0.6:
+                out.append((kl, d))
+        return out
+
+    def odczytaj(self, ryt):
+        """Odczytanie rytu w miejscu: znaczenie wchodzi jak tradycja od rodzica, ale słabiej (pismo bez nauczyciela),
+        i tym słabiej, im bardziej ryt zbladł. Kto odczytał, wie też, że ryć się da. Zwraca True, gdy czegoś się nauczyła."""
+        kl = ryt.get("kl")
+        if not kl or kl in self.po_slowie or len(self.po_slowie) >= PAMIEC_SLOW or "n" not in ryt:
+            return False
+        waga = KULTURA_ZNACZEN * RYT_SLABIEJ * float(ryt.get("sila", 1.0)) * (0.5 + self.pojetnosc)
+        self.po_slowie[kl] = {"n": max(1, int(round(ryt["n"] * waga))), "v": [float(x) * waga for x in ryt["v"]], "b": float(ryt["b"]) * waga}
+        self.ryt = max(self.ryt, 0.1)
+        self.nauczone = getattr(self, "nauczone", 0) + 1
+        return True
 
     def atrakcyjnosc(self):
         """Co widzi wybierająca: siła, kondycja, łowność. Z odrobiną przypadku."""
@@ -739,6 +775,8 @@ class Byt:
         """klimat: {"koszt": mnożnik kosztu trwania (zimno/gorąco), "noc": bool} albo None."""
         klimat = klimat or {}
         noc = bool(klimat.get("noc", False))
+        if self.pora == "zima" and klimat.get("pora") == "wiosna":
+            self.zimy = getattr(self, "zimy", 0) + 1                # przeżyła zimę
         self.pora = klimat.get("pora", self.pora)
         if "temp" in klimat:
             # odporność na klimat: poza pasem tolerancji wokół optimum trwanie drożeje; szeroka tolerancja też kosztuje
@@ -1027,6 +1065,21 @@ class Byt:
                 elif self.energia < SYTOSC and klimat.get("zapas", 0.0) > 0.0:
                     self.pobiera = min(POBOR * self.spichlerz, SYTOSC - self.energia)
                     self.gromadzila = True
+        # ryt: nabyta umiejętność, trzeci stopień po uprawie i spichlerzu. Odkrywa go istota, która ma już spichlerz,
+        # przeżyła zimę i rozumie co najmniej 3 znaczenia (ma co wyryć). Syta z umiejętnością od czasu do czasu
+        # ryje jedno znaczenie w miejscu (koszt); co z tym zrobić, decyduje świat.
+        self.ryje = None
+        if not self.ruszyl and not noc and self.energia > SYTOSC:
+            rozumiane = self.znaczenia_rozumiane()
+            if self.ryt <= 0.0 and self.spichlerz > 0.0 and getattr(self, "zimy", 0) >= 1 and len(rozumiane) >= 3 \
+                    and self.staz >= 3 and random.random() < ODKRYCIE_RYTU * self.ciekawosc * (0.5 + self.pojetnosc):
+                self.ryt = 0.2
+                self.odkryla_ryt = True
+            if self.ryt > 0.0 and rozumiane and self.energia > SYTOSC + KOSZT_RYTU and random.random() < RYCIE * (0.5 + self.ryt):
+                kl, d = random.choice(rozumiane)
+                self.ryje = (kl, {"n": d["n"], "v": [float(x) for x in d["v"]], "b": float(d["b"])})
+                self.energia -= KOSZT_RYTU
+                self.ryt = min(1.0, self.ryt + PRAKTYKA)
         self.otwarcia += len(o_r) + len(o_p) + len(o_e) + len(o_s) + len(o_i)
         self.najdluzsza = max(self.najdluzsza, len(o_r), len(o_p), len(o_e), len(o_s), len(o_i))
         self.wyszlo = w_r + w_p + w_e + w_s + w_i
@@ -1039,6 +1092,14 @@ class Byt:
             kand.append((len(o_r), "rana", list(s_rany), None))
         if klimat.get("zapach") is not None and self.zjadl >= KOSZT_TRWANIA * 2:
             kand.append((len(o_p) + 1, "zapach", list(klimat["zapach"]), str(self.miejsce)))
+        if klimat.get("daleka") and self.energia > SYTOSC + KOSZT_WSKAZANIA and any(len(sg) > 2 and sg[2] == "krzyk" for sg in sygnaly) \
+                and random.random() < 0.3 + 0.7 * getattr(self, "troska", 0.5):
+            # odpowiedź z pamięci na krzyk głodu: syta mówi o łące, którą pamięta gdzie indziej, nie o tej pod nogami.
+            # Pierwsza mowa o tym, czego słuchacz nie widzi. Kosztuje; zostaną linie, w których troska się opłaciła.
+            m_d, z_d = klimat["daleka"]
+            kand.append((60, "zapach", list(z_d), str(m_d)))
+            self.energia -= KOSZT_WSKAZANIA
+            self.wskazala = True
         if klimat.get("pora_syg") is not None and mnoznik > 1.2:
             kand.append((1, "pora", list(klimat["pora_syg"]), klimat.get("pora")))
         if klimat.get("spichlerz_syg") is not None and self.gromadzila:
@@ -1194,7 +1255,7 @@ class Byt:
             "mowa": dict(self.mowa), "inni": inni,
             "miejsce": self.miejsce, "ruszyl": self.ruszyl, "karmione": round(getattr(self, "karmione", 0.0), 2),
             "lownosc": round(getattr(self, "lownosc", 0.0), 3), "sila": round(self.sila, 2), "ciekawosc": round(self.ciekawosc, 2),
-            "klimat_koszt": getattr(self, "klimat_koszt", 1.0), "nauczone": getattr(self, "nauczone", 0), "plec": self.plec, "stadnosc": round(self.stadnosc, 2), "dlugowiecznosc": round(self.dlugowiecznosc, 2), "ufnosc": round(self.ufnosc, 2), "szczerosc": round(self.szczerosc, 2), "pojetnosc": round(self.pojetnosc, 2), "towarzyskosc": round(self.towarzyskosc, 2), "przechodzi": self.przechodzi, "deklaruje": self.deklaruje, "uprawa": round(self.uprawa, 2), "uprawiala": self.uprawiala, "gawedzi": self.gawedzi, "spichlerz": round(self.spichlerz, 2), "odklada": round(self.odklada, 2), "pobiera": round(self.pobiera, 2),
+            "klimat_koszt": getattr(self, "klimat_koszt", 1.0), "nauczone": getattr(self, "nauczone", 0), "plec": self.plec, "stadnosc": round(self.stadnosc, 2), "dlugowiecznosc": round(self.dlugowiecznosc, 2), "ufnosc": round(self.ufnosc, 2), "szczerosc": round(self.szczerosc, 2), "pojetnosc": round(self.pojetnosc, 2), "towarzyskosc": round(self.towarzyskosc, 2), "przechodzi": self.przechodzi, "deklaruje": self.deklaruje, "uprawa": round(self.uprawa, 2), "uprawiala": self.uprawiala, "gawedzi": self.gawedzi, "spichlerz": round(self.spichlerz, 2), "odklada": round(self.odklada, 2), "pobiera": round(self.pobiera, 2), "ryt": round(self.ryt, 2), "zimy": getattr(self, "zimy", 0),
             "wyszlo": [],                                   # wektory wyjść nie idą do dziennika: nikt ich nie czyta, a ważyły trzecią część wpisu
             "dziecko": dziecko, "zyje": self.energia > 0,
         }

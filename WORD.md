@@ -1507,3 +1507,63 @@ pięćdziesiąt, stronicowana, z szukaniem po numerze. Pełny wiersz z portretem
 genów rysuje się tylko w sekcji „najciekawsze”; „wszystkie” to sam tekst, żeby
 tysiąc istot dało się pokazać bez dławienia przeglądarki. Nowy endpoint
 /api/istoty?od=&ile= czyta samo ciało świata, bez genów i bez dziennika.
+
+## Kawałek 91 (2026-09-13): ryt, czyli pamięć poza ciałem
+Do tej pory wiedza (znaczenia słów, uprawa, spichlerz) szła tylko od żywego
+do żywego: rodzic uczył dziecko, gdy był syty. Wąskie gardło z cyklu 900
+(3 istoty) pokazało skutek: ocalałe nie rozumieją ani jednego znaczenia.
+Ryt to pismo w jaskini. Istota z umiejętnością rytu wykuwa w miejscu jedno
+znaczenie, które sama rozumie (skojarzenie słowa ze skutkiem, n ≥ 3, pewność
+≥ 0,6). Ryt zostaje na łące po jej śmierci. Kto tam przyjdzie, zostaje i ma
+dość ciekawości, znajduje go i przejmuje znaczenie jak od rodzica, ale
+słabiej (0,7 siły tradycji × siła rytu); kto odczytał, wie też, że ryć się
+da (umiejętność 0,1). Ryt blednie 0,4% na cykl; ponowne wyrycie tego samego
+odnawia go. Na jednej łące najwyżej 8 rytów.
+Odkrycie rytu to trzeci stopień po uprawie i spichlerzu, nie los na loterii
+od pierwszego cyklu: istota musi mieć spichlerz, przeżyć zimę i rozumieć co
+najmniej 3 znaczenia (ma co wyryć). Wtedy 2% × ciekawość × (0,5 + pojętność)
+na cykl, syta, na łące ≥ 3 cykle, w dzień. Umiejętność nabyta: przechodzi
+przez naukę od rodzica (0,8 poziomu) albo przez odczytanie.
+Zdarzenia: „odkrycie: ryt”, „ryt” (kto, gdzie, co), „odczytanie” (kto, czyj,
+czy autor żyje), „ryt_zatarty”. W dziejach cywilizacji pokazujemy odczytania
+rytów po zmarłych autorach: to moment, w którym kultura przeżywa śmierć.
+
+## Kawałek 92 (2026-09-13): słownik z obserwacji
+Dotychczasowy przekład („idź, bo ból z domieszką: przeciwieństwo: noc…”) to
+rozkład wektora skutku na osie, które sami nazwaliśmy. To czytanie kodu, nie
+języka: bóg zaglądający do głowy, nie filolog. Ustalenie: przekład ma
+powstawać tak, jak odczytuje się pismo obcej cywilizacji, z tego, co widać
+z zewnątrz. Dla każdego ciągu znaków liczymy, ile razy padł i co słuchacze
+po nim zrobili, ale tylko czyny widoczne: poszli, uciekli, odpowiedzieli,
+poszli bronić, gromadzili, uprawiali. Czyny wewnętrzne (zapamiętać,
+przestać wierzyć) z zewnątrz nie istnieją, więc nie liczą się. Hasło to
+znaki, dominująca reakcja, liczba przypadków i pewność (udział reakcji
+w usłyszeniach). Tam, gdzie reakcji nie widać, słownik ma dziurę, jak
+papirus. Stary rozkład wektora zostaje jako „podgląd wnętrza”, schowany i
+tak nazwany, żeby było wiadomo, kiedy czytamy ich, a kiedy im do głowy.
+Przekład nigdzie do świata nie wraca (sprawdzone): świat wykonuje czyny po
+znacznikach, nie po polskich nazwach. Jedyny wpływ z zewnątrz to słowa Keja.
+
+## Kawałek 93 (2026-09-13): korpus
+Żeby kiedyś odczytać ich pismo, trzeba mieć nie sumy, lecz teksty. Dziennik
+trzyma tylko ostatnie cykle, słownik świata to same liczniki. Korpus
+(`korpus.jsonl`, pisany co cykl, archiwizowany ze światem) zapisuje każde
+słowo z kontekstem: kto, znaki, do kogo, gdzie, pora roku, noc, kto był
+w zasięgu słuchu; oraz każdą reakcję: kto, po czyim słowie, co zrobił
+(znacznik czynu, przedmiot, cel), gdzie. Nic z wnętrza istot: żadnych
+wektorów skutku ani przekładów. Z tego za sto tysięcy cykli da się zrobić
+to, co Champollion: szukać powtórzeń w okolicznościach. Model językowy
+dostanie korpus, nie kod.
+
+## Kawałek 94 (2026-09-13): odpowiedź z pamięci
+Korpus pokazał, że mowa jest o tym, co oboje widzą: w 579 z 580 słów
+o zapachu mówiący opisywał łąkę, na której stał. W biologii kod opłaca się
+dopiero, gdy słuchacz nie widzi tego, co widzi mówiący (taniec pszczoły).
+Zmiana: syta istota, która słyszy krzyk głodu i pamięta na tę porę roku
+dobrą łąkę gdzie indziej, mówi o tamtej łące (jej zapach, wskazanie na nią),
+nie o tej pod nogami. Prawdopodobieństwo 0,3 + 0,7 × troska, koszt 0,2
+energii. Głodny słuchacz, jeśli jego gen kojarzy dźwięk z pokarmem albo ma
+już wyuczone znaczenie, idzie tam; skutek (jedzenie) uczy go znaczenia.
+Nic więcej nie projektujemy: zostaną linie, w których troska się opłaciła.
+Miara w korpusie: udział słów o zapachu, w których cel różni się od miejsca
+mówiącego.

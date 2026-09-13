@@ -306,3 +306,27 @@ canvas.echo { width: 100%; height: 28px; display: block; }
 #cywTresc table { width: 100%; }
 #cywTresc table th { font-weight: 500; }
 #cywTresc table tr:nth-child(even) td { background: rgba(0, 0, 0, .02); }
+
+/* dzieje cywilizacji: krzywa liczby istot i znaki zdarzeń */
+.drzewo.dzieje .siatka { stroke: var(--line); stroke-width: 1; }
+.drzewo.dzieje .pole { fill: var(--life-soft); stroke: none; }
+.drzewo.dzieje .krzywa { fill: none; stroke: var(--life); stroke-width: 1.8; }
+.drzewo.dzieje line.znak { stroke-width: 1; opacity: .35; }
+.drzewo.dzieje circle.znak { stroke: var(--surface); stroke-width: 1; }
+.drzewo.dzieje .lacznik { stroke: var(--line-strong); stroke-width: 1; }
+.drzewo.dzieje .zaraza { stroke: #7A4E9E; fill: #7A4E9E; } .kropka.zaraza { background: #7A4E9E; }
+.drzewo.dzieje .pozar { stroke: var(--dying); fill: var(--dying); } .kropka.pozar { background: var(--dying); }
+.drzewo.dzieje .powodz { stroke: var(--sleep); fill: var(--sleep); } .kropka.powodz { background: var(--sleep); }
+.drzewo.dzieje .polowanie { stroke: var(--hunger); fill: var(--hunger); } .kropka.polowanie { background: var(--hunger); }
+.drzewo.dzieje .gatunki { stroke: var(--life); fill: var(--life); } .kropka.gatunki { background: var(--life); }
+.drzewo.dzieje .odkrycie { stroke: #B08D2A; fill: #B08D2A; } .kropka.odkrycie { background: #B08D2A; }
+.drzewo.dzieje .odczytanie { stroke: #2A7FB0; fill: #2A7FB0; } .kropka.odczytanie { background: #2A7FB0; }
+.drzewo.dzieje .koniec { stroke: var(--dying); fill: var(--dying); } .kropka.koniec { background: var(--dying); }
+.drzewo.dzieje .wymieranie { stroke: var(--ink); fill: var(--ink); } .kropka.wymieranie { background: var(--ink); }
+.dz-legenda { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font: 400 12px/1.4 var(--mono); color: var(--muted); }
+.dz-legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.kropka { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
+
+/* słownik z obserwacji: znaki | reakcja | pewność */
+.log .r.slownik-z.slownik-o { grid-template-columns: minmax(200px, 1.1fr) minmax(220px, 1.4fr) minmax(120px, .7fr); }
+.slownik-o .mono { font-family: var(--mono); letter-spacing: .04em; }

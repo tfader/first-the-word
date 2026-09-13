@@ -21,6 +21,7 @@ DZIENNIK = os.path.join(KATALOG, "dziennik.jsonl")
 CUD = os.path.join(KATALOG, "cud.txt")          # obecność pliku = prośba o nowy cud
 KARMA = os.path.join(KATALOG, "karma.txt")      # świat odpowiada na wołanie: dokłada pokarm
 ZDARZENIA = os.path.join(KATALOG, "zdarzenia.jsonl")   # narodziny, śmierci, pokarm ze świata, zrozumienia
+KORPUS = os.path.join(KATALOG, "korpus.jsonl")         # każde słowo z kontekstem i każda widoczna reakcja: do odczytania języka kiedyś, z zewnątrz
 CYKL_SEKUND = float(os.environ.get("CYKL", 60))
 GENY = int(os.environ.get("GENY", 64))
 WYMIARY = int(os.environ.get("WYMIARY", 4))     # tylko przy tworzeniu świata; potem z ciała
@@ -77,7 +78,7 @@ def byt_do_slownika(b):
         "spala": b.spala, "lownosc": getattr(b, "lownosc", 0.0), "pora": b.pora,
         "idzie": b.idzie, "krokow": b.krokow, "srednio": b.srednio,
         "dobre_miejsce": b.dobre_miejsce, "dobre_ile": b.dobre_ile, "zrozumiane": sorted(b.zrozumiane),
-        "poprzednio_zjadl": b.poprzednio_zjadl,
+        "poprzednio_zjadl": b.poprzednio_zjadl, "ryt": b.ryt, "zimy": getattr(b, "zimy", 0),
         "ozdoba": b.ozdoba, "gust": b.gust, "troska": b.troska, "odpornosc": b.odpornosc, "chora": list(b.chora) if b.chora else None, "przechorowane": sorted(b.przechorowane),
         "po_slowie": {k: {"n": v["n"], "v": [round(x, 4) for x in v["v"]], "b": round(v["b"], 3)} for k, v in b.po_slowie.items() if "n" in v}, "czeka_skutek": b.czeka_skutek,
         "sen": b.sen, "otwarcia": b.otwarcia, "najdluzsza": b.najdluzsza, "dzieci": b.dzieci,
@@ -106,7 +107,7 @@ def byt_ze_slownika(d):
     b.rodzic = d.get("rodzic"); b.rodzic2 = d.get("rodzic2"); b.urodzony_w_cyklu = d.get("urodzony_w_cyklu")
     b.miejsce = str(d.get("miejsce", 0)); b.poprzednie = d.get("poprzednie"); b.kierunek = d.get("kierunek", 1)
     b.wytrwalosc = d.get("wytrwalosc", 2); b.sila = d.get("sila", b.sila); b.ciekawosc = d.get("ciekawosc", b.ciekawosc); b.optimum = d.get("optimum", b.optimum); b.tolerancja = d.get("tolerancja", b.tolerancja); b.staz = d.get("staz", 0); b.nauczone = d.get("nauczone", 0); b.plec = d.get("plec", b.plec); b.stadnosc = d.get("stadnosc", b.stadnosc); b.dlugowiecznosc = d.get("dlugowiecznosc", b.dlugowiecznosc); b.rozmowy = d.get("rozmowy", 0); b.zle = d.get("zle", 0)
-    b.mapa = d.get("mapa", {}) or {}; b.pojetnosc = d.get("pojetnosc", b.pojetnosc); b.towarzyskosc = d.get("towarzyskosc", b.towarzyskosc); b.uprawa = float(d.get("uprawa", 0.0) or 0.0); b.spichlerz = float(d.get("spichlerz", 0.0) or 0.0); b.przechodzil = d.get("przechodzil", False)
+    b.mapa = d.get("mapa", {}) or {}; b.pojetnosc = d.get("pojetnosc", b.pojetnosc); b.towarzyskosc = d.get("towarzyskosc", b.towarzyskosc); b.uprawa = float(d.get("uprawa", 0.0) or 0.0); b.spichlerz = float(d.get("spichlerz", 0.0) or 0.0); b.przechodzil = d.get("przechodzil", False); b.ryt = float(d.get("ryt", 0.0) or 0.0); b.zimy = int(d.get("zimy", 0) or 0)
     b.przylapala = tuple(d["przylapala"]) if d.get("przylapala") else None; b.temat = tuple(d["temat"]) if d.get("temat") else None
     b.wypowiedz = d.get("wypowiedz"); b.wyszlo = d.get("wyszlo", []) or []; b.spala = d.get("spala", False); b.lownosc = d.get("lownosc", 0.0); b.pora = d.get("pora"); b.ufnosc = d.get("ufnosc", b.ufnosc); b.szczerosc = d.get("szczerosc", b.szczerosc); b.deklarowal = d.get("deklarowal", False); b.klamcy = set(d.get("klamcy", [])); b.bliscy = {int(k): v for k, v in (d.get("bliscy") or {}).items()}; b.unikaj = d.get("unikaj") or {}; b.unikani = {int(k): v for k, v in (d.get("unikani") or {}).items()}; b.bolalo = tuple(d["bolalo"]) if d.get("bolalo") else None
     b.idzie = d.get("idzie", False); b.krokow = d.get("krokow", 0); b.srednio = d.get("srednio", 2.0)
@@ -278,6 +279,33 @@ def do_slownika(swiat, b):
             zn["dla"].append(b.nr)
 
 
+def daleka(swiat, b, tu, pora):
+    """Łąka z pamięci istoty (na tę porę roku, poza obecną) i jej zapach: o niej może powiedzieć głodnemu, który jej nie widzi."""
+    m = b.najlepsze_z_mapy(pora, poza=tu)
+    return (m, zapach(swiat, m)) if m is not None and str(m) in swiat["miejsca"] else None
+
+
+def do_korpusu(swiat, b, tu, blisko, zywi):
+    """Korpus języka: każde słowo z kontekstem (kto, komu, gdzie, pora, kto słyszał) i każda reakcja słuchacza
+    (co zrobił po jakim słowie). Bez zaglądania do wnętrza: tylko to, co widać z zewnątrz. Z tego kiedyś
+    odczyta się ich pismo, jak pismo obcej cywilizacji."""
+    k = swiat.setdefault("_korpus", [])
+    c = swiat["cykl_swiata"]
+    m = b.mowa or {}
+    if m.get("glos") or m.get("krzyk") or m.get("wolanie") or m.get("alarm"):
+        if m.get("glos"):
+            klucz, znaki = word.klucz_slowa(m.get("temat"), m.get("cel"), m.get("slowo_id")), m.get("znaki")
+        else:
+            klucz = "@alarm" if m.get("alarm") else "@wolanie" if m.get("wolanie") else "@krzyk"
+            znaki = {"@alarm": "!", "@wolanie": "♪", "@krzyk": "!!"}[klucz]
+        k.append({"c": c, "r": "mowa", "kto": b.nr, "znaki": znaki, "klucz": klucz, "do": m.get("odpowiedz"),
+                  "miejsce": tu, "pora": swiat.get("pora"), "noc": bool(swiat.get("noc")),
+                  "slyszy": [x.nr for x in zywi if x.nr != b.nr and x.zyje() and str(x.miejsce) in blisko][:32]})
+    if b.czyn and b.czyn_do is not None:
+        k.append({"c": c, "r": "reakcja", "kto": b.nr, "od": b.czyn_do, "klucz": b.czyn_slowo, "czyn": getattr(b, "czyn_verb", None),
+                  "obiekt": getattr(b, "czyn_obiekt", None), "cel": b.czyn_cel, "miejsce": tu})
+
+
 def wpis_zmarlej(b, swiat, ostatnia=False):
     """Co zostaje po istocie: liczby, cechy z genów i to, co nabyła. Z tego powstaje portret."""
     return {"nr": b.nr, "pokolenie": b.pokolenie, "wiek": b.wiek, "geny": len(b.kregoslup),
@@ -369,6 +397,12 @@ def pole_cykl(swiat):
             m["g"] = max(0.0, m["g"] * 0.995)                      # mróz zabiera i to, co zostało
         if m.get("zapas"):
             m["zapas"] = max(0.0, m["zapas"] * (0.997 if p["temp"] < 0.2 else 0.99))   # mróz konserwuje: zimą zapas psuje się wolniej
+        if m.get("ryty"):
+            for r in m["ryty"]:
+                r["sila"] = r.get("sila", 1.0) - word.RYT_BLEDNIE       # ryt blednie, chyba że ktoś go odnowi
+            for r in [r for r in m["ryty"] if r["sila"] <= 0.0]:
+                m["ryty"].remove(r)
+                zdarzenie(swiat, "ryt_zatarty", miejsce=k, nr=r.get("nr"), co=r.get("kl"))
         if p["deszcz"] < 0.2:
             m["h"] = min(0.95, m["h"] + 0.01)                     # susza: pokarm twardnieje
         else:
@@ -726,7 +760,8 @@ def main():
             klimat = {"temp": odczuwalna, "noc": pog["noc"], "pora": pora_teraz,          # koszt liczy istota wg swojego optimum i tolerancji
                       "zapach": zapach(swiat, tu), "pora_syg": sygnatura(swiat, pora_teraz), "noc_syg": sygnatura(swiat, "noc"), "uprawa_syg": sygnatura(swiat, "uprawa"), "spichlerz_syg": sygnatura(swiat, "spichlerz"), "choroba_syg": sygnatura(swiat, "choroba"), "drapieznik_syg": sygnatura(swiat, "drapieznik"),
                       "drapieznik": str(tu) in (swiat.get("drapiezniki") or {}), "ognisko": str(tu) in (swiat.get("ogniska") or {}), "zapas": swiat["miejsca"][tu].get("zapas", 0.0),
-                      "towarzystwo": sum(1 for x in zywi if x.nr != b.nr and x.zyje() and str(x.miejsce) in blisko)}
+                      "towarzystwo": sum(1 for x in zywi if x.nr != b.nr and x.zyje() and str(x.miejsce) in blisko),
+                      "daleka": daleka(swiat, b, tu, pora_teraz)}
             dziecko = b.cykl(slowo=slowo if (slowo_do is None or slowo_do == b.nr) else None,
                              surowa=surowa, inny=inny, inni=inni_syg, partner=partner, dwoje=swiat.get("dwoje", False),
                              klimat=klimat)
@@ -740,6 +775,32 @@ def main():
             if getattr(b, "odkryla_spichlerz", False):
                 b.odkryla_spichlerz = False
                 zdarzenie(swiat, "odkrycie", nr=b.nr, miejsce=tu, co="spichlerz")
+            if getattr(b, "odkryla_ryt", False):
+                b.odkryla_ryt = False
+                zdarzenie(swiat, "odkrycie", nr=b.nr, miejsce=tu, co="ryt")
+            # ryt: istota wyryła znaczenie w miejscu (odnawia, jeśli takie tu już jest); pamięć poza ciałem
+            if getattr(b, "ryje", None):
+                kl, d = b.ryje
+                ryty = mm.setdefault("ryty", [])
+                stary = next((r for r in ryty if r.get("kl") == kl), None)
+                if stary is not None:
+                    stary.update({"n": d["n"], "v": d["v"], "b": d["b"], "sila": 1.0, "nr": b.nr, "cykl": swiat["cykl_swiata"]})
+                elif len(ryty) < word.RYTOW_NA_LACE:
+                    ryty.append({"kl": kl, "n": d["n"], "v": d["v"], "b": d["b"], "sila": 1.0, "nr": b.nr, "cykl": swiat["cykl_swiata"]})
+                else:
+                    stary = min(ryty, key=lambda r: r.get("sila", 1.0))                 # nie ma miejsca: najbledszy ustępuje
+                    zdarzenie(swiat, "ryt_zatarty", miejsce=tu, nr=stary.get("nr"), co=stary.get("kl"))
+                    ryty.remove(stary)
+                    ryty.append({"kl": kl, "n": d["n"], "v": d["v"], "b": d["b"], "sila": 1.0, "nr": b.nr, "cykl": swiat["cykl_swiata"]})
+                zdarzenie(swiat, "ryt", nr=b.nr, miejsce=tu, co=kl, odnowiony=stary is not None and stary.get("kl") == kl)
+            # odczyt: kto zostaje na łące z rytami i ma dość ciekawości, znajduje jeden, którego jeszcze nie zna
+            elif mm.get("ryty") and not b.ruszyl and b.zyje() and random.random() < word.ODCZYT * b.ciekawosc:
+                nieznane = [r for r in mm["ryty"] if r.get("kl") not in b.po_slowie]
+                if nieznane:
+                    r = random.choice(nieznane)
+                    if b.odczytaj(r):
+                        autor_zyje = any(x.nr == r.get("nr") and x.zyje() for x in zywi)
+                        zdarzenie(swiat, "odczytanie", nr=b.nr, miejsce=tu, od=r.get("nr"), co=r.get("kl"), autor_zyje=autor_zyje, sila=round(r.get("sila", 1.0), 2))
             # spichlerz łąki: odłożone (ze stratą) i pobrane
             if b.odklada > 0.0:
                 mm["zapas"] = mm.get("zapas", 0.0) + b.odklada * (1.0 - word.STRATA_SPICHLERZA)
@@ -767,6 +828,7 @@ def main():
                 b.cos["energia"] = round(b.energia, 2)
                 b.cos["nauczone"] = getattr(b, "nauczone", 0)
             do_slownika(swiat, b)
+            do_korpusu(swiat, b, tu, blisko, zywi)
             if b.czyn and b.czyn_do is not None and b.zyje():
                 if b.czyn not in b.zrozumiane:
                     b.zrozumiane.add(b.czyn)
@@ -1067,6 +1129,10 @@ def main():
         if zd:
             with open(ZDARZENIA, "a") as f:
                 f.write("\n".join(json.dumps(x, ensure_ascii=False) for x in zd) + "\n")
+        kp = swiat.pop("_korpus", [])
+        if kp:
+            with open(KORPUS, "a") as f:
+                f.write("\n".join(json.dumps(x, ensure_ascii=False) for x in kp) + "\n")
         if not zywi:
             print("linia wygasła.", flush=True)
             break

@@ -30,6 +30,7 @@ STRONA = os.path.join(KATALOG, "strona", "bytek_lokalny.html")
 WNETRZE = os.path.join(KATALOG, "strona", "wnetrze.html")
 ROD = os.path.join(KATALOG, "strona", "rod.html")
 JEZYK = os.path.join(KATALOG, "strona", "jezyk.html")
+DZIEJE = os.path.join(KATALOG, "strona", "dzieje.html")
 PORT = int(os.environ.get("PORT", 8080))
 BLOKADA = threading.Lock()          # jeden wątek naraz przy plikach słów i przy cudzie
 
@@ -71,7 +72,7 @@ def wnetrze(nr=None, lekko=False, limit=None):
             byty.append({"nr": b["nr"], "pokolenie": b["pokolenie"], "wiek": b["wiek"], "energia": round(b["energia"], 2),
                          "tryb": o.get("tryb", "jawa"), "geny": [], "otwarte": {}, "echo": [], "slownik": [], "mowa": b.get("mowa"),
                          "dzieci": b["dzieci"], "miejsce": str(b.get("miejsce", 0)), "plec": b.get("plec"), "sila": b.get("sila"),
-                         "kierunek": b.get("kierunek", 1), "glos": glos_istoty(b), "rozumie": [], "uprawa": b.get("uprawa"), "spichlerz": b.get("spichlerz")})
+                         "kierunek": b.get("kierunek", 1), "glos": glos_istoty(b), "rozumie": [], "uprawa": b.get("uprawa"), "spichlerz": b.get("spichlerz"), "ryt": b.get("ryt")})
             continue
         K, P = geny_istoty(b)
         M = K + P
@@ -213,10 +214,37 @@ def slownik():
     znaczenia = []
     for zn in sl["znaczenia"].values():
         znaczenia.append({"czyn": zn["czyn"], "ludzko": zn.get("ludzko"), "razy": zn["razy"], "mowiacych": len(zn.get("kto", [])), "rozumiejacych": len(zn.get("dla", [])),
-                          "pierwszy_cykl": zn.get("pierwszy_cykl"),
+                          "pierwszy_cykl": zn.get("pierwszy_cykl"), "verb": zn.get("verb"),
                           "slowa": [slowo_znaczenia(k, n) for k, n in sorted(zn["slowa"].items(), key=lambda kv: -kv[1])]})
     znaczenia.sort(key=lambda x: -x["razy"])
-    return {"cykl": swiat.get("cykl_swiata"), "slowa": sorted(slowa.values(), key=lambda s: (-s["nadawcow"], -s["razy"]))[:200], "znaczenia": znaczenia}
+    # słownik z obserwacji: dla każdego ciągu znaków, co słuchacze po nim zrobili, ale tylko to, co widać z zewnątrz.
+    # Czyny wewnętrzne (zapamiętać, przestać wierzyć) z zewnątrz nie istnieją. Tak czyta się pismo obcej cywilizacji.
+    WIDOCZNE = {"idz": "idzie", "chodz": "idzie", "bron": "broni", "unikaj": "unika", "odpowiedz": "odpowiada", "gromadz": "gromadzi", "uprawiaj": "uprawia"}
+    reakcje = {}
+    for zn in sl["znaczenia"].values():
+        klasa = WIDOCZNE.get(zn.get("verb"))
+        if not klasa:
+            continue
+        for k, n in zn["slowa"].items():
+            r = reakcje.setdefault(k, {})
+            r[klasa] = r.get(klasa, 0) + n
+    obserwacja = []
+    for k, r in reakcje.items():
+        s = sl["slowa"].get(k)
+        if k.startswith("@"):
+            znaki_ = "♪" if k == "@wolanie" else "!"
+            razy = sum(r.values())
+        elif s is None:
+            continue
+        else:
+            znaki_ = znaki(s["temat"], s["cel"]); razy = max(s["razy"], sum(r.values()))
+        glowna = max(r, key=r.get)
+        obserwacja.append({"klucz": k, "znaki": znaki_, "razy": razy, "reakcje": dict(sorted(r.items(), key=lambda kv: -kv[1])), "glowna": glowna,
+                           "widziano": sum(r.values()), "pewnosc": round(r[glowna] / razy, 2) if razy else 0.0, "nadawcow": len(s["nadawcy"]) if s else None})
+    obserwacja.sort(key=lambda x: (-x["widziano"], -x["pewnosc"]))
+    bez_reakcji = sum(1 for k in sl["slowa"] if k not in reakcje)
+    return {"cykl": swiat.get("cykl_swiata"), "slowa": sorted(slowa.values(), key=lambda s: (-s["nadawcow"], -s["razy"]))[:200], "znaczenia": znaczenia,
+            "obserwacja": obserwacja, "bez_reakcji": bez_reakcji}
 
 
 def jezyk():
@@ -499,6 +527,84 @@ def dzieje():
     }
 
 
+WAZNE_ZDARZENIA = ("zaraza", "pozar", "powodz", "upolowana", "gatunki", "odczytanie", "odkrycie", "koniec")   # rzadkie i dotykające wielu istot naraz
+# drapieżnik przychodzi co kilka cykli i zwykle odchodzi z niczym, więc liczy się dopiero polowanie z ofiarą;
+# spis gatunków robi się co 50 cykli, więc liczy się dopiero zmiana ich liczby
+
+
+def cywilizacja():
+    """Oś czasu cywilizacji: ile istot żyło w każdym cyklu i najważniejsze zdarzenia.
+    Liczbę istot odtwarzamy z narodzin i śmierci, zakotwiczoną w tym, ile żyje teraz (ciało świata),
+    więc początkowe istoty z cudu, które nie mają wpisu narodzin, też się zgadzają."""
+    swiat = most.czytaj_json(most.CIALO, None)
+    if swiat is None:
+        return {"brak": True}
+    teraz = int(swiat.get("cykl_swiata", 0))
+    p = os.path.join(DANE, "zdarzenia.jsonl")
+    urodzenia, zgony, wazne, gatunki_bylo = {}, {}, [], None
+    zachorowania, ozdrowienia, chore = {}, {}, set()             # chore: kto choruje w tej chwili odczytu, żeby śmierć chorej zdjęła ją z rachunku
+    if os.path.exists(p):
+        with open(p) as f:
+            for l in f:
+                try:
+                    x = json.loads(l)
+                except json.JSONDecodeError:
+                    continue
+                c, typ = int(x.get("cykl", 0)), x.get("typ")
+                if typ == "narodziny":
+                    urodzenia[c] = urodzenia.get(c, 0) + 1
+                elif typ == "smierc":
+                    zgony[c] = zgony.get(c, 0) + 1
+                    if x.get("nr") in chore:
+                        chore.discard(x.get("nr"))
+                        ozdrowienia[c] = ozdrowienia.get(c, 0) + 1
+                elif typ == "wyzdrowienie":
+                    if x.get("nr") in chore:
+                        chore.discard(x["nr"])
+                        ozdrowienia[c] = ozdrowienia.get(c, 0) + 1
+                if typ in ("zarazila_sie", "zaraza") and x.get("nr") is not None and x["nr"] not in chore:
+                    chore.add(x["nr"])                             # „zaraza” to pierwsza chora, potem idą „zarazila_sie”
+                    zachorowania[c] = zachorowania.get(c, 0) + 1
+                if typ in WAZNE_ZDARZENIA:
+                    if typ == "gatunki":
+                        if x.get("ile") == gatunki_bylo:
+                            continue
+                        gatunki_bylo = x.get("ile")
+                    if typ == "odczytanie" and x.get("autor_zyje", True):
+                        continue                                    # liczy się odczyt po zmarłym: kultura przeżyła śmierć
+                    if typ == "odkrycie" and x.get("co") != "ryt":
+                        continue                                    # uprawę i spichlerz odkrywa się dziesiątki razy; ryt to przełom
+                    w = {"cykl": c, "typ": "polowanie" if typ == "upolowana" else typ}
+                    for k in ("miejsce", "ilu", "ile", "szczep", "nr", "od", "co", "powod", "ostatni"):
+                        if k in x:
+                            w[k] = x[k]
+                    wazne.append(w)
+    saldo = sum(urodzenia.values()) - sum(zgony.values())
+    n = len(swiat.get("zywi", [])) - saldo                       # ilu było na początku (przed pierwszym wpisem)
+    krzywa, k_chore, k_ur, k_zg, ch = [], [], [], [], 0
+    for c in range(0, teraz + 1):
+        n += urodzenia.get(c, 0) - zgony.get(c, 0)
+        ch += zachorowania.get(c, 0) - ozdrowienia.get(c, 0)
+        krzywa.append(max(0, n))
+        k_chore.append(max(0, ch))
+        k_ur.append(urodzenia.get(c, 0))
+        k_zg.append(zgony.get(c, 0))
+    # wielkie wymieranie: spadek o ponad jedną trzecią w ciągu dziesięciu cykli, liczony od szczytu
+    OKNO, PROG = 10, 1 / 3
+    szczyt_c, szczyt_n, ostatnie = 0, krzywa[0] if krzywa else 0, -OKNO
+    for c, v in enumerate(krzywa):
+        if v >= szczyt_n:
+            szczyt_c, szczyt_n = c, v
+        elif szczyt_n >= 6 and c - szczyt_c <= OKNO and v <= szczyt_n * (1 - PROG) and c - ostatnie > OKNO:
+            wazne.append({"cykl": c, "typ": "wymieranie", "z": szczyt_n, "na": v, "od_cyklu": szczyt_c})
+            ostatnie = c
+            szczyt_c, szczyt_n = c, v
+    wazne.sort(key=lambda w: w["cykl"])
+    return {"cykl_swiata": teraz, "zywych": len(swiat.get("zywi", [])), "krzywa": krzywa, "zdarzenia": wazne,
+            "szczyt": max(krzywa) if krzywa else 0,
+            "serie": {"wszystkie": krzywa, "chore": k_chore, "narodziny": k_ur, "zgony": k_zg}}   # co można pokazać zamiast wszystkich istot
+
+
 def rod():
     """Drzewo rodowe: z ciała (żywi, zmarli) i z dziennika (kto kogo urodził)."""
     swiat = most.czytaj_json(most.CIALO, {"zywi": [], "zmarli": [], "cykl_swiata": 0})
@@ -530,7 +636,7 @@ if ARCHIWUM:
     most.ustaw_katalog(DANE)
     Z.GENY_DIR = os.path.join(DANE, "cialo")
 PLIKI_SWIATA = ["swiat.json", "dziennik.jsonl", "slowa_keja.jsonl", "slowa_swiata.json", "slowa_update.json",
-                "wejscie.txt", "wejscie.txt.czytam", "stan.json", "zycie.log", "karma.txt", "karma.txt.czytam", "cud.txt", "cialo", "zdarzenia.jsonl"]
+                "wejscie.txt", "wejscie.txt.czytam", "stan.json", "zycie.log", "karma.txt", "karma.txt.czytam", "cud.txt", "cialo", "zdarzenia.jsonl", "korpus.jsonl"]
 
 
 _PROCES_CACHE = {"czas": 0.0, "pid": None, "wynik": False}
@@ -753,6 +859,8 @@ class Bytek(BaseHTTPRequestHandler):
             return self._json(200, {"zdarzenia": wynik, "teraz": time.time()})
         if sciezka == "/api/dzieje":
             return self._json(200, dzieje())
+        if sciezka == "/api/cywilizacja":
+            return self._json(200, cywilizacja())
         if sciezka == "/api/portret":
             return self._json(200, portret())
         if sciezka == "/api/slownik":
@@ -787,8 +895,8 @@ class Bytek(BaseHTTPRequestHandler):
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             return self.wfile.write(ciało)
-        if sciezka in ("/", "/index.html", "/wnetrze", "/rod", "/jezyk"):
-            plik = {"/wnetrze": WNETRZE, "/rod": ROD, "/jezyk": JEZYK}.get(sciezka, STRONA)
+        if sciezka in ("/", "/index.html", "/wnetrze", "/rod", "/jezyk", "/dzieje"):
+            plik = {"/wnetrze": WNETRZE, "/rod": ROD, "/jezyk": JEZYK, "/dzieje": DZIEJE}.get(sciezka, STRONA)
             with open(plik, "rb") as f:
                 ciało = f.read()
             self.send_response(200)
