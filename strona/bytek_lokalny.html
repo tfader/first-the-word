@@ -1105,7 +1105,10 @@
       const o = await r.json();
       if (!r.ok) { $("nowyHint").textContent = o.blad || t("nowy.blad"); b.disabled = false; return; }
       $("nowyHint").textContent = t("nowy.ok", { ile: o.istot, geny: o.geny, gdzie: o.poprzedni_w ? o.poprzedni_w.split("/").slice(-2).join("/") : "—" });
-      setTimeout(odswiez, 1500);
+      $("koniec").hidden = true;                 // świat już powstał: formularz nie ma po co stać
+      dziejeCykl = null;
+      setTimeout(odswiez, 1200);
+      setTimeout(cywilizacja, 2000);
       b.disabled = false;
     } catch (e) { $("nowyHint").textContent = t("brak_serwera"); b.disabled = false; }
   });
