@@ -2,7 +2,15 @@
 
 Wszystko dzieje się w katalogu `~/projekty/human`. Internet niepotrzebny.
 
-## Uruchomienie
+## Najkrócej
+
+    cd ~/projekty/human
+    python3 serwer.py
+
+Otwórz <http://localhost:8080> i przyciskiem powołaj świat — serwer sam uruchomi proces życia.
+Reszta tego pliku jest dla tych, którzy chcą prowadzić świat z terminala.
+
+## Uruchomienie z terminala
 
 1. Otwórz Terminal i wejdź do katalogu:
 

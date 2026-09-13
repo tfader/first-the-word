@@ -18,21 +18,23 @@ Python 3.9 or newer and `numpy`. Nothing else — no internet, no database, no b
 
 ### Run it
 
-From the project directory:
+    python3 serwer.py
 
-    # 1. the world itself: one cycle every 5 seconds
-    CYKL=5.0 GENY=64 DWOJE=1 WYMIARY=8 ISTOT=32 ROZMIAR=rozlegly JEZYK=en nohup python3 zycie.py >> zycie.log 2>&1 &
-    ps -Ao pid,command | grep "[z]ycie.py" | grep Python | awk '{print $1}' > zycie.pid
+Open <http://localhost:8080> and press the button to call a world into being. That is all: the server starts
+the life process itself. In the form you choose how many genes, how many dimensions a signal has, how many
+beings to begin with, how large the world is, how many it can hold at once, and **which language** it names
+its meanings in (`pl` / `en`).
 
-    # 2. the viewer
+To keep it running after you close the terminal:
+
     nohup python3 serwer.py >> serwer.log 2>&1 &
-    ps -Ao pid,command | grep "[s]erwer.py" | grep Python | awk '{print $1}' > serwer.pid
 
-Then open <http://localhost:8080>.
+The command line is only needed if you want to start the world without the page:
 
-`GENY`, `WYMIARY`, `ISTOT`, `ROZMIAR`, `POJEMNOSC_SWIATA` (population ceiling) and `JEZYK` (`pl` / `en`,
-the language the world names its meanings in) only matter when a **new** world is born. Once `swiat.json`
-exists, the world returns to its own body and reads them from there; only `CYKL` still applies.
+    CYKL=5.0 GENY=64 WYMIARY=8 ISTOT=32 ROZMIAR=rozlegly POJEMNOSC_SWIATA=500 JEZYK=en python3 zycie.py
+
+All of those settings matter only when a **new** world is born. Once `swiat.json` exists, the world returns
+to its own body and reads them from there; only `CYKL` (seconds per cycle) still applies.
 
 ### Stop it
 
@@ -82,21 +84,22 @@ Python 3.9 lub nowszy i `numpy`. Nic więcej — bez internetu, bez bazy danych,
 
 ### Uruchomienie
 
-W katalogu projektu:
+    python3 serwer.py
 
-    # 1. sam świat: jeden cykl co 5 sekund
-    CYKL=5.0 GENY=64 DWOJE=1 WYMIARY=8 ISTOT=32 ROZMIAR=rozlegly JEZYK=pl nohup python3 zycie.py >> zycie.log 2>&1 &
-    ps -Ao pid,command | grep "[z]ycie.py" | grep Python | awk '{print $1}' > zycie.pid
+Otwórz <http://localhost:8080> i przyciskiem powołaj świat. To wszystko: serwer sam uruchamia proces życia.
+W formularzu wybierasz, ile genów, ile wymiarów ma sygnał, ile istot na początek, jak duży jest świat,
+ilu najwyżej uniesie i **w jakim języku** nazywa swoje znaczenia (`pl` / `en`).
 
-    # 2. podgląd
+Żeby chodził po zamknięciu terminala:
+
     nohup python3 serwer.py >> serwer.log 2>&1 &
-    ps -Ao pid,command | grep "[s]erwer.py" | grep Python | awk '{print $1}' > serwer.pid
 
-Potem otwórz <http://localhost:8080>.
+Linia komend jest potrzebna tylko wtedy, gdy chcesz powołać świat bez strony:
 
-`GENY`, `WYMIARY`, `ISTOT`, `ROZMIAR`, `POJEMNOSC_SWIATA` (sufit populacji) i `JEZYK` (`pl` / `en`, język,
-w którym świat nazywa swoje znaczenia) liczą się **tylko przy powoływaniu nowego świata**. Gdy `swiat.json`
-już istnieje, świat wraca do swojego ciała i bierze je stamtąd; zostaje tylko `CYKL`.
+    CYKL=5.0 GENY=64 WYMIARY=8 ISTOT=32 ROZMIAR=rozlegly POJEMNOSC_SWIATA=500 JEZYK=pl python3 zycie.py
+
+Te ustawienia liczą się **tylko przy powoływaniu nowego świata**. Gdy `swiat.json` już istnieje, świat wraca
+do swojego ciała i bierze je stamtąd; zostaje tylko `CYKL` (sekundy na cykl).
 
 ### Zatrzymanie
 
