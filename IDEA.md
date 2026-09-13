@@ -40,7 +40,7 @@ przybliżają go w czasie.
 ### Świat
 
 Łąki (od kilkunastu do tysięcy, zależnie od wybranego rozmiaru), każda z własnym zapachem, żyznością, szerokością
-i pogodą. Pory roku chodzą w roku po 240 cykli, przesunięte zależnie od szerokości — więc zima jest gdzie indziej
+i pogodą. Pory roku biegną w roku po 480 cykli, przesunięte zależnie od szerokości — więc zima jest gdzie indziej
 w innym czasie, a istota z mapą ma dokąd iść. Zima zatrzymuje wzrost łąk zupełnie, mróz zabiera resztę. Są pożary
 i powodzie, wiatr zagłuszający mowę i ulewa utrudniająca żer.
 
@@ -70,7 +70,7 @@ zaprojektował. Jeśli inni go podchwycą i coś za nim pójdzie, staje się sł
 
 To jest sedno całej rzeczy. Słowo nie znaczy tego, co ustaliliśmy; znaczy **to, co po nim zwykle następowało**.
 Istota zapamiętuje usłyszane słowa, a w następnym cyklu notuje, co naprawdę w nią weszło: ile zjadła, czy bolało,
-czyje głosy słyszała, porę roku ważoną tym, jak bardzo klimat dawał się we znaki, pokarm ze spichlerza, pracę,
+czyje głosy słyszała, porę roku ważoną tym, o ile klimat podniósł koszt trwania, pokarm ze spichlerza, pracę,
 noc, gorączkę, drapieżnika. To wektor, nie etykieta z listy.
 
 Sumy tych wektorów rosną przy słowie. Długość sumy podzielona przez liczbę obserwacji mówi, jak powtarzalny jest
@@ -88,12 +88,12 @@ działa na znacznikach, nie na słowach, i dlatego może urodzić się mówiący
 ### Zagrożenia
 
 **Choroby**: nowy szczep pojawia się co ~120 cykli, z własną zaraźliwością, ciężkością i długością losowaną
-z rozkładów o długim ogonie — większość jest łagodna, mniej więcej co dwusetny jest i zaraźliwy, i ciężki.
+z rozkładów o długim ogonie — większość jest łagodna, mniej więcej co czterysetny jest i zaraźliwy, i ciężki.
 Szczep skaża łąkę (**ognisko**), która potem zaraża każdego, kto tam stanie, i rozchodzi się z wędrowcami.
 Przechorowanie daje dożywotnią odporność na *ten* szczep. Odporność jest dziedziczna i kosztuje trwanie
 codziennie, także w zdrowiu.
 
-**Drapieżniki**: przychodzi tam, gdzie ktoś jest, zostaje kilka cykli i bierze najwyżej jedną ofiarę na cykl —
+**Drapieżniki**: przychodzi tam, gdzie stoi co najmniej troje, zostaje kilka cykli i bierze najwyżej jedną ofiarę na cykl —
 więc gromada rozcieńcza ryzyko, a samotnik jest sam. Czujne stado odstrasza dwa razy skuteczniej; drapieżnik
 wybiera raczej słabą, chorą albo głodną. Nie zabija wprost: zabiera energię, a koniec i tak jest jej brakiem.
 
@@ -146,7 +146,7 @@ winter only make it come sooner.
 ### The world
 
 Meadows (dozens to thousands, depending on the chosen size), each with its own smell, fertility, latitude
-and weather. Seasons run round a year of 240 cycles, shifted by latitude — so winter is elsewhere at a different
+and weather. Seasons run round a year of 480 cycles, shifted by latitude — so winter is elsewhere at a different
 time, and a being with a map has somewhere to go. Winter stops the meadows from growing at all; frost takes
 what is left. There are fires and floods, wind that muffles speech, and rain that makes foraging hard.
 
@@ -194,12 +194,12 @@ names. The world runs on markers, not on words, which is why a world can be born
 ### Threats
 
 **Plagues**: a new strain appears every ~120 cycles with its own infectivity, severity and length drawn from
-long-tailed distributions — most are mild, roughly one in two hundred is both infectious and heavy. A strain
+long-tailed distributions — most are mild, roughly one in four hundred is both infectious and heavy. A strain
 contaminates a meadow (an **outbreak**), which then infects anyone standing there and spreads with travellers.
 Surviving one gives lifelong immunity to *that* strain. Immunity is heritable and costs upkeep every cycle,
 in health too.
 
-**Predators**: one arrives where beings are, stays a few cycles and takes at most one victim per cycle — so a
+**Predators**: one arrives where at least three beings stand, stays a few cycles and takes at most one victim per cycle — so a
 crowd dilutes the risk and a loner is alone. An alert herd scares it off twice as often; it prefers the weak,
 the sick and the hungry. It does not kill directly: it takes energy, and the end is still the lack of it.
 

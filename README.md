@@ -72,7 +72,7 @@ in the repository — `.gitignore` keeps it out. A fresh clone has no world; it 
 
 ### Contributing
 
-The world is far from finished, and every layer of it can be pushed further — this is an open invitation.
+The world is far from finished and every layer of it can be taken further — this is an open invitation.
 
 What is worth doing next is written down in `WORD.md` under **Odłożone** (things set aside): more verbs
 and objects in meanings, sentences carrying two topics at once, division of labour, stories passed between
@@ -80,14 +80,14 @@ generations, crossing-over inside a gene. Beyond that: whatever you think this w
 
 Two things worth knowing before you start:
 
-- **Read `WORD.md` first.** Every piece has a why, usually with the measurement that settled it. The project
+- **Read `WORD.md` first.** Every piece carries its reasoning, usually with the measurement that settled it. The project
   is closer to biology than to engineering: a change is judged by what the world does with it, not by how
-  clean the code looks. Run it, measure, and put the numbers in the pull request.
+  clean the code looks. Run the world, measure the result, and include the numbers in the pull request.
 - **Nothing in this world is designed.** Genes come from multiplying random matrices, meanings come from
   experience, and what is good is decided by energy. If your change writes down an answer that selection was
   supposed to find, it is probably the wrong change.
 
-Issues, pull requests, forks and worlds run on entirely different settings are all welcome.
+Issues, pull requests, forks and worlds run on entirely different settings are all welcome here.
 
 ### License
 
@@ -111,7 +111,7 @@ Otwórz <http://localhost:8080> i przyciskiem powołaj świat. To wszystko: serw
 W formularzu wybierasz, ile genów, ile wymiarów ma sygnał, ile istot na początek, jak duży jest świat,
 ilu najwyżej uniesie i **w jakim języku** nazywa swoje znaczenia (`pl` / `en`).
 
-Żeby chodził po zamknięciu terminala:
+Żeby działał po zamknięciu terminala:
 
     nohup python3 serwer.py >> serwer.log 2>&1 &
 
@@ -156,7 +156,7 @@ repozytorium — pilnuje tego `.gitignore`. Świeża kopia nie ma świata; tworz
 
 ### Współtworzenie
 
-Ten świat jest daleki od skończenia i każdą jego warstwę da się pchnąć dalej — zapraszamy.
+Ten świat jest daleki od skończenia i każdą jego warstwę można rozwinąć — zapraszamy.
 
 Co warto zrobić dalej, spisane jest w `WORD.md` w sekcji **Odłożone**: więcej czasowników i przedmiotów
 w znaczeniach, wypowiedzi z dwoma tematami naraz, podział pracy, opowieści między pokoleniami,
@@ -164,14 +164,15 @@ crossing-over wewnątrz genu. Poza tym: cokolwiek, czego według Ciebie temu św
 
 Dwie rzeczy warto wiedzieć, zanim zaczniesz:
 
-- **Najpierw przeczytaj `WORD.md`.** Każdy kawałek ma swoje dlaczego, zwykle z pomiarem, który przeważył.
-  Projekt jest bliższy biologii niż inżynierii: zmianę ocenia się po tym, co świat z nią robi, nie po tym,
-  jak czysty jest kod. Uruchom, zmierz i włóż liczby do pull requesta.
+- **Najpierw przeczytaj `WORD.md`.** Przy każdym kawałku zapisane jest uzasadnienie, zwykle z pomiarem,
+  który rozstrzygnął sprawę.
+  Projekt jest bliższy biologii niż inżynierii: zmianę ocenia się po tym, co świat z nią robi, a nie po tym,
+  jak czysty jest kod. Uruchom świat, zmierz wynik i dołącz liczby do pull requesta.
 - **Nic w tym świecie nie jest zaprojektowane.** Geny biorą się z mnożenia losowych macierzy, znaczenia
   z doświadczenia, a o tym, co dobre, rozstrzyga energia. Jeśli Twoja zmiana wpisuje odpowiedź, którą miał
   znaleźć dobór, to prawdopodobnie zła zmiana.
 
-Zgłoszenia, pull requesty, forki i światy puszczone na zupełnie innych ustawieniach — wszystko mile widziane.
+Zgłoszenia, pull requesty, kopie projektu i światy uruchomione na zupełnie innych ustawieniach — wszystko jest mile widziane.
 
 ### Licencja
 
