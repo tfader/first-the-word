@@ -201,6 +201,7 @@
   const pokarmTekst = (g) => g > 0.6 ? t("pokarm.gesty") : g > 0.25 ? t("pokarm.rzadki") : t("pokarm.zaden");
   const liczba = (n, jedna, kilka, wiele) => n === 1 ? t(jedna) : (n >= 2 && n <= 4) ? t(kilka, { n }) : t(wiele, { n });
   let ostatniStan = null;
+  let czekamNaSwiat = 0;                     // chwila powołania świata: do tego czasu formularz się nie pokazuje
 
   function rysujOddech(cv, b) {
     const ctx = cv.getContext("2d"), W = cv.width, cx = W / 2, cy = W / 2;
@@ -542,7 +543,7 @@
     // kafle zniknęły ze strony: te same liczby są w podsumowaniu cywilizacji, w kontekście
     document.querySelectorAll("#akcje [data-otworz]").forEach((b) => { b.hidden = !s.zyje; });
     if (!s.zyje) return;
-    $("procesStoi").hidden = s.proces_zyje !== false;
+    $("procesStoi").hidden = s.proces_zyje !== false || Date.now() - czekamNaSwiat < 30000;
     $("cywilizacja").hidden = !s.zyje;
   }
 
@@ -1015,7 +1016,7 @@
   $("dlgNapisy").addEventListener("click", (e) => { if (e.target === $("dlgNapisy")) $("dlgNapisy").close(); });
   let dziejeCykl = null;
   async function renderDzieje(s) {
-    if (s.zyje) { $("dzieje").innerHTML = ""; dziejeCykl = null; return; }
+    if (s.zyje || Date.now() - czekamNaSwiat < 30000) { $("dzieje").innerHTML = ""; dziejeCykl = null; return; }   // stary świat już nie jest tym światem
     if (dziejeCykl === s.cykl_swiata) return;
     dziejeCykl = s.cykl_swiata;
     try {
@@ -1047,7 +1048,9 @@
     const kon = $("koniec");
     if (kon) {
       const przerwany = !!s.zyje && s.proces_zyje === false;          // istoty żyją, ale proces stoi: można wznowić albo powołać nowy świat
-      kon.hidden = !!s.zyje && !przerwany;
+      // świeżo powołany świat jeszcze nie zapisał pierwszego cyklu, więc stan mówi „nikt nie żyje”.
+      // Formularz ma wtedy zostać schowany, inaczej wygląda, jakby nic się nie stało.
+      kon.hidden = (!!s.zyje && !przerwany) || (Date.now() - czekamNaSwiat < 30000);
       if (!kon.hidden) {
         $("koniecOpis").textContent = przerwany ? t("koniec.opis.przerwany", { cykl: s.cykl_swiata, n: s.zywych }) : t(s.koniec && s.koniec.powod === "jedna_plec" ? "koniec.opis.jedna_plec" : "koniec.opis", { cykl: s.cykl_swiata, nr: ((s.koniec || {}).ostatni || []).map((n) => t("nr", { nr: n })).join(", ") });
         kon.querySelector("h2").textContent = t(przerwany ? "koniec.eyebrow.przerwany" : "koniec.eyebrow");
@@ -1105,7 +1108,9 @@
       const o = await r.json();
       if (!r.ok) { $("nowyHint").textContent = o.blad || t("nowy.blad"); b.disabled = false; return; }
       $("nowyHint").textContent = t("nowy.ok", { ile: o.istot, geny: o.geny, gdzie: o.poprzedni_w ? o.poprzedni_w.split("/").slice(-2).join("/") : "—" });
+      czekamNaSwiat = Date.now();
       $("koniec").hidden = true;                 // świat już powstał: formularz nie ma po co stać
+      toast("narodziny", $("nowyHint").textContent);
       dziejeCykl = null;
       setTimeout(odswiez, 1200);
       setTimeout(cywilizacja, 2000);
