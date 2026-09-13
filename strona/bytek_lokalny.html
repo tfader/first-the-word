@@ -1,0 +1,1115 @@
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="%23e8e4d9"/><circle cx="16" cy="16" r="9" fill="%237fa47f"/></svg>'>
+  <title>Istota</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<!-- @@STYLE_START --><link rel="stylesheet" href="/s/wspolne.css"><!-- @@STYLE_END -->
+<!-- @@I18N_START --><script src="/s/i18n.js"></script><!-- @@I18N_END -->
+
+<div class="page" data-i18n-title="tytul">
+  <header class="top">
+    <div class="brand">
+      <h1 data-i18n="marka">istota</h1>
+      <div class="akcje" id="akcje"><!-- @@SERWER_START --><button type="button" class="btn ghost" data-otworz="dlgDrzewo" data-i18n="rod.tytul">ród</button><button type="button" class="btn ghost" data-otworz="dlgCzas" data-i18n="rod.czas">linia czasu</button><button type="button" class="btn ghost" data-otworz="mapa" data-i18n="mapa.tytul">mapa</button><button type="button" class="btn ghost" data-otworz="dlgSlownik" data-i18n="slownik.tytul">słownik</button><button type="button" class="btn ghost" data-otworz="dlgGenomSwiata" data-i18n="gs.btn">genom</button><button type="button" class="btn ghost" data-otworz="dlgKronika" data-i18n="kr.tytul">kronika</button><button type="button" class="btn ghost" data-otworz="dlgIstoty" data-i18n="istoty.btn">istoty</button><button type="button" class="btn ghost" data-otworz="dlgMowa" data-i18n="powiedz.menu">powiedz</button><button type="button" class="btn ghost" data-otworz="dlgPowiadomienia" data-i18n="pow.btn">powiadomienia</button><button type="button" id="zatrzymajBtn" class="btn ghost" style="color:var(--dying)" data-i18n="stop.btn">zatrzymaj świat</button><!-- @@SERWER_END --></div>
+      <select id="lang" class="lang"></select>
+    </div>
+  </header>
+
+
+  <section id="cywilizacja" class="panel" aria-label="Cywilizacja" hidden style="margin-top:16px">
+    <div class="swiat-head"><h2 data-i18n="cyw.tytul">podsumowanie cywilizacji</h2></div>
+    <div class="row" id="procesStoi" hidden style="margin:0 0 12px;align-items:center;gap:12px"><span class="hint err" data-i18n="proces.stoi"></span><button type="button" id="wznowBtn" class="btn warm" data-i18n="proces.wznow">wznów życie</button></div>
+    <p class="hint" data-i18n="cyw.lead" style="margin:-4px 0 14px"></p>
+    <div id="cywTresc">—</div>
+  </section>
+
+  <dialog id="mapa" class="dlg szeroki">
+    <div class="dlg-head"><h3 data-i18n="mapa.tytul">mapa znanych miejsc</h3><button type="button" class="btn ghost" id="mapaZamknij" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="mapa.lead" style="margin-bottom:12px"></p>
+    <div class="mapa-body">
+      <canvas id="mapaCanvas" width="1400" height="760" style="width:100%;height:auto;display:block"></canvas>
+      <div class="gen" id="miejscePanel" hidden></div>
+    </div>
+  </dialog>
+
+
+  <dialog id="dlg" class="dlg">
+    <div class="dlg-head"><h3 id="dlgTytul">—</h3><div class="row"><!-- @@SERWER2_START --><button type="button" class="btn ghost" id="dlgGenomBtn" data-i18n="genom.tytul">genom</button><!-- @@SERWER2_END --><button type="button" class="btn ghost" id="dlgZamknij" data-i18n="dlg.zamknij">Zamknij</button></div></div>
+    <div class="dlg-body">
+      <div><canvas id="dlgGeny" class="geny" width="448" height="448"></canvas><p class="hint" id="dlgGenyOpis" style="margin-top:8px"></p></div>
+      <div class="readouts" id="dlgDane"></div>
+    </div>
+  </dialog>
+
+  <dialog id="dlgDrzewo" class="dlg szeroki">
+    <div class="dlg-head"><h3 data-i18n="rod.tytul">ród</h3><button type="button" class="btn ghost" data-zamknij="dlgDrzewo" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="rod.lead" style="margin-bottom:12px"></p>
+    <div class="drzewo"><svg id="drzewoSvg" width="640" height="200"></svg></div>
+  </dialog>
+  <div id="toasty" class="toasty" aria-live="polite"></div>
+
+  <dialog id="dlgGenom" class="dlg szeroki">
+    <div class="dlg-head"><h3 id="genomTytul">—</h3><button type="button" class="btn ghost" data-zamknij="dlgGenom" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="genom.lead" style="margin-bottom:12px"></p>
+    <div class="genom-body">
+      <div><canvas id="genomCanvas" class="geny duzy" width="800" height="800"></canvas><div class="legenda" id="genomLegenda"></div></div>
+      <div>
+        <div class="readouts" id="genomDane"></div>
+        <div class="gen" id="genomGen" style="margin-top:14px" hidden></div>
+        <h2 data-i18n="genom.top" style="margin-top:18px">najczęściej otwierane</h2>
+        <div class="log" id="genomTop"></div>
+      </div>
+    </div>
+  </dialog>
+  <dialog id="dlgGenomSwiata" class="dlg gs-okno">
+    <div class="dlg-head"><h3 data-i18n="gs.tytul">genom w tym świecie</h3><button type="button" class="btn ghost" data-zamknij="dlgGenomSwiata" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="gs.lead" style="margin-bottom:14px"></p>
+    <div id="gsTresc" class="gs"></div>
+  </dialog>
+  <dialog id="dlgNapisy" class="dlg napisy">
+    <button type="button" class="btn ghost napisy-zamknij" data-zamknij="dlgNapisy" data-i18n="dlg.zamknij">Zamknij</button>
+    <div class="napisy-okno"><div class="napisy-tresc" id="napisyTresc"></div></div>
+  </dialog>
+  <dialog id="dlgPortret" class="dlg">
+    <h2 style="margin-top:0" id="portretTytul" data-i18n="portret.tytul">portret</h2>
+    <div id="portretTresc"></div>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn ghost" data-zamknij="dlgPortret" data-i18n="dlg.zamknij">Zamknij</button></div>
+  </dialog>
+  <dialog id="dlgPowiadomienia" class="dlg">
+    <div class="dlg-head"><h3 data-i18n="pow.tytul">powiadomienia</h3><button type="button" class="btn ghost" data-zamknij="dlgPowiadomienia" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" style="margin-bottom:12px" data-i18n="pow.lead"></p>
+    <div class="wiersz" style="grid-template-columns:1fr auto;margin-bottom:12px">
+      <span data-i18n="pow.dzwiek">dźwięk przy powiadomieniu</span>
+      <button type="button" id="dzwiek" class="btn ghost dzwiek" title="dźwięk" aria-pressed="false">♪</button>
+    </div>
+    <div id="powLista" class="wiersze"></div>
+  </dialog>
+  <dialog id="dlgZatrzymaj" class="dlg">
+    <div class="dlg-head"><h3 data-i18n="stop.tytul">zatrzymać świat?</h3><button type="button" class="btn ghost" data-zamknij="dlgZatrzymaj" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" id="zatrzymajOpis" style="margin-bottom:12px">Czas dla istot stanie. Ciało świata zapisuje się na końcu każdego cyklu, więc przepadnie najwyżej jeden. Potem można wznowić — wrócą z ostatniego zapisanego cyklu.</p>
+    <div class="row" style="gap:12px">
+      <button type="button" id="zatrzymajTak" class="btn warm" data-i18n="stop.tak">zatrzymaj</button>
+      <button type="button" class="btn ghost" data-zamknij="dlgZatrzymaj" data-i18n="stop.nie">nie, niech żyją</button>
+      <span id="zatrzymajOdp" class="hint"></span>
+    </div>
+  </dialog>
+  <dialog id="dlgMowa" class="dlg">
+    <div class="dlg-head"><h3 data-i18n="powiedz.wszystkim">Powiedz wszystkim istotom</h3><button type="button" class="btn ghost" data-zamknij="dlgMowa" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="powiedz.lead" style="margin-bottom:12px"></p>
+    <div class="say">
+      <div class="row"><input id="mowaSlowo" class="slowo" type="text" maxlength="240" autocomplete="off" spellcheck="false" data-i18n-placeholder="powiedz.placeholder"><button type="button" id="mowaBtn" class="btn" data-i18n="powiedz.btn">Powiedz</button></div>
+      <p class="hint" id="mowaHint"></p>
+    </div>
+  </dialog>
+  <dialog id="dlgIstoty" class="dlg gs-okno">
+    <div class="dlg-head"><h3 data-i18n="istoty.tytul">istoty tego świata</h3><button type="button" class="btn ghost" data-zamknij="dlgIstoty" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <h4 style="margin:6px 0 8px" data-i18n="istoty.wybitna">najwybitniejsza</h4>
+    <div id="istWybitna" class="wiersze"></div>
+    <h4 style="margin:18px 0 8px" data-i18n="istoty.ciekawe">najciekawsze</h4>
+    <div id="istCiekawe" class="wiersze"></div>
+    <h4 style="margin:18px 0 8px" data-i18n="istoty.wszystkie">wszystkie</h4>
+    <div id="istWszystkie" class="wiersze"></div>
+    <p class="hint" style="margin-top:10px">
+      <button id="istWstecz" type="button" data-i18n="istoty.wstecz">wstecz</button>
+      <button id="istDalej" type="button" data-i18n="istoty.dalej">dalej</button>
+      <span id="istIle"></span>
+    </p>
+  </dialog>
+  <dialog id="dlgKronika" class="dlg">
+    <div class="dlg-head"><h3 data-i18n="kr.tytul">kronika</h3><button type="button" class="btn ghost" data-zamknij="dlgKronika" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="kr.lead" style="margin-bottom:12px"></p>
+    <div class="log" id="kronikaLista"></div>
+  </dialog>
+  <dialog id="dlgSlownik" class="dlg">
+    <div class="dlg-head"><h3 data-i18n="slownik.tytul">słownik istot</h3><button type="button" class="btn ghost" data-zamknij="dlgSlownik" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="slownik.lead" style="margin-bottom:12px"></p>
+    <div class="log" id="slownikLista"></div>
+  </dialog>
+  <dialog id="dlgCzas" class="dlg szeroki">
+    <div class="dlg-head"><h3 data-i18n="rod.czas">linia czasu świata</h3><button type="button" class="btn ghost" data-zamknij="dlgCzas" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="rod.czas.lead" style="margin-bottom:12px"></p>
+    <div class="drzewo"><svg id="czasSvg" width="640" height="120"></svg></div>
+  </dialog>
+
+  <!-- @@KONIEC_START -->
+  <section id="koniec" class="panel" hidden aria-label="Nowy świat">
+    <h2 data-i18n="koniec.eyebrow">w tym świecie nikt nie żyje</h2>
+    <p class="hint" id="koniecOpis"></p>
+    <div id="dzieje" class="dzieje"></div>
+    <div class="row" style="margin-top:10px"><button type="button" id="napisyBtn" class="btn ghost" data-i18n="napisy.btn">napisy końcowe</button><button type="button" id="portretBtn" class="btn ghost" data-i18n="portret.btn">portret najwybitniejszej</button></div>
+    <div class="pola">
+      <label><span data-i18n="nowy.geny"></span>
+        <select id="geny" class="pick">
+          <option value="8" data-i18n="nowy.geny.8"></option>
+          <option value="64" selected data-i18n="nowy.geny.64"></option>
+          <option value="256" data-i18n="nowy.geny.256"></option>
+          <option value="1000" data-i18n="nowy.geny.1000"></option>
+        </select></label>
+      <label><span data-i18n="nowy.wymiary"></span>
+        <select id="wymiary" class="pick">
+          <option value="4" selected data-i18n="nowy.wymiary.4"></option>
+          <option value="8" data-i18n="nowy.wymiary.8"></option>
+          <option value="16" data-i18n="nowy.wymiary.16"></option>
+        </select></label>
+      <label><span data-i18n="nowy.cykl"></span>
+        <select id="cykl" class="pick">
+          <option value="5" data-i18n="nowy.cykl.5"></option>
+          <option value="15" data-i18n="nowy.cykl.15"></option>
+          <option value="60" selected data-i18n="nowy.cykl.60"></option>
+          <option value="300" data-i18n="nowy.cykl.300"></option>
+        </select></label>
+      <label><span data-i18n="nowy.rozmiar"></span>
+        <select id="rozmiar" class="pick">
+          <option value="ciasny" data-i18n="nowy.rozmiar.ciasny"></option>
+          <option value="zwykly" selected data-i18n="nowy.rozmiar.zwykly"></option>
+          <option value="rozlegly" data-i18n="nowy.rozmiar.rozlegly"></option>
+        </select></label>
+      <label><span data-i18n="nowy.istot"></span>
+        <select id="istot" class="pick">
+          <option value="2" data-i18n="nowy.istot.2"></option>
+          <option value="4" selected>4</option>
+          <option value="8">8</option>
+          <option value="16">16</option>
+          <option value="32" data-i18n="nowy.istot.32"></option>
+        </select></label>
+      <label><span data-i18n="nowy.jezyk"></span>
+        <select id="jezykSwiata" class="pick">
+          <option value="pl" selected>polski</option>
+          <option value="en">English</option>
+        </select></label>
+      <label><span data-i18n="nowy.pojemnosc"></span>
+        <select id="pojemnosc" class="pick">
+          <option value="50">50</option>
+          <option value="200">200</option>
+          <option value="500">500</option>
+          <option value="2000" selected>2000</option>
+          <option value="5000">5000</option>
+          <option value="10000">10000</option>
+        </select></label>
+
+    </div>
+    <div class="row" style="margin-top:16px; align-items:center"><button id="nowySwiat" type="button" class="btn life" data-i18n="nowy.btn"></button><span class="hint" id="nowyHint"></span></div>
+  </section>
+  <!-- @@KONIEC_END -->
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const t = (k, v) => window.i18n.t(k, v);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const pokarmTekst = (g) => g > 0.6 ? t("pokarm.gesty") : g > 0.25 ? t("pokarm.rzadki") : t("pokarm.zaden");
+  const liczba = (n, jedna, kilka, wiele) => n === 1 ? t(jedna) : (n >= 2 && n <= 4) ? t(kilka, { n }) : t(wiele, { n });
+  let ostatniStan = null;
+
+  function rysujOddech(cv, b) {
+    const ctx = cv.getContext("2d"), W = cv.width, cx = W / 2, cy = W / 2;
+    const fill = Math.max(0, Math.min(1, b.energia / 30));
+    const r = 18 + 30 * fill;
+    const col = b.energia <= 0 ? css("--dying") : b.glod > 0.6 ? css("--hunger") : css("--life");
+    ctx.clearRect(0, 0, W, W);
+    const g = ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, r * 1.6);
+    g.addColorStop(0, col + "55"); g.addColorStop(1, col + "00");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r * 1.6, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = col + (b.tryb === "sen" ? "66" : "cc"); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = col; ctx.stroke();
+    ctx.fillStyle = css("--ground");
+    const n = Math.min(48, b.geny || 64);
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2, rr = r * (0.35 + 0.5 * ((i * 7919) % 97) / 97);
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, 1.6, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+
+  function wierszIstoty(b, s, pelny) {
+    const mw = b.mowa || {};
+    const mowa = mw.krzyk ? t("mowa.krzyk") : mw.slowo ? "„" + esc(mw.slowo) + "”"
+      : (mw.glos && mw.znaki) ? esc(mw.znaki) + (mw.odpowiedz != null ? ` <small>${t("mowa.odpowiada", { nr: mw.odpowiedz })}</small>` : "")
+      : b.tryb === "sen" ? t("mowa.spi") : t("mowa.milczy");
+    const w = document.createElement("div");
+    w.className = "wiersz";
+    w.style.gridTemplateColumns = pelny ? "" : "90px 70px 60px 60px 1fr 90px 1fr";
+    const pasek = `${b.energia.toFixed(1)} / ${s.pojemnosc ?? 30}<div class="bar${b.energia < 2 ? " dying" : b.glod > 0.6 ? " hungry" : ""}"><i style="width:${(100 * Math.min(1, b.energia / (s.pojemnosc ?? 30))).toFixed(1)}%"></i></div>`;
+    const nazwa = `${t("nr", { nr: b.nr })} <small>${b.plec === "n" ? "♀" : b.plec === "d" ? "♂" : ""}</small>`
+      + (b.czym ? `<br><small class="hint">${esc(t("wyr." + b.czym))}</small>` : "")
+      + (b.chora ? `<br><small class="hint">${t("istoty.chora")}</small>` : "");
+    w.innerHTML = pelny
+      ? `<canvas width="128" height="128"></canvas>
+         <span class="nr">${nazwa}</span>
+         <span><span class="state ${b.tryb === "sen" ? "sen" : ""}">${b.tryb === "sen" ? t("spi") : t("zyje")}</span></span>
+         <span>${b.pokolenie}</span>
+         <span>${b.rodzic != null ? t("nr", { nr: b.rodzic }) + (b.rodzic2 != null ? ", " + t("nr", { nr: b.rodzic2 }) : "") : t("z_cudu")}</span>
+         <span>${b.dzieci || 0}</span><span>${b.wiek}</span><span>${pasek}</span>
+         <span>${t("nr", { nr: b.miejsce })}</span><span>—</span><span class="mowa">${mowa}</span>`
+      : `<span class="nr">${nazwa}</span><span>${b.pokolenie}</span><span>${b.dzieci || 0}</span><span>${b.wiek}</span>
+         <span>${pasek}</span><span>${t("nr", { nr: b.miejsce })}</span><span class="mowa">${mowa}</span>`;
+    w.tabIndex = 0; w.setAttribute("role", "button");
+    const otworz = () => otworzDialog(b, s);
+    w.addEventListener("click", otworz);
+    w.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); otworz(); } });
+    if (pelny) setTimeout(() => rysujOddech(w.querySelector("canvas"), b), 0);
+    return w;
+  }
+
+  function wypelnij(pojemnik, lista, s, pelny) {
+    const bl = $(pojemnik); bl.innerHTML = "";
+    if (!lista.length) { bl.innerHTML = `<p class="hint">${t("istoty.pusto")}</p>`; return; }
+    lista.forEach((b) => bl.appendChild(wierszIstoty(b, s, pelny)));
+  }
+
+  // --- okno istot: najwybitniejsza, najciekawsze, wszystkie ---
+  async function istotyNajwybitniejsza() {
+    const bl = $("istWybitna");
+    bl.innerHTML = `<p class="hint">${t("dlg.ladowanie")}</p>`;
+    try {
+      const d = await (await fetch("/api/portret", { cache: "no-store" })).json();
+      if (!d || d.brak || !d.istota) { bl.innerHTML = `<p class="hint">${t("istoty.wybitna.brak")}</p>`; return; }
+      const i = d.istota;
+      bl.innerHTML = `<div class="wiersz klik" style="grid-template-columns:120px 1fr;cursor:pointer" tabindex="0" role="button">
+        <span class="nr">${t("nr", { nr: i.nr })} <small>${i.plec === "n" ? "♀" : "♂"}</small>${i.zyje ? "" : `<br><small class="hint">${t("istoty.wybitna.zmarla")}</small>`}</span>
+        <span>${t("karta.pokolenie")} ${i.pokolenie}, ${t("cykli", { n: i.wiek })}, ${t("dzieci", { n: i.dzieci || 0 })}<br>
+        <small class="hint">${t("istoty.wybitna.opis", { m: d.madrosc, b: d.bogactwo, i: d.istot })}</small></span></div>`;
+      const w = bl.querySelector(".wiersz");
+      const otworz = () => { $("dlgIstoty").close(); portret(); };
+      w.addEventListener("click", otworz);
+      w.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); otworz(); } });
+    } catch (e) { bl.innerHTML = `<p class="hint">${t("brak_serwera")}</p>`; }
+  }
+
+  let ISTOTY_OD = 0;                        // która strona listy „wszystkie” (po 25, od najstarszej)
+
+  async function istotyWszystkie() {
+    const bl = $("istWszystkie");
+    try {
+      const d = await (await fetch(`/api/istoty?od=${ISTOTY_OD}&ile=25`, { cache: "no-store" })).json();
+      if (d.wszystkich == null) { bl.innerHTML = `<p class="hint">${t("brak_serwera")}</p>`; $("istIle").textContent = ""; return; }
+      wypelnij("istWszystkie", d.istoty || [], { pojemnosc: d.pojemnosc }, false);
+      $("istIle").textContent = t("istoty.wszystkie.ile", { od: d.wszystkich ? d.od + 1 : 0, do: d.od + d.ile, n: d.wszystkich });
+      $("istWstecz").disabled = d.od <= 0;
+      $("istDalej").disabled = d.od + d.ile >= d.wszystkich;
+    } catch (e) { bl.innerHTML = `<p class="hint">${t("brak_serwera")}</p>`; }
+  }
+
+  async function otworzIstoty() {
+    const s = ostatniStan || {};
+    wypelnij("istCiekawe", s.byty || [], s, true);
+    ISTOTY_OD = 0;
+    await Promise.all([istotyNajwybitniejsza(), istotyWszystkie()]);
+  }
+
+  // --- zdarzenia: toasty z echem z zaświatów ---
+  let audio = null, dzwiekWl = false;
+  try { dzwiekWl = localStorage.getItem("dzwiek") === "1"; } catch (e) {}
+  function ustawDzwiek(on) {
+    dzwiekWl = on; const b = $("dzwiek"); if (b) { b.setAttribute("aria-pressed", on ? "true" : "false"); b.classList.toggle("on", on); }
+    try { localStorage.setItem("dzwiek", on ? "1" : "0"); } catch (e) {}
+    if (on && !audio) { try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (on && audio && audio.state === "suspended") audio.resume();
+  }
+  function echoZZaswiatow(typ) {
+    if (!dzwiekWl || !audio) return;
+    if (typ === "pokarm") return;                                   // pokarm bez dźwięku
+    const t0 = audio.currentTime;
+    const master = audio.createGain(); master.gain.value = 0.22; master.connect(audio.destination);
+    const delay = audio.createDelay(2.0); const fb = audio.createGain(); const filtr = audio.createBiquadFilter();
+    filtr.type = "lowpass"; delay.connect(fb); fb.connect(filtr); filtr.connect(delay); delay.connect(master);
+    const nuta = (f0, f1, start, dl, typOsc, glosnosc) => {
+      const o = audio.createOscillator(); o.type = typOsc;
+      o.frequency.setValueAtTime(f0, t0 + start);
+      o.frequency.exponentialRampToValueAtTime(f1, t0 + start + dl);
+      const g = audio.createGain(); g.gain.setValueAtTime(0.0001, t0 + start);
+      g.gain.exponentialRampToValueAtTime(glosnosc, t0 + start + 0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + start + dl);
+      o.connect(g); g.connect(master); g.connect(delay);
+      o.start(t0 + start); o.stop(t0 + start + dl + 0.05);
+    };
+    if (typ === "smierc") {                                          // nisko, opada, długie echo
+      delay.delayTime.value = 0.55; fb.gain.value = 0.62; filtr.frequency.value = 600;
+      nuta(150, 55, 0, 2.6, "sine", 0.6); nuta(225, 82, 0.1, 2.4, "triangle", 0.25);
+    } else if (typ === "znaczenie") {                                // trzy nuty w górę, jak olśnienie
+      delay.delayTime.value = 0.3; fb.gain.value = 0.5; filtr.frequency.value = 1800;
+      nuta(440, 450, 0, 0.5, "sine", 0.4); nuta(554, 560, 0.25, 0.6, "sine", 0.4); nuta(659, 670, 0.5, 1.4, "triangle", 0.35);
+    } else if (typ === "narodziny") {                                // dwie nuty w górę, jasno
+      delay.delayTime.value = 0.36; fb.gain.value = 0.45; filtr.frequency.value = 1400;
+      nuta(330, 340, 0, 0.7, "sine", 0.5); nuta(495, 510, 0.35, 1.2, "sine", 0.45); nuta(660, 680, 0.35, 1.2, "triangle", 0.15);
+    } else if (typ === "zrozumienie") {                              // dzwonek, trzy tony, krótkie echo
+      delay.delayTime.value = 0.25; fb.gain.value = 0.4; filtr.frequency.value = 2400;
+      nuta(880, 880, 0, 0.9, "sine", 0.4); nuta(1320, 1320, 0.12, 0.9, "sine", 0.25); nuta(1760, 1760, 0.24, 1.1, "sine", 0.15);
+    } else {                                                         // inne: pojedynczy ton
+      delay.delayTime.value = 0.4; fb.gain.value = 0.5; filtr.frequency.value = 1000;
+      nuta(220, 260, 0, 1.4, "sine", 0.4);
+    }
+  }
+  function toast(typ, tekst) {
+    const box = $("toasty"); const el = document.createElement("div"); el.className = "toast " + typ; el.textContent = tekst;
+    box.appendChild(el);
+    while (box.children.length > 20) box.removeChild(box.firstChild);
+    requestAnimationFrame(() => el.classList.add("widac"));
+    setTimeout(() => { el.classList.remove("widac"); setTimeout(() => el.remove(), 600); }, 7000);
+    echoZZaswiatow(typ);
+  }
+  function opisZdarzenia(x) {
+    if (x.typ === "smierc") return t("zd.smierc", { nr: x.nr, w: x.wiek });
+    if (x.typ === "narodziny") return t(x.rodzic != null ? "zd.narodziny" : "zd.cud", { nr: x.nr, p: x.pokolenie, r: x.rodzic });
+    if (x.typ === "pokarm") return x.wszystkie ? t("zd.pokarm.wszystkie") : t("zd.pokarm", { nr: (x.nr || []).map((n) => t("nr", { nr: n })).join(", ") });
+    if (x.typ === "zrozumienie") return t(x.cel != null ? "zd.zrozumienie.cel" : "zd.zrozumienie", { nr: x.nr, od: x.od, czyn: x.czyn, cel: x.cel });
+    if (x.typ === "pozar") return t("zd.pozar", { m: x.miejsce });
+    if (x.typ === "odwrot") return t("zd.odwrot", { nr: x.nr, m: x.miejsce, o: (x.obroncy || []).map((n) => t("nr", { nr: n })).join(", ") });
+    if (x.typ === "starcie") return t(x.wygral === "intruz" ? "zd.starcie.intruz" : "zd.starcie.obrona", { nr: x.nr, m: x.miejsce, o: (x.obroncy || []).map((n) => t("nr", { nr: n })).join(", ") });
+    if (x.typ === "powodz") return t("zd.powodz", { m: x.miejsce });
+    if (x.typ === "przejscie") return t(x.prawda ? "zd.przejscie" : "zd.przejscie.klamstwo", { nr: x.nr, m: x.miejsce, o: (x.obroncy || []).map((n) => t("nr", { nr: n })).join(", ") });
+    if (x.typ === "klamstwo") return t("zd.klamstwo", { nr: x.nr, m: x.miejsce, o: (x.obroncy || []).map((n) => t("nr", { nr: n })).join(", ") });
+    if (x.typ === "bliskosc") return t("zd.bliskosc", { nr: x.nr, z: x.z, m: x.miejsce });
+    if (x.typ === "odkrycie") return t(x.co === "spichlerz" ? "zd.odkrycie.spichlerz" : "zd.odkrycie", { nr: x.nr, m: x.miejsce });
+    if (x.typ === "znaczenie") return t("zd.znaczenie", { nr: x.nr, od: x.od, czyn: x.ludzko || x.czyn });
+    if (x.typ === "zaraza") return t("zd.zaraza", { s: x.szczep, nr: x.nr, m: x.miejsce, z: x.zarazliwosc, k: x.koszt });
+    if (x.typ === "zarazila_sie") return t("zd.zarazila_sie", { nr: x.nr, s: x.szczep, m: x.miejsce });
+    if (x.typ === "wyzdrowienie") return t("zd.wyzdrowienie", { nr: x.nr, c: x.cykli, s: x.szczep });
+    if (x.typ === "ognisko") return t("zd.ognisko", { m: x.miejsce, s: x.szczep });
+    if (x.typ === "ognisko_wygaslo") return t("zd.ognisko_wygaslo", { m: x.miejsce });
+    if (x.typ === "drapieznik") return t("zd.drapieznik", { m: x.miejsce, n: x.ilu });
+    if (x.typ === "drapieznik_odszedl") return t("zd.drapieznik_odszedl", { m: x.miejsce });
+    if (x.typ === "atak") return t("zd.atak", { nr: x.nr, m: x.miejsce });
+    if (x.typ === "upolowana") return t("zd.upolowana", { nr: x.nr, m: x.miejsce });
+    if (x.typ === "duplikacja") return t("zd.duplikacja", { nr: x.nr, g: x.geny });
+    if (x.typ === "utrata_genu") return t("zd.utrata_genu", { nr: x.nr, g: x.geny });
+    if (x.typ === "dzwiek_z_nowego_genu") return t("zd.dzwiek_z_nowego_genu", { g: x.gen, nr: x.nr, s: x.slowo });
+    if (x.typ === "gatunki") return t("zd.gatunki", { i: x.ile, p: x.prog });
+    if (x.typ === "koniec") return t("zd.koniec", { nr: (x.ostatni || []).map((n) => t("nr", { nr: n })).join(", ") });
+    return x.typ;
+  }
+  let odCzasu = null;
+  const TYPY_ZDARZEN = ["znaczenie", "dzwiek_z_nowego_genu", "zaraza", "ognisko", "ognisko_wygaslo",
+    "zarazila_sie", "wyzdrowienie", "drapieznik", "drapieznik_odszedl", "atak", "upolowana",
+    "duplikacja", "utrata_genu", "gatunki", "narodziny", "smierc", "koniec", "pozar", "powodz",
+    "odkrycie", "zrozumienie", "starcie", "odwrot", "klamstwo", "przejscie", "bliskosc"];
+  let POWIADOMIENIA = new Set(["znaczenie", "dzwiek_z_nowego_genu", "zaraza", "upolowana", "koniec", "pozar", "powodz"]);
+  try {
+    const zapis = localStorage.getItem("powiadomienia");
+    if (zapis) POWIADOMIENIA = new Set(JSON.parse(zapis));
+  } catch (e) {}
+  async function rysujPowiadomienia() {
+    let ile = {};
+    try { ile = (await (await fetch("/api/dzieje", { cache: "no-store" })).json()).zdarzenia || {}; } catch (e) {}
+    $("powLista").innerHTML = TYPY_ZDARZEN.map((k) =>
+      `<label class="wiersz" style="grid-template-columns:28px 1fr 90px;cursor:pointer">
+        <input type="checkbox" data-typ="${k}"${POWIADOMIENIA.has(k) ? " checked" : ""}>
+        <span>${esc(t("zdt." + k))}</span><span class="hint">${ile[k] != null ? ile[k] + "×" : "—"}</span>
+      </label>`).join("");
+    $("powLista").querySelectorAll("input[type=checkbox]").forEach((el) => {
+      el.addEventListener("change", () => {
+        if (el.checked) POWIADOMIENIA.add(el.dataset.typ); else POWIADOMIENIA.delete(el.dataset.typ);
+        try { localStorage.setItem("powiadomienia", JSON.stringify([...POWIADOMIENIA])); } catch (e) {}
+      });
+    });
+  }
+
+  async function zdarzenia() {
+    try {
+      const r = await fetch("/api/zdarzenia?od=" + (odCzasu ?? 0), { cache: "no-store" });
+      const d = await r.json();
+      if (odCzasu === null) { odCzasu = d.teraz; return; }        // pierwszy raz: nie pokazuj przeszłości
+      // nie przeskakujemy do „teraz” serwera: świat zapisuje zdarzenia dopiero na końcu cyklu,
+      // więc zdarzenie o czasie wcześniejszym niż ta odpowiedź może trafić do pliku już po odczycie
+      const czasy = (d.zdarzenia || []).map((x) => x.czas || 0);
+      if (czasy.length) odCzasu = Math.max(...czasy);
+      // zapisujemy wszystko (kronika), pokazujemy jedno: nowe znaczenie słowa w tym świecie
+      (d.zdarzenia || []).filter((x) => POWIADOMIENIA.has(x.typ)).slice(-20).forEach((x) => toast(x.typ, opisZdarzenia(x)));
+    } catch (e) {}
+  }
+  const dz = $("dzwiek");
+  if (dz) { dz.addEventListener("click", () => { ustawDzwiek(!dzwiekWl); if (dzwiekWl) echoZZaswiatow("narodziny"); }); if (dzwiekWl) { dz.classList.add("on"); dz.setAttribute("aria-pressed", "true"); document.addEventListener("pointerdown", () => ustawDzwiek(true), { once: true }); } }
+
+  // --- okno istoty ---
+  const KOLOR = { rana: "--dying", pokarm: "--life", echo: "--sleep", slowo: "--hunger", inny: "--hunger" };
+  let dlgNr = null, dlgWn = null;
+  const NZ = () => ({ rana: t("wn.leg.rana"), pokarm: t("wn.leg.pokarm"), echo: t("wn.leg.echo"), slowo: t("wn.leg.slowo"), inny: t("wn.leg.inny") });
+  function opiszGen(g, b) {
+    const z = zmysl(g);
+    const nz = NZ();
+    const zr = Object.entries(g.zrodla || {}).sort((a, b2) => b2[1] - a[1]);
+    const co = z.kolor ? (z.kolor === "--dying" ? t("wn.leg.rana") : z.kolor === "--life" ? t("wn.leg.pokarm") : t("wn.gen.slowo", { t: esc((g.slowa[0] || {}).slowo || "") })) : "";
+    const linie = [`<span class="k">${t("wn.gen.naglowek", { g: g.nr, nr: b.nr })}</span>`];
+    linie.push(z.kolor ? t("wn.gen.slyszy", { co: "<b>" + co + "</b>", z: z.sila.toFixed(2) }) : t("wn.gen.nic", { r: g.rezonans.rana.toFixed(2), p: g.rezonans.pokarm.toFixed(2) }));
+    linie.push(t("wn.gen.wartosci", { r: g.rezonans.rana.toFixed(2), p: g.rezonans.pokarm.toFixed(2) }) + (g.slowa.length ? " · " + g.slowa.map((s) => "„" + esc(s.slowo) + "” " + s.r.toFixed(2)).join(" · ") : ""));
+    linie.push(g.otwarcia ? t("wn.gen.otwieral", { n: "<b>" + g.otwarcia + "</b>", nawyk: (g.nawyk * 100).toFixed(0), pow: g.powloka.toFixed(1) }) + (zr.length ? " " + t("wn.gen.otwieralo", { lista: zr.map(([k2, v]) => nz[k2] + " " + v + "×").join(", ") }) : "") : t("wn.gen.nigdy"));
+    linie.push(`<span class="k">${t("wn.gen.stopka")}</span>`);
+    return linie.join("<br>");
+  }
+  function otworzGenom() {
+    const x = dlgWn; if (!x) return;
+    $("genomTytul").textContent = t("genom.tytul") + " · " + t("nr", { nr: x.nr });
+    const n = Math.ceil(Math.sqrt(x.geny.length));
+    rysujGeny($("genomCanvas"), x);
+    $("genomLegenda").innerHTML = Object.keys(KOLOR).map((k) => `<span><i style="background:${css(KOLOR[k])}"></i>${NZ()[k]}</span>`).join("");
+    const znane = x.geny.filter((g) => g.otwarcia > 0).length;
+    const zmysly = { rana: 0, pokarm: 0, slowo: 0, nic: 0 };
+    x.geny.forEach((g) => { const z = zmysl(g); zmysly[!z.kolor ? "nic" : z.kolor === "--dying" ? "rana" : z.kolor === "--life" ? "pokarm" : "slowo"]++; });
+    $("genomDane").innerHTML = [
+      wiersz(t("genom.geny"), x.geny.length + " · " + n + "×" + n),
+      wiersz(t("genom.znane"), t("wn.znane.v", { a: znane, b: x.geny.length })),
+      wiersz(t("genom.zmysly"), `${t("wn.leg.rana")} ${zmysly.rana} · ${t("wn.leg.pokarm")} ${zmysly.pokarm} · ${t("wn.leg.slowo")} ${zmysly.slowo} · ${t("genom.nic")} ${zmysly.nic}`),
+      wiersz(t("dlg.otwarc"), x.otwarcia),
+      wiersz(t("dlg.kaskada"), x.najdluzsza),
+      wiersz(t("dlg.glos"), esc(x.glos)),
+    ].join("");
+    const top = x.geny.slice().sort((a, b) => b.otwarcia - a.otwarcia).slice(0, 8).filter((g) => g.otwarcia > 0);
+    $("genomTop").innerHTML = top.length ? top.map((g) => { const z = zmysl(g); const zr = Object.entries(g.zrodla || {}).sort((a, b2) => b2[1] - a[1]).map(([k2, v]) => NZ()[k2] + " " + v + "×").join(", "); return `<div class="r two"><span class="c">${g.otwarcia}×</span><span>${t("genom.gen", { g: g.nr })} · ${t("genom.nawyk", { n: (g.nawyk * 100).toFixed(0) })}${zr ? " · " + zr : ""}</span></div>`; }).join("") : `<p class="hint">${t("wn.gen.nigdy")}</p>`;
+    $("genomGen").hidden = true;
+    $("dlgGenom").showModal();
+  }
+  if ($("dlgGenomBtn")) $("dlgGenomBtn").addEventListener("click", otworzGenom);
+  $("genomCanvas").addEventListener("click", (ev) => {
+    const x = dlgWn; if (!x) return;
+    const cv = $("genomCanvas"), r = cv.getBoundingClientRect(), n = Math.ceil(Math.sqrt(x.geny.length));
+    const c = Math.floor((ev.clientX - r.left) / r.width * n), w = Math.floor((ev.clientY - r.top) / r.height * n);
+    const g = x.geny[w * n + c]; if (!g) return;
+    $("genomGen").innerHTML = opiszGen(g, x); $("genomGen").hidden = false;
+  });
+  function zmysl(g) {
+    const k = [[t("wn.leg.rana"), g.rezonans.rana, "--dying"], [t("wn.leg.pokarm"), g.rezonans.pokarm, "--life"]];
+    if (g.slowa && g.slowa.length) k.push([g.slowa[0].slowo, g.slowa[0].r, "--hunger"]);
+    k.sort((a, b) => b[1] - a[1]);
+    return k[0][1] >= 0.5 ? { kolor: k[0][2], sila: k[0][1] } : { kolor: null, sila: 0 };
+  }
+  function rysujGeny(canvas, b) {
+    const ctx = canvas.getContext("2d"), W = canvas.width, n = Math.ceil(Math.sqrt(b.geny.length)), cell = W / n, pad = Math.max(0.5, cell * 0.12);
+    ctx.clearRect(0, 0, W, W);
+    b.geny.forEach((g) => {
+      const x = (g.nr % n) * cell + pad, y = Math.floor(g.nr / n) * cell + pad, sz = cell - 2 * pad;
+      const z = zmysl(g);
+      ctx.globalAlpha = 0.10 + 0.90 * Math.max(g.nawyk, z.sila * 0.5); ctx.fillStyle = z.kolor ? css(z.kolor) : css("--ink"); ctx.fillRect(x, y, sz, sz); ctx.globalAlpha = 1;
+      const jak = b.otwarte[String(g.nr)];
+      if (jak) { const lw = n > 12 ? 2 : 3; ctx.strokeStyle = css(KOLOR[jak]); ctx.lineWidth = lw; ctx.strokeRect(x + lw / 2, y + lw / 2, sz - lw, sz - lw); }
+    });
+  }
+  function wiersz(k, v) { return `<div class="readout"><span class="k">${k}</span><span>${v}</span></div>`; }
+  async function otworzDialog(b, s) {
+    dlgNr = b.nr;
+    const d = $("dlg");
+    $("dlgTytul").textContent = t("nr", { nr: b.nr }) + (b.plec === "n" ? " ♀" : b.plec === "d" ? " ♂" : "") + " · " + (b.tryb === "sen" ? t("spi") : t("zyje"));
+    $("dlgGenyOpis").textContent = t("dlg.ladowanie");
+    $("dlgDane").innerHTML = [
+      wiersz(t("karta.pokolenie"), b.pokolenie + " · " + (b.rodzic != null ? t("dziecko_nr", { nr: b.rodzic }) : t("z_cudu")) + (b.dzieci ? " · " + t("dzieci", { n: b.dzieci }) : "")),
+      wiersz(t("karta.wiek"), t("cykli", { n: b.wiek })),
+      wiersz(t("karta.energia"), b.energia.toFixed(1) + " / " + (s.pojemnosc ?? 30)),
+      wiersz(t("karta.miejsce"), t("nr", { nr: b.miejsce })),
+      wiersz(t("dlg.lownosc"), b.lownosc != null ? (b.lownosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.sila"), b.sila != null ? (b.sila * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.ciekawosc"), b.ciekawosc != null ? (b.ciekawosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.klimat"), b.optimum != null ? t("dlg.klimat.v", { o: (b.optimum * 100).toFixed(0), tol: (b.tolerancja * 100).toFixed(0) }) : "—"),
+      wiersz(t("dlg.stadnosc"), b.stadnosc != null ? (b.stadnosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.dlugowiecznosc"), b.dlugowiecznosc != null ? (b.dlugowiecznosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.ufnosc"), b.ufnosc != null ? (b.ufnosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.szczerosc"), b.szczerosc != null ? (b.szczerosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.pojetnosc"), b.pojetnosc != null ? (b.pojetnosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.towarzyskosc"), b.towarzyskosc != null ? (b.towarzyskosc * 100).toFixed(0) + "%" : "—"),
+    ].join("");
+    d.showModal();
+    try {
+      const r = await fetch("/api/wnetrze?nr=" + b.nr, { cache: "no-store" });
+      const w = await r.json();
+      const x = (w.byty || []).find((y) => y.nr === b.nr);
+      if (!x) { $("dlgGenyOpis").textContent = t("dlg.brak"); dlgWn = null; return; }
+      dlgWn = x;
+      rysujGeny($("dlgGeny"), x);
+      $("dlgGenyOpis").textContent = t("dlg.znane", { a: x.geny.filter((g) => g.otwarcia > 0).length, b: x.geny.length });
+      $("dlgDane").innerHTML += [
+        wiersz(t("dlg.glos"), esc(x.glos)),
+        wiersz(t("dlg.slownik"), x.slownik.length ? x.slownik.map(esc).join(", ") : t("wn.nie_zna")),
+        wiersz(t("dlg.echo"), x.echo.length),
+        wiersz(t("dlg.otwarc"), x.otwarcia),
+        wiersz(t("dlg.kaskada"), x.najdluzsza),
+        wiersz(t("dlg.wytrwalosc"), x.wytrwalosc),
+        wiersz(t("dlg.sasiedzi"), (x.sasiedzi || []).map((m) => t("nr", { nr: m })).join(", ") || t("wn.brak")),
+      ].join("");
+    } catch (e) { $("dlgGenyOpis").textContent = t("dlg.brak"); }
+  }
+  $("dlg").addEventListener("click", (e) => { if (e.target === $("dlg")) $("dlg").close(); });
+;
+
+  const fmtAgo = (ts) => {
+    if (!ts) return "—";
+    const sec = Math.max(0, (Date.now() / 1000) - ts);
+    if (sec < 90) return t("przed_chwila");
+    if (sec < 3600) return t("min_temu", { n: Math.round(sec / 60) });
+    if (sec < 86400) return t("godz_temu", { n: Math.round(sec / 3600) });
+    return t("dni_temu", { n: Math.round(sec / 86400) });
+  };
+  function renderSwiat(s) {
+    // kafle zniknęły ze strony: te same liczby są w podsumowaniu cywilizacji, w kontekście
+    document.querySelectorAll("#akcje [data-otworz]").forEach((b) => { b.hidden = !s.zyje; });
+    if (!s.zyje) return;
+    $("procesStoi").hidden = s.proces_zyje !== false;
+    $("cywilizacja").hidden = !s.zyje;
+  }
+
+
+  // --- ród: drzewo i linia czasu ---
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  function renderRod(d) {
+    const osoby = d.osoby, byNr = {}; osoby.forEach((o) => byNr[o.nr] = o);
+    const dzieci = {}; osoby.forEach((o) => { if (o.rodzic != null && byNr[o.rodzic]) (dzieci[o.rodzic] = dzieci[o.rodzic] || []).push(o); });
+    const korzenie = osoby.filter((o) => o.rodzic == null || !byNr[o.rodzic]);
+    const W = 96, H = 58, GX = 12, GY = 34;
+    let x = 0; const pos = {};
+    function uloz(o, g) {
+      const ds = (dzieci[o.nr] || []).slice().sort((a, b) => a.nr - b.nr);
+      if (!ds.length) { pos[o.nr] = { x: x, g }; x += W + GX; return; }
+      ds.forEach((c) => uloz(c, g + 1));
+      pos[o.nr] = { x: (pos[ds[0].nr].x + pos[ds[ds.length - 1].nr].x) / 2, g };
+    }
+    korzenie.sort((a, b) => a.nr - b.nr).forEach((k) => { uloz(k, 0); x += GX; });
+    const maxG = Math.max(0, ...Object.values(pos).map((p) => p.g));
+    const svg = $("drzewoSvg"); svg.innerHTML = "";
+    const width = Math.max(640, x + 40), height = (maxG + 1) * (H + GY) + 30;
+    svg.setAttribute("width", width); svg.setAttribute("height", height);
+    for (let g = 0; g <= maxG; g++) { const tx = el("text", { x: 8, y: 14 + g * (H + GY), class: "pok" }); tx.textContent = t("rod.pokolenie", { n: g + 1 }); svg.appendChild(tx); }
+    osoby.forEach((o) => {
+      const p = pos[o.nr]; if (!p) return;
+      const px = p.x + 20, py = 20 + p.g * (H + GY);
+      if (o.rodzic != null && pos[o.rodzic]) { const q = pos[o.rodzic]; svg.appendChild(el("line", { x1: q.x + 20 + W / 2, y1: 20 + q.g * (H + GY) + H, x2: px + W / 2, y2: py })); }
+      const gN = el("g", { class: "node " + (o.zyje ? "zyje" : "zmarl"), transform: `translate(${px},${py})` });
+      gN.appendChild(el("rect", { width: W, height: H, rx: 4 }));
+      const t1 = el("text", { x: 8, y: 18 }); t1.textContent = t("nr", { nr: o.nr }) + (o.rodzic == null ? " · " + t("rod.cud") : (o.rodzic2 != null ? " · +" + t("nr", { nr: o.rodzic2 }) : "")); gN.appendChild(t1);
+      const t2 = el("text", { x: 8, y: 34, class: "d" }); t2.textContent = (o.zyje ? t("rod.zyje") : t("rod.umarla")) + " · " + t("rod.c", { n: o.wiek }); gN.appendChild(t2);
+      const t3 = el("text", { x: 8, y: 50, class: "d" }); t3.textContent = o.dzieci ? t("dzieci", { n: o.dzieci }) : (o.zyje ? "E " + o.energia : t("rod.bez_dzieci")); gN.appendChild(t3);
+      svg.appendChild(gN);
+    });
+    const cz = $("czasSvg"); cz.innerHTML = "";
+    const T = Math.max(1, d.cykl_swiata), L = 56, R = 16, rowH = 18, top = 22;
+    const cw = Math.max(640, Math.min(2400, T * 4 + L + R)), ch = top + osoby.length * rowH + 30;
+    cz.setAttribute("width", cw); cz.setAttribute("height", ch);
+    const sx = (c) => L + (cw - L - R) * (c / T);
+    cz.appendChild(el("line", { x1: L, y1: ch - 22, x2: cw - R, y2: ch - 22, class: "os" }));
+    const krok = T > 400 ? 100 : T > 150 ? 50 : T > 60 ? 20 : 10;
+    for (let c = 0; c <= T; c += krok) { cz.appendChild(el("line", { x1: sx(c), y1: ch - 22, x2: sx(c), y2: ch - 17, class: "os" })); const tk = el("text", { x: sx(c), y: ch - 6, class: "tick", "text-anchor": "middle" }); tk.textContent = c; cz.appendChild(tk); }
+    const tn = el("text", { x: sx(T), y: 12, class: "tick", "text-anchor": "end" }); tn.textContent = t("rod.teraz", { n: T }); cz.appendChild(tn);
+    osoby.forEach((o, i) => {
+      const y = top + i * rowH, od = o.urodzony ?? 0, doC = o.zyje ? T : (o.zmarl ?? od + o.wiek);
+      const lb = el("text", { x: L - 6, y: y + 12, class: "lbl", "text-anchor": "end" }); lb.textContent = t("nr", { nr: o.nr }); cz.appendChild(lb);
+      cz.appendChild(el("rect", { x: sx(od), y: y + 3, width: Math.max(2, sx(doC) - sx(od)), height: rowH - 6, rx: 2, class: "bar" + (o.zyje ? " zyje" : "") }));
+      if (o.rodzic == null) cz.appendChild(el("circle", { cx: sx(od), cy: y + rowH / 2, r: 4, class: "cud" }));
+    });
+    const lg = el("text", { x: L, y: 12, class: "tick" }); lg.textContent = t("rod.legenda"); cz.appendChild(lg);
+  }
+  let ostatniRod = null;
+  async function odswiezRod() {
+    try { const r = await fetch("/api/rod", { cache: "no-store" }); ostatniRod = await r.json(); renderRod(ostatniRod); } catch (e) {}
+  }
+  window.i18n.onChange(() => { if (ostatniRod) renderRod(ostatniRod); });
+  async function otworzGenomSwiata() {
+    $("dlgGenomSwiata").showModal();
+    const box = $("gsTresc"); box.innerHTML = `<p class="hint">${t("dlg.ladowanie")}</p>`;
+    try {
+      const r = await fetch("/api/genom", { cache: "no-store" }); const g = await r.json();
+      const st = g.stale || {}, k = g.kierunki || {};
+      const sek = (tytul, wiersze) => `<h2>${tytul}</h2><div class="log">${wiersze.map(([a, b]) => `<div class="r two"><span class="c">${a}</span><span>${b}</span></div>`).join("")}</div>`;
+      box.innerHTML = [
+        sek(t("gs.budowa"), [
+          [t("gs.gen"), t("gs.gen.v", { w: g.wymiary })],
+          [t("gs.genom"), t("gs.genom.v", { n: g.geny ?? "—" })],
+          [t("gs.sygnal"), t("gs.sygnal.v", { w: g.wymiary })],
+          [t("gs.bramka"), t("gs.bramka.v", { z: st.zgodnosc })],
+        ]),
+        sek(t("gs.dziedziczne"), [
+          [t("gs.rdzen"), t("gs.rdzen.v", { m: (st.mutacja * 100).toFixed(0), n: (st.nowy_gen * 100).toFixed(0) })],
+          [t("gs.receptory"), t("gs.receptory.v")],
+          [t("gs.akcent"), t("gs.akcent.v", { a: (st.akcent * 100).toFixed(0) })],
+          [t("gs.wytrwalosc"), t("gs.wytrwalosc.v")],
+          [t("gs.lownosc"), t("gs.lownosc.v")],
+          [t("gs.sila"), t("gs.sila.v")],
+          [t("gs.ciekawosc"), t("gs.ciekawosc.v")],
+          [t("gs.odpornosc"), t("gs.odpornosc.v")],
+          [t("gs.terytorium"), t("gs.terytorium.v")],
+          [t("gs.stadnosc"), t("gs.stadnosc.v")],
+          [t("gs.dlugowiecznosc"), t("gs.dlugowiecznosc.v")],
+          [t("gs.ufnosc"), t("gs.ufnosc.v")],
+          [t("gs.szczerosc"), t("gs.szczerosc.v")],
+          [t("gs.pojetnosc"), t("gs.pojetnosc.v")],
+          [t("gs.towarzyskosc"), t("gs.towarzyskosc.v")],
+          [t("gs.dwoje"), t("gs.dwoje.tak")],
+          [t("gs.plec"), t("gs.plec.v")],
+        ]),
+        sek(t("gs.nabyte"), [
+          [t("gs.powloka"), t("gs.powloka.v", { w: st.wchlanianie })],
+          [t("gs.nawyki"), t("gs.nawyki.v", { n: st.nawyk, o: st.koszt_odruchu, b: st.koszt_bramki })],
+          [t("gs.slownik"), t("gs.slownik.v")],
+          [t("gs.echo"), t("gs.echo.v")],
+          [t("gs.pamiec"), t("gs.pamiec.v")],
+          [t("gs.kultura"), t("gs.kultura.v")],
+          [t("gs.rozmowa"), t("gs.rozmowa.v")],
+        ]),
+        sek(t("gs.gatunek"), [
+          [t("wn.leg.rana"), esc(k.rana || "—") + " · " + t("gs.wrodzony")],
+          [t("wn.leg.pokarm"), esc(k.pokarm || "—") + " · " + t("gs.wrodzony")],
+          [t("jz.sygnal.wolanie"), esc(k.wolanie || "—") + " · " + t("gs.wrodzony")],
+          [t("dlg.glos"), esc(k.glos || "—") + " · " + t("gs.uczony")],
+        ]),
+        sek(t("gs.stale"), [
+          [t("gs.energia"), t("gs.energia.v", { s: st.sytosc, p: st.pojemnosc, c: st.prog_cudu })],
+          [t("gs.koszty"), t("gs.koszty.v", { t: st.koszt_trwania, sn: st.koszt_snu, r: st.koszt_ruchu, b: st.koszt_bramki })],
+          [t("gs.starzenie"), t("gs.starzenie.v", { s: (st.starzenie * 100).toFixed(1) })],
+          [t("gs.opieka"), t("gs.opieka.v", { d: st.dziecinstwo, k: st.karmienie })],
+          [t("gs.swiat"), t("gs.swiat.v", { h: st.hojnosc, c: g.cykl_sekund })],
+          [t("gs.miejsca"), t("gs.miejsca.v")],
+          [t("gs.klimat"), t("gs.klimat.v")],
+        ]),
+      ].join("");
+    } catch (e) { box.innerHTML = `<p class="hint err">${t("brak_serwera")}</p>`; }
+  }
+  async function otworzKronike() {
+    $("dlgKronika").showModal();
+    const box = $("kronikaLista"); box.innerHTML = `<p class="hint">${t("dlg.ladowanie")}</p>`;
+    try {
+      const r = await fetch("/api/kronika", { cache: "no-store" }); const d = await r.json();
+      box.innerHTML = "";
+      if (!d.zdarzenia.length) { box.innerHTML = `<p class="hint">${t("kr.nic")}</p>`; return; }
+      d.zdarzenia.forEach((x) => {
+        const el = document.createElement("div"); el.className = "r two kr " + x.typ;
+        const kiedy = x.czas ? new Date(x.czas * 1000).toLocaleTimeString(window.i18n.kod === "pl" ? "pl-PL" : "en-GB", { hour: "2-digit", minute: "2-digit" }) : "";
+        el.innerHTML = `<span class="c">${x.cykl}<br><small>${kiedy}</small></span><span>${esc(opisZdarzenia(x))}</span>`;
+        box.appendChild(el);
+      });
+    } catch (e) { box.innerHTML = `<p class="hint err">${t("brak_serwera")}</p>`; }
+  }
+  async function otworzSlownik() {
+    $("dlgSlownik").showModal();
+    const box = $("slownikLista"); box.innerHTML = `<p class="hint">${t("dlg.ladowanie")}</p>`;
+    try {
+      const r = await fetch("/api/slownik", { cache: "no-store" }); const d = await r.json();
+      const lista = d.znaczenia || [];
+      box.innerHTML = "";
+      if (d.brak || !lista.length) { box.innerHTML = `<p class="hint">${t("slownik.nic")}</p>`; return; }
+      const nag = document.createElement("div"); nag.className = "r slownik-z naglowek";
+      nag.innerHTML = `<span>${t("slownik.znaczenie")}</span><span>${t("slownik.ile")}</span><span>${t("slownik.kto")}</span>`;
+      box.appendChild(nag);
+      lista.forEach((m) => {
+        const w = document.createElement("div"); w.className = "r slownik-z";
+        w.innerHTML = `<span><b>„${esc(m.ludzko || m.czyn)}”</b> <small>${t("slownik.od_cyklu", { c: m.pierwszy_cykl })}</small></span><span>${m.razy}×</span><span><small>${t("slownik.kto.v", { n: m.mowiacych, s: m.rozumiejacych })}</small></span>`;
+        box.appendChild(w);
+      });
+      const n = (d.slowa || []).length;
+      if (n) { const p = document.createElement("p"); p.className = "hint"; p.style.marginTop = "12px"; p.textContent = t("slownik.razem", { n, c: d.cykl }); box.appendChild(p); }
+    } catch (e) { box.innerHTML = `<p class="hint err">${t("brak_serwera")}</p>`; }
+  }
+  document.querySelectorAll("[data-otworz]").forEach((b) => b.addEventListener("click", () => {
+    const id = b.getAttribute("data-otworz");
+    if (id === "mapa") return otworzMape();
+    if (id === "dlgSlownik") return otworzSlownik();
+    if (id === "dlgKronika") return otworzKronike();
+    if (id === "dlgGenomSwiata") return otworzGenomSwiata();
+    odswiezRod(); $(id).showModal();
+  }));
+  document.querySelectorAll("[data-zamknij]").forEach((b) => b.addEventListener("click", () => $(b.getAttribute("data-zamknij")).close()));
+  ["dlgDrzewo", "dlgCzas", "dlgSlownik", "dlgGenom", "dlgGenomSwiata", "dlgKronika", "dlgPortret"].forEach((id) => $(id).addEventListener("click", (e) => { if (e.target === $(id)) $(id).close(); }));
+
+  // --- mapa miejsc: sieć, układ siłowy ---
+  const uklad = {};
+  let mapaPoz = {}, mapaDane = null;
+  function opiszMiejsce(k) {
+    const w = mapaDane; if (!w) return;
+    const m = (w.miejsca || {})[k]; if (!m) return;
+    const pg = (w.pogoda || {})[k] || {};
+    const tu = (w.byty || []).filter((b) => String(b.miejsce) === String(k)).map((b) => t("nr", { nr: b.nr }));
+    const hist = m.hist || [];
+    const panel = $("miejscePanel");
+    panel.innerHTML = [
+      `<span class="k">${t("mp.tytul", { k })}</span>`,
+      t("mp.pokarm", { g: (m.g * 100).toFixed(0), z: (m.z * 100).toFixed(0) }),
+      t("mp.cechy", { h: ((m.h ?? 0.2) * 100).toFixed(0), a: ((m.a ?? 1) * 100).toFixed(0), lat: ((m.lat ?? 0.5) * 100).toFixed(0) }),
+      t("mp.pogoda", { temp: ((pg.temp ?? 0.5) * 100).toFixed(0), deszcz: ((pg.deszcz ?? 0.5) * 100).toFixed(0), wiatr: ((pg.wiatr ?? 0.3) * 100).toFixed(0) }) + (pg.noc ? " · " + t("noc") : ""),
+      t("mp.sasiedzi", { s: (m.s || []).map((x) => t("nr", { nr: x })).join(", ") }),
+      tu.length ? t("mp.istoty", { lista: tu.join(", ") }) : t("mp.pusto"),
+      `<canvas id="mpHist" width="600" height="90" style="width:100%;height:auto;display:block;margin-top:6px"></canvas>`,
+      `<span class="k">${t("mp.hist", { n: hist.length })}</span>`,
+    ].join("<br>");
+    panel.hidden = false;
+    const cv = $("mpHist"), cx = cv.getContext("2d"), W = cv.width, H = cv.height;
+    cx.clearRect(0, 0, W, H);
+    if (hist.length > 1) {
+      const linia = (idx, kolor) => {
+        cx.strokeStyle = css(kolor); cx.lineWidth = 2; cx.beginPath();
+        hist.forEach((p, i) => { const x = i / (hist.length - 1) * W, y = H - 4 - (H - 8) * p[idx]; i ? cx.lineTo(x, y) : cx.moveTo(x, y); });
+        cx.stroke();
+      };
+      linia(2, "--sleep"); linia(1, "--hunger"); linia(0, "--life");
+    }
+  }
+  $("mapaCanvas").addEventListener("click", (ev) => {
+    const cv = $("mapaCanvas"), r = cv.getBoundingClientRect();
+    const x = (ev.clientX - r.left) / r.width * cv.width, y = (ev.clientY - r.top) / r.height * cv.height;
+    let best = null, bd = 1e9;
+    Object.entries(mapaPoz).forEach(([k, p]) => { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; best = k; } });
+    if (best !== null && bd < 40 * 40) opiszMiejsce(best);
+  });
+  function ulozMape(miejsca) {
+    const ids = Object.keys(miejsca);
+    ids.forEach((id, i) => { if (!uklad[id]) { const a = i / ids.length * Math.PI * 2; uklad[id] = { x: Math.cos(a) * 0.8, y: Math.sin(a) * 0.8 }; } });
+    for (let it = 0; it < 250; it++) {
+      const sila = {};
+      ids.forEach((a) => { sila[a] = { x: 0, y: 0 }; });
+      for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+        const a = ids[i], b = ids[j], dx = uklad[a].x - uklad[b].x, dy = uklad[a].y - uklad[b].y;
+        const d2 = dx * dx + dy * dy + 0.001, f = 0.02 / d2;
+        sila[a].x += dx * f; sila[a].y += dy * f; sila[b].x -= dx * f; sila[b].y -= dy * f;
+      }
+      ids.forEach((a) => (miejsca[a].s || []).forEach((b) => {
+        if (!uklad[b]) return;
+        const dx = uklad[b].x - uklad[a].x, dy = uklad[b].y - uklad[a].y, d = Math.sqrt(dx * dx + dy * dy) || 0.001;
+        const f = (d - 0.35) * 0.08;
+        sila[a].x += dx / d * f; sila[a].y += dy / d * f;
+      }));
+      ids.forEach((a) => { uklad[a].x += Math.max(-0.05, Math.min(0.05, sila[a].x)); uklad[a].y += Math.max(-0.05, Math.min(0.05, sila[a].y)); });
+    }
+  }
+  function rysujMape(w) {
+    const cv = $("mapaCanvas"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+    const miejsca = w.miejsca || {};
+    ulozMape(miejsca);
+    const ids = Object.keys(miejsca);
+    const xs = ids.map((i) => uklad[i].x), ys = ids.map((i) => uklad[i].y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const sx = (x) => 60 + (W - 120) * ((x - minX) / ((maxX - minX) || 1)), sy = (y) => 50 + (H - 100) * ((y - minY) / ((maxY - minY) || 1));
+    mapaPoz = {}; ids.forEach((a) => { mapaPoz[a] = { x: sx(uklad[a].x), y: sy(uklad[a].y) }; });
+    mapaDane = w;
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = css("--line-strong"); ctx.lineWidth = 1.5;
+    ids.forEach((a) => (miejsca[a].s || []).forEach((b) => { if (uklad[b] && a < b) { ctx.beginPath(); ctx.moveTo(sx(uklad[a].x), sy(uklad[a].y)); ctx.lineTo(sx(uklad[b].x), sy(uklad[b].y)); ctx.stroke(); } }));
+    const gdzie = {};
+    (w.byty || []).forEach((b) => (gdzie[String(b.miejsce)] = gdzie[String(b.miejsce)] || []).push(b.nr));
+    ids.forEach((a) => {
+      const x = sx(uklad[a].x), y = sy(uklad[a].y), g = miejsca[a].g || 0;
+      ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI * 2);
+      ctx.globalAlpha = 0.15 + 0.85 * g; ctx.fillStyle = css("--life"); ctx.fill(); ctx.globalAlpha = 1;
+      const hh = miejsca[a].h ?? 0.2;
+      ctx.strokeStyle = hh > 0.5 ? css("--ink") : css("--line-strong"); ctx.lineWidth = 1 + 4 * hh; ctx.stroke();
+      const pg = (w.pogoda || {})[a];
+      if (pg) {   // pogoda: ciepło jako bursztynowy łuk u góry, deszcz jako niebieski u dołu
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = css("--hunger"); ctx.globalAlpha = 0.2 + 0.8 * pg.temp; ctx.beginPath(); ctx.arc(x, y, 22, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+        ctx.strokeStyle = css("--sleep"); ctx.globalAlpha = 0.2 + 0.8 * pg.deszcz; ctx.beginPath(); ctx.arc(x, y, 22, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = css("--ink"); ctx.font = "11px " + css("--mono"); ctx.textAlign = "center"; ctx.fillText(a, x, y + 4);
+      if (gdzie[a]) {
+        gdzie[a].forEach((nr, i) => {
+          const bx = x + 20 + i * 18, by = y - 18;
+          ctx.beginPath(); ctx.arc(bx, by, 8, 0, Math.PI * 2); ctx.fillStyle = css("--ink"); ctx.fill();
+          ctx.fillStyle = css("--ground"); ctx.font = "10px " + css("--mono"); ctx.fillText(nr, bx, by + 3.5);
+        });
+      }
+    });
+  }
+  async function otworzMape() {
+    $("mapa").showModal();
+    try { const r = await fetch("/api/wnetrze?lekko=1", { cache: "no-store" }); rysujMape(await r.json()); } catch (e) {}
+  }
+  $("mapaZamknij").addEventListener("click", () => $("mapa").close());
+  $("mapa").addEventListener("click", (e) => { if (e.target === $("mapa")) $("mapa").close(); });
+
+  let ostatnieDzieje = null;
+  async function napisyKoncowe() {
+    if (!ostatnieDzieje) { try { const r = await fetch("/api/dzieje", { cache: "no-store" }); ostatnieDzieje = await r.json(); } catch (e) { return; } }
+    const d = ostatnieDzieje; if (!d || d.brak) return;
+    const L = [];
+    const tytul = (x) => L.push(`<p class="np-t">${x}</p>`);
+    const linia = (x) => L.push(`<p class="np-l">${x}</p>`);
+    const przerwa = () => L.push(`<p class="np-p"></p>`);
+    tytul(t("np.tytul"));
+    linia(t("np.trwal", { n: d.cykli }));
+    przerwa();
+    linia(t(d.pokolen === 1 ? "np.istot.1" : "np.istot", { n: d.istot, p: d.pokolen }));
+    if (d.cudow) linia(t("np.urodzonych", { n: d.cudow }));
+    if (d.najstarsza) linia(t("dz.najstarsza", { nr: d.najstarsza.nr, w: d.najstarsza.wiek }));
+    if (d.najplodniejsza) linia(t("dz.najplodniejsza", { nr: d.najplodniejsza.nr, n: d.najplodniejsza.dzieci }));
+    przerwa();
+    linia(t("np.miejsc", { n: d.miejsc }));
+    const z = d.zdarzenia || {};
+    if (z.starcie) linia(t("np.starcia", { s: z.starcie }));
+    if (z.odwrot) linia(t(z.odwrot === 1 ? "np.odwrot.1" : "np.odwrot", { o: z.odwrot }));
+    if (z.pozar || z.powodz) linia(t("np.kleski", { p: z.pozar || 0, w: z.powodz || 0 }));
+    przerwa();
+    linia(t("np.glosy", { g: d.glosy, o: d.odpowiedzi }));
+    const cz = Object.entries(d.czyny || {});
+    if (cz.length) { linia(t("np.znaczenia")); cz.forEach(([k, v]) => linia(`„${esc(k)}” · ${v}×`)); }
+    if (d.slowa && d.slowa.length) { przerwa(); linia(t("np.slowa")); linia(d.slowa.slice(0, 6).map(([s]) => esc(s)).join(" · ")); }
+    if (d.slowa_keja && d.slowa_keja.length) { przerwa(); linia(t("np.kej")); linia(`<i>${d.slowa_keja.map(esc).join(" · ")}</i>`); }
+    przerwa();
+    if (d.cechy && d.cechy.length > 1) {
+      linia(t("np.pokolenia"));
+      d.cechy.forEach((c) => linia(`${t("rod.pokolenie", { n: c.pokolenie })} · ${c.ile} · ${[["dz.siła", c.sila], ["dz.stad", c.stadnosc], ["dz.dlug", c.dlugowiecznosc]].filter((x) => x[1] != null).map((x) => t(x[0]) + " " + x[1]).join(" · ")}`));
+      przerwa();
+    }
+    tytul(t("np.koniec"));
+    linia(t("np.stopka"));
+    const box = $("napisyTresc"); box.innerHTML = L.join("");
+    const dlg = $("dlgNapisy"); dlg.showModal();
+    box.style.animation = "none"; void box.offsetHeight;
+    const sek = Math.max(30, L.length * 2.4);
+    box.style.animation = `napisy ${sek}s linear 1s 1 forwards`;
+  }
+  $("napisyBtn").addEventListener("click", napisyKoncowe);
+
+  // podsumowanie cywilizacji: te same dane co napisy końcowe, ale w trakcie życia świata
+  let cywLiczy = false;
+  async function cywilizacja() {
+    if (cywLiczy) return;                      // przy dużym świecie liczenie trwa: nie nakładamy wywołań
+    cywLiczy = true;
+    try { await cywilizacjaTeraz(); } finally { cywLiczy = false; }
+  }
+  async function cywilizacjaTeraz() {
+    const box = $("cywTresc");
+    box.innerHTML = `<p class='hint'>${t("cyw.licze")}</p>`;
+    let d, s2;
+    try {
+      d = await (await fetch("/api/dzieje", { cache: "no-store" })).json();
+      s2 = await (await fetch("/api/stan", { cache: "no-store" })).json();
+    } catch (e) { box.innerHTML = `<p class='hint'>${t("cyw.blad")}</p>`; return; }
+    const p = s2.populacja || {};
+    const tempo = s2.cykl_sekund ? (s2.cykl_sekund >= 60 ? t("co_min", { n: s2.cykl_sekund / 60 }) : t("co_s", { n: s2.cykl_sekund })) : "—";
+    const zd = d.zdarzenia || {};
+    const wiersz = (k, v) => `<div class="wiersz" style="grid-template-columns:220px 1fr"><span>${k}</span><span>${v}</span></div>`;
+    const cechy = (d.cechy || []).filter((x) => x.ile >= 15).slice(-10);
+    const kol = ["pokolenie", "ile", "wiek", "sila", "stadnosc", "pojetnosc", "towarzyskosc", "dlugowiecznosc", "ozdoba", "gust", "troska", "odpornosc"];
+    const tab = `<div style="overflow-x:auto"><table style="border-collapse:collapse;font:400 12px/1.4 var(--mono)">
+      <tr>${kol.map((k) => `<th style="text-align:left;padding:4px 10px;color:var(--muted)">${k}</th>`).join("")}</tr>
+      ${cechy.map((x) => `<tr>${kol.map((k) => `<td style="padding:4px 10px">${x[k] ?? "—"}</td>`).join("")}</tr>`).join("")}</table></div>`;
+    box.innerHTML = `
+      <div class="kolumny">
+      <div><h4>${t("cyw.swiat")}</h4><div class="wiersze">
+      ${wiersz(t("cyw.zywych"), d.zywych)}
+      ${wiersz(t("cyw.zmarlych"), d.zmarlych)}
+      ${wiersz(t("cyw.cykli"), d.cykli)}
+      ${wiersz(t("cyw.tempo"), tempo)}
+      ${wiersz(t("cyw.ostatni"), fmtAgo(s2.czas))}
+      ${wiersz(t("cyw.pora"), (s2.pora ? t("pora." + s2.pora) : "—") + (s2.noc ? " · " + t("noc") : ""))}
+      ${wiersz(t("cyw.pokolen"), d.pokolen)}
+      ${wiersz(t("cyw.laki"), `${d.miejsc} / ${p.miejsc_zajetych ?? "—"}`)}
+      ${wiersz(t("cyw.gatunkow"), p.gatunkow ?? "—")}
+      ${wiersz(t("cyw.geny"), t("cyw.geny.v", { s: p.genow_srednio ?? "—", m: p.genow_max ?? "—", d: p.z_duplikacji ?? "—" }))}
+      ${wiersz(t("cyw.wymiary"), s2.wymiary ?? "—")}
+      ${wiersz(t("cyw.rozmnazanie"), s2.dwoje ? t("rozm.dwoje") : t("rozm.jedno"))}
+      ${wiersz(t("cyw.ozdoba"), `${p.ozdoba ?? "—"} / ${p.gust ?? "—"}`)}
+      </div></div>
+      <div><h4>${t("cyw.zagrozenia")}</h4><div class="wiersze">
+      ${wiersz(t("cyw.chorych"), t("cyw.chorych.v", { n: p.chorych ?? 0, o: p.odpornosc ?? "—" }))}
+      ${wiersz(t("cyw.ognisk"), p.ogniska ?? 0)}
+      ${wiersz(t("cyw.zarazy"), `${zd.zaraza ?? 0} / ${zd.zarazila_sie ?? 0} / ${zd.wyzdrowienie ?? 0}`)}
+      ${wiersz(t("cyw.drapieznikow"), p.drapiezniki ?? 0)}
+      ${wiersz(t("cyw.napasci"), `${zd.atak ?? 0} / ${zd.upolowana ?? 0}`)}
+      ${wiersz(t("cyw.kleski"), `${zd.pozar ?? 0} / ${zd.powodz ?? 0}`)}
+      </div></div>
+      <div><h4>${t("cyw.jezyk")}</h4><div class="wiersze">
+      ${wiersz(t("cyw.slow"), p.slow ?? "—")}
+      ${wiersz(t("cyw.znaczen"), p.znaczen ?? "—")}
+      ${wiersz(t("cyw.zrozumien"), `${zd.zrozumienie ?? 0} / ${zd.znaczenie ?? 0}`)}
+      ${wiersz(t("cyw.dzwiekow"), zd.dzwiek_z_nowego_genu ?? 0)}
+      ${wiersz(t("cyw.czyny"), Object.entries(d.czyny || {}).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k, v]) => `${esc(k)} ${v}×`).join(", ") || "—")}
+      </div></div>
+      <div><h4>${t("cyw.rekordy")}</h4><div class="wiersze">
+      ${wiersz(t("cyw.najstarsza"), d.najstarsza ? t("cyw.najstarsza.v", { nr: d.najstarsza.nr, w: d.najstarsza.wiek }) : "—")}
+      ${wiersz(t("cyw.najplodniejsza"), d.najplodniejsza ? t("cyw.najplodniejsza.v", { nr: d.najplodniejsza.nr, d: d.najplodniejsza.dzieci }) : "—")}
+      ${wiersz(t("cyw.odkrycia"), `${zd.odkrycie ?? 0} / ${zd.duplikacja ?? 0}`)}
+      </div></div>
+      </div>
+      <h4>${t("cyw.cechy")}</h4>${tab}`;
+  }
+  document.querySelector('[data-otworz="dlgPowiadomienia"]').addEventListener("click", rysujPowiadomienia);
+
+  // zatrzymanie świata: zawsze przez osobne okno z potwierdzeniem
+  if ($("zatrzymajBtn")) $("zatrzymajBtn").addEventListener("click", () => {
+    const s = ostatniStan || {};
+    $("zatrzymajOpis").textContent = t("stop.opis", { c: s.cykl_swiata ?? "—", z: s.zywych ?? "—" });
+    $("zatrzymajOdp").textContent = "";
+    $("zatrzymajTak").disabled = false;
+    $("dlgZatrzymaj").showModal();
+  });
+  if ($("zatrzymajTak")) $("zatrzymajTak").addEventListener("click", async () => {
+    $("zatrzymajTak").disabled = true;
+    $("zatrzymajOdp").textContent = t("stop.trwa");
+    try {
+      const r = await fetch("/api/zatrzymaj", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+      const d = await r.json();
+      if (!r.ok) { $("zatrzymajOdp").textContent = d.blad || t("stop.blad"); $("zatrzymajTak").disabled = false; return; }
+      $("zatrzymajOdp").textContent = t("stop.ok", { c: d.cykl, z: d.zywych });
+      setTimeout(() => { $("dlgZatrzymaj").close(); odswiez(); }, 1500);
+    } catch (e) {
+      $("zatrzymajOdp").textContent = t("stop.blad"); $("zatrzymajTak").disabled = false;
+    }
+  });
+  /* portret najwybitniejszej: dane z genów i pamięci istoty przełożone na ludzki język */
+  function poziom(x) { return x == null ? null : x < 0.34 ? 0 : x < 0.67 ? 1 : 2; }
+  function rodz(s, fem) { const cz = String(s).split("|"); return fem || cz.length < 2 ? cz[0] : cz[1]; }
+  function przym(klucz, x, fem) { const p = poziom(x); return p == null ? null : rodz(t("portret.adj." + klucz + "." + p), fem); }
+  function lm(n, klucz) {   /* liczba mnoga: 1 | 2–4 (poza 12–14) | reszta */
+    const f = t(klucz).split("|"); const r = n % 10, r2 = n % 100;
+    const i = n === 1 ? 0 : (r >= 2 && r <= 4 && !(r2 >= 12 && r2 <= 14)) ? 1 : 2;
+    return n + " " + (f[Math.min(i, f.length - 1)]);
+  }
+  async function portret() {
+    let d; try { const r = await fetch("/api/portret", { cache: "no-store" }); d = await r.json(); } catch (e) { return; }
+    if (d.brak) return;
+    const b = d.istota, fem = b.plec !== "d";
+    const cechy = [["sila", b.sila], ["lownosc", b.lownosc], ["ciekawosc", b.ciekawosc], ["stadnosc", b.stadnosc], ["dlugowiecznosc", b.dlugowiecznosc], ["ufnosc", b.ufnosc], ["szczerosc", b.szczerosc], ["pojetnosc", b.pojetnosc], ["towarzyskosc", b.towarzyskosc]].filter((c) => c[1] != null);
+    const cecha = (k, x) => `<div class="cecha"><span class="k">${t("portret.c." + k)}</span><span class="v">${przym(k, x, fem)}</span><span class="pasek"><i style="width:${(x * 100).toFixed(0)}%"></i></span></div>`;
+    const klimat = b.optimum != null ? `<div class="cecha"><span class="k">${t("portret.c.klimat")}</span><span class="v">${b.optimum < 0.4 ? t("portret.klimat.chlod") : b.optimum > 0.6 ? t("portret.klimat.cieplo") : rodz(t("portret.klimat.srodek"), fem)}${b.tolerancja > 0.5 ? ", " + rodz(t("portret.klimat.odporna"), fem) : ""}</span><span class="pasek skala"><i style="left:${(b.optimum * 100).toFixed(0)}%"></i></span></div>` : "";
+    const lak = Object.entries(b.lak || {}); const lakN = lak.reduce((a, x) => a + x[1], 0);
+    const tem = (b.tematy || []).map((x) => x.temat === "zapach" ? t("jz.temat.zapach", { m: x.cel }) : x.temat === "klamca" ? t("jz.temat.klamca", { nr: x.cel }) : x.temat === "inny" ? t("jz.temat.inny", { nr: x.cel }) : x.temat === "pora" ? t("jz.temat.pora", { pora: t("pora." + x.cel) }) : x.temat === "bol" ? t("jz.temat.bol", { m: x.cel }) : x.temat === "echo" ? t("jz.temat.echo", { z: x.cel }) : t("jz.temat." + x.temat));
+    const wiersz = (k, v) => `<div class="wpis"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+    const umysl = [
+      wiersz(t("portret.u.zrozumiane"), b.zrozumiane.length ? b.zrozumiane.map((x) => "„" + esc(x) + "”").join(", ") : t("portret.nic")),
+      wiersz(t("portret.u.laki"), lakN ? t("portret.u.laki.v", { n: lakN, pory: lak.map((x) => t("pora." + x[0]) + " " + x[1]).join(", ") }) : t("portret.nic")),
+      wiersz(t("portret.u.klamcy"), b.klamcy.length ? b.klamcy.map((n) => t("nr", { nr: n })).join(", ") : t("portret.nikt")),
+      wiersz(t("portret.u.slowa"), b.slownik.length ? b.slownik.map(esc).join(", ") : t("portret.nic")),
+      wiersz(t("portret.u.tematy"), tem.length ? tem.join(", ") : t("portret.nic")),
+      wiersz(t("portret.u.nauka"), t("portret.u.nauka.v", { n: b.nauczone || 0, r: b.rozmowy || 0 })),
+      wiersz(t("portret.u.uprawa"), b.uprawa ? t("portret.u.uprawa.v", { p: (b.uprawa * 100).toFixed(0) }) : t("portret.nic")),
+      wiersz(t("portret.u.spichlerz"), b.spichlerz ? t("portret.u.spichlerz.v", { p: (b.spichlerz * 100).toFixed(0) }) : t("portret.nic")),
+    ].join("");
+    /* czytanie Keja: trzy najbardziej wyraziste cechy i to, co istota wiedziała */
+    const wyraziste = cechy.filter((c) => poziom(c[1]) !== 1).sort((a, c) => Math.abs(c[1] - 0.5) - Math.abs(a[1] - 0.5)).slice(0, 3).map((c) => przym(c[0], c[1], fem));
+    const wiedza = [];
+    if (b.zrozumiane.length) wiedza.push(rodz(t("portret.kej.rozumiala", { n: lm(b.zrozumiane.length, "portret.n.znaczen") }), fem));
+    if (lakN) wiedza.push(rodz(t("portret.kej.laki", { n: lm(lakN, "portret.n.lak"), p: lm(lak.length, "portret.n.por") }), fem));
+    if (b.klamcy.length) wiedza.push(rodz(t("portret.kej.klamcy", { n: lm(b.klamcy.length, "portret.n.klamcow") }), fem));
+    if (tem.length) wiedza.push(rodz(t("portret.kej.temat", { o: tem[0] }), fem));
+    if (b.dzieci) wiedza.push(rodz(t("portret.kej.dzieci", { n: lm(b.dzieci, "portret.n.dzieci") }), fem));
+    if (b.uprawa) wiedza.push(rodz(t("portret.kej.uprawa"), fem));
+    if (b.spichlerz) wiedza.push(rodz(t("portret.kej.spichlerz"), fem));
+    const kto = t(fem ? "portret.samica" : "portret.samiec");
+    let kej = (wyraziste.length ? wyraziste.join(", ") + " " : rodz(t("portret.kej.zwykla"), fem) + " ") + kto;
+    kej = kej.charAt(0).toUpperCase() + kej.slice(1);
+    kej += wiedza.length ? ", " + t(fem ? "portret.ktora" : "portret.ktory") + " " + wiedza.join(", ") + "." : ". " + rodz(t("portret.kej.nicnie"), fem);
+    const los = b.zyje ? t("portret.zyje") : b.ostatnia ? rodz(t("portret.ostatnia", { c: b.zmarl_w_cyklu }), fem) : rodz(t("portret.umarla", { c: b.zmarl_w_cyklu }), fem);
+    const rodzice = [b.rodzic, b.rodzic2].filter((x) => x != null).map((n) => t("nr", { nr: n })).join(" + ") || t("portret.cud");
+    $("portretTresc").innerHTML = `
+      <div class="portret">
+        <div class="glowa">
+          <div class="glyf">${esc(b.glos || "")}</div>
+          <div>
+            <div class="imie">${t("portret.kim", { nr: b.nr, plec: kto, p: b.pokolenie })}</div>
+            <div class="los">${rodz(t("portret.zycie", { w: b.wiek, dz: lm(b.dzieci || 0, "portret.n.dzieci"), r: rodzice, e: b.max_energia }), fem)} ${los}</div>
+          </div>
+        </div>
+        <blockquote class="kej">${kej}<footer>${t("portret.kej")} · ${t("portret.wybor", { n: d.istot, m: d.madrosc, b: d.bogactwo })}</footer></blockquote>
+        <h2>${t("portret.cialo")}</h2>
+        <div class="cechy">${cechy.map((c) => cecha(c[0], c[1])).join("")}${klimat}</div>
+        <h2>${t("portret.umysl")}</h2>
+        <div class="umysl">${umysl}</div>
+      </div>`;
+    $("portretTytul").textContent = t(b.zyje ? "portret.tytul.zyje" : "portret.tytul");
+    $("dlgPortret").showModal();
+  }
+  $("portretBtn").addEventListener("click", portret);
+  $("wznowBtn").addEventListener("click", async () => {
+    $("wznowBtn").disabled = true;
+    try { const r = await fetch("/api/wznow", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }); const d = await r.json();
+      toast(r.ok ? "narodziny" : "smierc", r.ok ? t("proces.wznowiony") : (d.blad || t("brak_serwera"))); if (r.ok) setTimeout(odswiez, 1500); }
+    catch (e) { toast("smierc", t("brak_serwera")); }
+    $("wznowBtn").disabled = false;
+  });
+  $("dlgNapisy").addEventListener("click", (e) => { if (e.target === $("dlgNapisy")) $("dlgNapisy").close(); });
+  let dziejeCykl = null;
+  async function renderDzieje(s) {
+    if (s.zyje) { $("dzieje").innerHTML = ""; dziejeCykl = null; return; }
+    if (dziejeCykl === s.cykl_swiata) return;
+    dziejeCykl = s.cykl_swiata;
+    try {
+      const r = await fetch("/api/dzieje", { cache: "no-store" }); const d = await r.json();
+      if (d.brak) return;
+      ostatnieDzieje = d;
+      const kaf = (k, v) => `<div class="kafel"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+      const cechy = d.cechy.map((c) => `<div class="r"><span class="c">${c.pokolenie}</span><span class="m">${c.ile}</span><span class="d">${[["wiek", c.wiek], ["dz.siła", c.sila], ["dz.ciek", c.ciekawosc], ["dz.stad", c.stadnosc], ["dz.dlug", c.dlugowiecznosc], ["dz.ufn", c.ufnosc], ["dz.szcz", c.szczerosc], ["dz.poj", c.pojetnosc], ["dz.tow", c.towarzyskosc], ["dz.opt", c.optimum]].filter((x) => x[1] != null).map((x) => `<span>${t(x[0])} ${x[1]}</span>`).join("")}</span></div>`).join("");
+      const zdarz = Object.entries(d.zdarzenia || {}).map(([k, v]) => `${t("dz.zd." + k)} ${v}`).join(" · ");
+      const czyny = Object.entries(d.czyny || {}).map(([k, v]) => `„${esc(k)}” ${v}×`).join(", ");
+      $("dzieje").innerHTML = `
+        <h2>${t("dz.tytul")}</h2>
+        <div class="kafle">${kaf(t("dz.cykli"), d.cykli)}${kaf(t("dz.istot"), d.istot)}${kaf(t("dz.pokolen"), d.pokolen)}${kaf(t("dz.urodzonych"), d.cudow)}${kaf(t("dz.miejsc"), d.miejsc)}${kaf(t("dz.glosow"), d.glosy)}${kaf(t("dz.odpowiedzi"), d.odpowiedzi)}</div>
+        <p class="hint" style="margin-top:12px">${d.najstarsza ? t("dz.najstarsza", { nr: d.najstarsza.nr, w: d.najstarsza.wiek }) : ""} ${d.najplodniejsza ? t("dz.najplodniejsza", { nr: d.najplodniejsza.nr, n: d.najplodniejsza.dzieci }) : ""}</p>
+        <p class="hint">${zdarz}</p>
+        ${czyny ? `<p class="hint">${t("dz.czyny")}: ${czyny}</p>` : ""}
+        ${d.slowa.length ? `<p class="hint">${t("dz.slowa")}: ${d.slowa.map(([s2, n]) => esc(s2) + " " + n + "×").join(", ")}</p>` : ""}
+        ${d.slowa_keja.length ? `<p class="hint">${t("dz.kej")}: <i>${d.slowa_keja.map(esc).join(", ")}</i></p>` : ""}
+        <h2 style="margin-top:14px">${t("dz.cechy")}</h2>
+        <div class="log">${cechy}</div>`;
+    } catch (e) {}
+  }
+
+  function renderStan(s) {
+    if (!s) return;
+    ostatniStan = s;
+    renderSwiat(s);
+    renderDzieje(s);
+    const kon = $("koniec");
+    if (kon) {
+      const przerwany = !!s.zyje && s.proces_zyje === false;          // istoty żyją, ale proces stoi: można wznowić albo powołać nowy świat
+      kon.hidden = !!s.zyje && !przerwany;
+      if (!kon.hidden) {
+        $("koniecOpis").textContent = przerwany ? t("koniec.opis.przerwany", { cykl: s.cykl_swiata, n: s.zywych }) : t(s.koniec && s.koniec.powod === "jedna_plec" ? "koniec.opis.jedna_plec" : "koniec.opis", { cykl: s.cykl_swiata, nr: ((s.koniec || {}).ostatni || []).map((n) => t("nr", { nr: n })).join(", ") });
+        kon.querySelector("h2").textContent = t(przerwany ? "koniec.eyebrow.przerwany" : "koniec.eyebrow");
+      }
+    }
+  }
+  window.i18n.onChange(() => renderStan(ostatniStan));
+
+  // słowo do wszystkich naraz: jedyne wejście z zewnątrz, jakie ten świat ma
+  async function powiedzWszystkim() {
+    const raw = $("mowaSlowo").value.trim();
+    if (!raw) return;
+    try {
+      const r = await fetch("/api/slowo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slowo: raw }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.blad || r.status);
+      $("mowaSlowo").value = "";
+      $("mowaHint").className = "hint";
+      $("mowaHint").textContent = t("powiedz.ok.wszyscy", { t: raw });
+      setTimeout(() => { if ($("dlgMowa").open) $("dlgMowa").close(); }, 1800);
+    } catch (err) {
+      $("mowaHint").className = "hint err";
+      $("mowaHint").textContent = t("powiedz.blad");
+    }
+  }
+  $("mowaBtn").addEventListener("click", powiedzWszystkim);
+  $("mowaSlowo").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); powiedzWszystkim(); } });
+  document.querySelector('[data-otworz="dlgIstoty"]').addEventListener("click", otworzIstoty);
+  $("istDalej").addEventListener("click", () => { ISTOTY_OD += 25; istotyWszystkie(); });
+  $("istWstecz").addEventListener("click", () => { ISTOTY_OD = Math.max(0, ISTOTY_OD - 25); istotyWszystkie(); });
+
+  /* @@ZRODLO_START */
+  async function odswiez() {
+    if (location.search.includes("demo")) {
+      renderStan({ zyje: true, cykl_swiata: 120, pojemnosc: 30, pole: [1, 0.7, 0.4, 0.05, 0.05, 0.6], kolejnosc: ["0", "1", "2", "3", "4", "5"],
+        byty: [
+          { nr: 1, pokolenie: 1, rodzic: null, dzieci: 2, wiek: 120, energia: 21.4, glod: 0, tryb: "sen", miejsce: "0", geny: 64, mowa: {} },
+          { nr: 4, pokolenie: 2, rodzic: 1, dzieci: 0, wiek: 37, energia: 6.2, glod: 0.38, tryb: "jawa", miejsce: "1", geny: 64, mowa: { glos: true, znaki: "◆●●◇" } },
+          { nr: 5, pokolenie: 2, rodzic: 1, dzieci: 0, wiek: 12, energia: 1.7, glod: 0.83, tryb: "jawa", miejsce: "3", geny: 64, mowa: { krzyk: true } },
+          { nr: 6, pokolenie: 3, rodzic: 4, dzieci: 0, wiek: 3, energia: 9.8, glod: 0.02, tryb: "jawa", miejsce: "1", geny: 64, mowa: { slowo: "pokarm" } },
+        ] });
+      if (location.hash === "#otworz" && ostatniStan) otworzDialog(ostatniStan.byty[1], ostatniStan);
+      return;
+    }
+    try {
+      const r = await fetch("/api/stan", { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      renderStan(await r.json());
+    } catch (e) {}
+  }
+  $("nowySwiat").addEventListener("click", async () => {
+    const b = $("nowySwiat"); b.disabled = true; $("nowyHint").textContent = t("nowy.trwa");
+    try {
+      const r = await fetch("/api/nowy_swiat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ geny: +$("geny").value, dwoje: true, cykl: +$("cykl").value, wymiary: +$("wymiary").value, istot: +$("istot").value, rozmiar: $("rozmiar").value, pojemnosc: +$("pojemnosc").value, jezyk: $("jezykSwiata").value }) });
+      const o = await r.json();
+      if (!r.ok) { $("nowyHint").textContent = o.blad || t("nowy.blad"); b.disabled = false; return; }
+      $("nowyHint").textContent = t("nowy.ok", { ile: o.istot, geny: o.geny, gdzie: o.poprzedni_w ? o.poprzedni_w.split("/").slice(-2).join("/") : "—" });
+      setTimeout(odswiez, 1500);
+      b.disabled = false;
+    } catch (e) { $("nowyHint").textContent = t("brak_serwera"); b.disabled = false; }
+  });
+  window.i18n.start().then(() => { odswiez(); setInterval(odswiez, 20000); setTimeout(cywilizacja, 400); setInterval(cywilizacja, 20000); zdarzenia(); setInterval(zdarzenia, 5000); if (location.hash === "#mapa") setTimeout(otworzMape, 800); if (location.hash === "#rod") setTimeout(() => { odswiezRod(); $("dlgDrzewo").showModal(); }, 800); if (location.hash === "#slownik") setTimeout(otworzSlownik, 800); if (location.hash === "#gs") setTimeout(otworzGenomSwiata, 800); if (location.hash === "#portret") setTimeout(portret, 1200); if (location.hash === "#napisy") setTimeout(async () => { await napisyKoncowe(); const bx = $("napisyTresc"); bx.style.animation = "none"; bx.style.top = "60px"; }, 1500); if (location.hash === "#genom") setTimeout(async () => { if (ostatniStan && ostatniStan.byty.length) { await otworzDialog(ostatniStan.byty[0], ostatniStan); setTimeout(() => { $("dlg").close(); otworzGenom(); }, 1500); } }, 1200); });
+  /* @@ZRODLO_END */
+})();
+</script>

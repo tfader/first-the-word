@@ -1,0 +1,272 @@
+<title>Istota</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<!-- @@STYLE_START --><link rel="stylesheet" href="/s/wspolne.css"><!-- @@STYLE_END -->
+<!-- @@I18N_START --><script src="/s/i18n.js"></script><!-- @@I18N_END -->
+
+<div class="page" data-i18n-title="tytul">
+  <header class="top">
+    <div class="brand">
+      <h1 data-i18n="marka">istota</h1>
+      <div class="meta"><span id="since">—</span><select id="lang" class="lang"></select></div>
+    </div>
+    <!-- @@NAV_START --><nav class="nav"><a href="/" aria-current="page" data-i18n="nav.istoty">istoty</a><a href="/wnetrze" data-i18n="nav.wnetrze">wnętrze</a><a href="/rod" data-i18n="nav.rod">ród</a><a href="/jezyk" data-i18n="nav.jezyk">język</a></nav><!-- @@NAV_END -->
+  </header>
+
+  <section aria-label="Istoty">
+    <h2 id="bytyTytul">…</h2>
+    <div class="karty" id="byty"></div>
+  </section>
+
+  <!-- @@KONIEC_START -->
+  <section id="koniec" class="panel" hidden>
+    <p class="hint" id="koniecOpis"></p>
+    <div class="row" style="margin-top:14px; align-items:center">
+      <label for="geny" class="hint" style="margin:0" data-i18n="nowy.geny"></label>
+      <select id="geny" class="pick">
+        <option value="8" data-i18n="nowy.geny.8"></option>
+        <option value="64" selected data-i18n="nowy.geny.64"></option>
+        <option value="256" data-i18n="nowy.geny.256"></option>
+        <option value="1000" data-i18n="nowy.geny.1000"></option>
+      </select>
+    </div>
+    <div class="row" style="margin-top:8px; align-items:center">
+      <label for="wymiary" class="hint" style="margin:0" data-i18n="nowy.wymiary"></label>
+      <select id="wymiary" class="pick">
+        <option value="4" selected data-i18n="nowy.wymiary.4"></option>
+        <option value="8" data-i18n="nowy.wymiary.8"></option>
+        <option value="16" data-i18n="nowy.wymiary.16"></option>
+      </select>
+    </div>
+    <div class="row" style="margin-top:8px; align-items:center">
+      <label for="cykl" class="hint" style="margin:0" data-i18n="nowy.cykl"></label>
+      <select id="cykl" class="pick">
+        <option value="5" data-i18n="nowy.cykl.5"></option>
+        <option value="15" data-i18n="nowy.cykl.15"></option>
+        <option value="60" selected data-i18n="nowy.cykl.60"></option>
+        <option value="300" data-i18n="nowy.cykl.300"></option>
+      </select>
+    </div>
+    <div class="row" style="margin-top:8px; align-items:center">
+      <label for="dwoje" class="hint" style="margin:0" data-i18n="nowy.dwoje"></label>
+      <select id="dwoje" class="pick">
+        <option value="0" selected data-i18n="nowy.dwoje.0"></option>
+        <option value="1" data-i18n="nowy.dwoje.1"></option>
+      </select>
+    </div>
+    <div class="row" style="margin-top:14px"><button id="nowySwiat" type="button" class="btn life" data-i18n="nowy.btn"></button></div>
+    <p class="hint" id="nowyHint" style="margin-top:8px"></p>
+  </section>
+  <!-- @@KONIEC_END -->
+
+  <section aria-label="Świat">
+    <h2 data-i18n="swiat">świat</h2>
+    <div class="readouts">
+      <div class="readout"><span class="k" data-i18n="swiat.cykl">cykl</span><span id="cyklInfo">—</span></div>
+      <div class="readout"><span class="k" data-i18n="swiat.geny">geny</span><span id="genyInfo">—</span></div>
+      <div class="readout"><span class="k" data-i18n="swiat.miejsca">miejsca</span><span><span id="miejsce">—</span><canvas id="pole" width="640" height="28" style="width:100%;height:14px;display:block;margin-top:6px"></canvas></span></div>
+    </div>
+  </section>
+
+  <section class="voice" aria-label="Słowo Keja">
+    <div class="eyebrow" data-i18n="kej.eyebrow">Kej czyta z nich słowo</div>
+    <p class="word" id="slowoKeja">…</p>
+    <ul class="trail" id="slowaKeja"></ul>
+  </section>
+
+  <form class="say" id="form">
+    <label for="slowo" data-i18n="powiedz.label">Powiedz jej coś</label>
+    <div class="row">
+      <input id="slowo" class="slowo" name="slowo" type="text" maxlength="240" autocomplete="off" spellcheck="false" data-i18n-placeholder="powiedz.placeholder">
+      <button id="wyslij" type="submit" class="btn" data-i18n="powiedz.btn">Powiedz</button>
+      <!-- @@NAKARM_START --><button id="nakarm" type="button" class="btn warm" hidden data-i18n="nakarm.btn">Nakarm</button><!-- @@NAKARM_END -->
+    </div>
+    <p class="hint" id="hint" data-i18n="powiedz.hint"></p>
+  </form>
+
+  <section aria-label="Słowa od świata">
+    <h2 data-i18n="losy">co jej powiedziano</h2>
+    <div class="fate" id="fate"></div>
+  </section>
+
+  <section aria-label="Ostatnie cykle">
+    <h2 data-i18n="cykle">ostatnie cykle</h2>
+    <div class="log" id="log"></div>
+  </section>
+
+  <section class="about">
+    <p id="o1"></p>
+    <p class="dim" data-i18n="o.2"></p>
+    <p class="dim" data-i18n="o.3"></p>
+  </section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const t = (k, v) => window.i18n.t(k, v);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmtAgo = (ts) => {
+    if (!ts) return "—";
+    const s = Math.max(0, (Date.now() / 1000) - ts);
+    if (s < 90) return t("przed_chwila");
+    if (s < 3600) return t("min_temu", { n: Math.round(s / 60) });
+    if (s < 86400) return t("godz_temu", { n: Math.round(s / 3600) });
+    return t("dni_temu", { n: Math.round(s / 86400) });
+  };
+  const cyklTekst = (sek) => sek >= 60 ? t("cykl_min", { n: sek / 60 }) : t("cykl_s", { n: sek });
+  const coTekst = (sek) => sek >= 60 ? t("co_min", { n: sek / 60 }) : t("co_s", { n: sek });
+  const pokarmTekst = (g) => g > 0.6 ? t("pokarm.gesty") : g > 0.25 ? t("pokarm.rzadki") : t("pokarm.zaden");
+  const liczba = (n, jedna, kilka, wiele) => n === 1 ? t(jedna) : (n >= 2 && n <= 4) ? t(kilka, { n }) : t(wiele, { n });
+
+  function rysujMaly(cv, b) {
+    const ctx = cv.getContext("2d"), W = cv.width, cx = W / 2, cy = W / 2;
+    const fill = Math.max(0, Math.min(1, b.energia / 30));
+    const r = 26 + 44 * fill;
+    const col = b.energia <= 0 ? css("--dying") : b.glod > 0.6 ? css("--hunger") : css("--life");
+    const g = ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, r * 1.6);
+    g.addColorStop(0, col + "55"); g.addColorStop(1, col + "00");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r * 1.6, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = col + (b.tryb === "sen" ? "66" : "cc"); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = col; ctx.stroke();
+    ctx.fillStyle = css("--ground");
+    const n = Math.min(64, b.geny || 64);
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2, rr = r * (0.35 + 0.5 * ((i * 7919) % 97) / 97);
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, 1.8, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  let ostatniStan = null, ostatnieLosy = [];
+
+  function renderStan(s) {
+    if (!s) return;
+    ostatniStan = s;
+    const byty = s.byty || [];
+    $("bytyTytul").textContent = !s.zyje ? t("istoty.nikt") : liczba(byty.length, "istoty.jedna", "istoty.kilka", "istoty.wiele");
+    const bl = $("byty"); bl.innerHTML = "";
+    const kol = s.kolejnosc || (s.pole || []).map((_, i) => String(i));
+    const idx = (m) => { const i = kol.indexOf(String(m)); return i < 0 ? 0 : i; };
+    byty.forEach((b) => {
+      const k = document.createElement("div"); k.className = "karta";
+      const mw = b.mowa || {};
+      const mowa = mw.krzyk ? t("mowa.krzyk") : mw.slowo ? "„" + esc(mw.slowo) + "”" : (mw.glos && mw.znaki) ? esc(mw.znaki) : b.tryb === "sen" ? t("mowa.spi") : t("mowa.milczy");
+      const g = s.pole ? (s.pole[idx(b.miejsce)] ?? 0) : null;
+      k.innerHTML = `<canvas width="192" height="192"></canvas><div class="readouts">
+        <div class="readout"><span class="k">${t("karta.istota")}</span><span class="nr">${t("nr", { nr: b.nr })} <span class="state ${b.tryb === "sen" ? "sen" : ""}">${b.tryb === "sen" ? t("spi") : t("zyje")}</span></span></div>
+        <div class="readout"><span class="k">${t("karta.pokolenie")}</span><span>${b.pokolenie} · ${b.rodzic != null ? t("dziecko_nr", { nr: b.rodzic }) : t("z_cudu")}${b.dzieci ? " · " + t("dzieci", { n: b.dzieci }) : ""}</span></div>
+        <div class="readout"><span class="k">${t("karta.wiek")}</span><span>${t("cykli", { n: b.wiek })}</span></div>
+        <div class="readout"><span class="k">${t("karta.energia")}</span><span>${b.energia.toFixed(1)} / ${s.pojemnosc ?? 30}<div class="bar${b.energia < 2 ? " dying" : b.glod > 0.6 ? " hungry" : ""}"><i style="width:${(100 * Math.min(1, b.energia / (s.pojemnosc ?? 30))).toFixed(1)}%"></i></div></span></div>
+        <div class="readout"><span class="k">${t("karta.miejsce")}</span><span>${t("nr", { nr: b.miejsce })}${g != null ? " · " + pokarmTekst(g) : ""}</span></div>
+        <div class="readout"><span class="k">${t("karta.mowi")}</span><span class="mowa">${mowa}</span></div>
+      </div>`;
+      bl.appendChild(k);
+      rysujMaly(k.querySelector("canvas"), b);
+    });
+
+    $("cyklInfo").textContent = (s.cykl_swiata ?? "—") + (s.cykl_sekund ? " · " + coTekst(s.cykl_sekund) : "") + " · " + t("ostatni", { kiedy: fmtAgo(s.czas) }) + (s.most_czas ? " · " + t("kej_zagladal", { kiedy: fmtAgo(s.most_czas) }) : "");
+    $("genyInfo").textContent = [s.geny ? t("genow", { n: s.geny }) : "—", s.dwoje ? t("dwoje_rodzicow") : t("jeden_rodzic"), s.wymiary ? t("wym", { n: s.wymiary }) : null].filter(Boolean).join(" · ");
+    $("o1").textContent = t("o.1", { geny: s.geny || 64 });
+    if (s.narodziny_tekst) $("since").textContent = t("swiat_od", { data: s.narodziny_tekst });
+    if (s.pole && s.pole.length) {
+      $("miejsce").textContent = t("znanych_miejsc", { n: s.znanych_miejsc || s.pole.length });
+      const pc = $("pole"), px = pc.getContext("2d"), n = s.pole.length, w = pc.width / n;
+      px.clearRect(0, 0, pc.width, pc.height);
+      s.pole.forEach((d, i) => { px.globalAlpha = 0.15 + 0.85 * d; px.fillStyle = css("--life"); px.fillRect(i * w + (w > 3 ? 1 : 0), 0, Math.max(1, w - (w > 3 ? 2 : 0)), pc.height); });
+      px.globalAlpha = 1;
+      Object.values(s.miejsca || {}).forEach((m) => { px.fillStyle = css("--ink"); px.beginPath(); px.arc(idx(m) * w + w / 2, pc.height / 2, Math.min(6, Math.max(3, w / 2)), 0, Math.PI * 2); px.fill(); });
+    }
+    $("slowoKeja").textContent = s.slowo_keja || "…";
+    const trail = $("slowaKeja"); trail.innerHTML = "";
+    (s.slowa_keja || []).slice(-12).reverse().forEach((w, i) => { if (i === 0) return; const li = document.createElement("li"); li.textContent = w.slowo; trail.appendChild(li); });
+    const nk = $("nakarm"); if (nk) nk.hidden = !(s.zyje && byty.some((b) => (b.mowa || {}).krzyk));
+    const kon = $("koniec"); if (kon) { kon.hidden = !!s.zyje; if (!s.zyje) $("koniecOpis").textContent = t("koniec.opis", { cykl: s.cykl_swiata }); }
+
+    const log = $("log"); log.innerHTML = "";
+    (s.cykle || []).slice(-24).reverse().forEach((c) => {
+      const r = document.createElement("div"); r.className = "r";
+      const m = c.tryb === "sen" ? "sen" : c.tryb === "cud" ? "cud" : "jawa";
+      const bits = [];
+      if (c.tryb === "jawa") {
+        bits.push("E " + c.energia.toFixed(1));
+        if (c.zjedzone > 0) bits.push(t("cykl.zjadla", { n: c.zjedzone.toFixed(1) }));
+        if (c.rana) bits.push(t("cykl.bol"));
+        if (c.echo) bits.push(t("cykl.echo"));
+        if (c.inny) bits.push(c.inny_geny ? t("cykl.slyszy_nr", { nr: c.inny }) : t("cykl.obok_nr", { nr: c.inny }));
+        if (c.ruszyl) bits.push(t("cykl.idzie"));
+        if (c.krzyk) bits.push(t("cykl.wola"));
+        if (c.wolanie) bits.push(t("cykl.wola_partnera"));
+        if (c.czyn) bits.push(t("cykl.idzie_do", { czyn: c.czyn }));
+        if (c.mowi) bits.push(t("cykl.mowi", { t: esc(c.mowi) }));
+        if (c.znaki) bits.push(t("cykl.glos", { z: esc(c.znaki) }));
+        if (c.inny_glos) bits.push(t("cykl.slyszy_glos"));
+      } else if (c.tryb === "sen") { bits.push("E " + c.energia.toFixed(1)); }
+      else if (c.tryb === "cud") { bits.push(t("cykl.potomek", { nr: c.dziecko })); }
+      let sl = "";
+      if (c.slowo) sl = `<span class="${c.uslyszal ? "heard" : c.tryb === "sen" ? "slept" : "lost"}">${t(c.uslyszal ? "cykl.uslyszala" : c.tryb === "sen" ? "cykl.przespala" : "cykl.nie_rozpoznala", { t: esc(c.slowo) })}</span>`;
+      r.innerHTML = `<span class="c">${c.cykl}</span><span class="m ${m}">${t("cykl." + m)}</span><span class="d">${bits.map((b) => "<span>" + b + "</span>").join("")}${sl}</span>`;
+      log.appendChild(r);
+    });
+  }
+
+  function renderFate(docs) {
+    ostatnieLosy = docs;
+    const box = $("fate"); box.innerHTML = "";
+    if (!docs.length) { box.innerHTML = `<span class="wait">${t("losy.nic")}</span>`; return; }
+    docs.slice(0, 40).forEach((d) => {
+      const s = document.createElement("span");
+      const cls = d.status === "uslyszal" ? "heard" : d.status === "spal" ? "slept" : d.status === "nie_rozpoznal" ? "" : "wait";
+      s.className = cls; s.innerHTML = `${esc(d.tekst)}<small>${t("los." + d.status)}</small>`;
+      box.appendChild(s);
+    });
+  }
+
+  const form = $("form"), input = $("slowo"), btn = $("wyslij"), hint = $("hint");
+  function hintReset() { hint.className = "hint"; hint.textContent = t(window.KEJ_MOST ? "powiedz.hint.kej" : "powiedz.hint"); }
+  window.i18n.onChange(() => { renderStan(ostatniStan); renderFate(ostatnieLosy); hintReset(); });
+
+  /* @@ZRODLO_START */
+  async function odswiez() {
+    try {
+      const r = await fetch("/api/stan", { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      const s = await r.json();
+      renderStan(s);
+      renderFate(s.slowa || []);
+    } catch (e) { $("cyklInfo").textContent = t("brak_serwera"); }
+  }
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const raw = input.value.trim();
+    if (!raw) return;
+    btn.disabled = true;
+    try {
+      const r = await fetch("/api/slowo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slowo: raw }) });
+      if (!r.ok) throw new Error(r.status);
+      const odp = await r.json();
+      input.value = ""; hint.className = "hint";
+      hint.textContent = t("powiedz.ok", { t: odp.slowa[0] });
+      setTimeout(hintReset, 8000);
+      odswiez();
+    } catch (err) { hint.className = "hint err"; hint.textContent = t("powiedz.blad"); }
+    finally { btn.disabled = false; }
+  });
+  $("nakarm").addEventListener("click", async () => {
+    try { await fetch("/api/nakarm", { method: "POST" }); hint.className = "hint"; hint.textContent = t("nakarm.ok"); setTimeout(hintReset, 8000); } catch (e) {}
+  });
+  $("nowySwiat").addEventListener("click", async () => {
+    const b = $("nowySwiat"); b.disabled = true; $("nowyHint").textContent = t("nowy.trwa");
+    try {
+      const r = await fetch("/api/nowy_swiat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ geny: +$("geny").value, dwoje: $("dwoje").value === "1", cykl: +$("cykl").value, wymiary: +$("wymiary").value }) });
+      const o = await r.json();
+      if (!r.ok) { $("nowyHint").textContent = o.blad || t("nowy.blad"); b.disabled = false; return; }
+      $("nowyHint").textContent = t("nowy.ok", { ile: t(o.dwoje ? "nowy.ok.dwie" : "nowy.ok.jedna"), geny: o.geny, gdzie: o.poprzedni_w ? o.poprzedni_w.split("/").slice(-2).join("/") : "—" });
+      setTimeout(odswiez, 1500);
+    } catch (e) { $("nowyHint").textContent = t("brak_serwera"); b.disabled = false; }
+  });
+  window.i18n.start().then(() => { hintReset(); odswiez(); setInterval(odswiez, 20000); });
+  /* @@ZRODLO_END */
+})();
+</script>

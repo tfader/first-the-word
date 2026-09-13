@@ -1,0 +1,1264 @@
+<title>Istota</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+/* Word · wspólny arkusz dla wszystkich podstron istoty */
+:root {
+  --ground: #F3F1EB; --surface: #FBFAF7; --surface-2: #EDEAE2; --line: #DAD6CC; --line-strong: #C4BFB3;
+  --ink: #1B1F24; --muted: #6B7178; --faint: #9AA0A6;
+  --life: #1F8F72; --life-soft: rgba(31,143,114,.14);
+  --hunger: #B8762A; --dying: #B8463C; --sleep: #5B6FA6; --sleep-soft: rgba(91,111,166,.12);
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --voice: "Newsreader", Georgia, "Times New Roman", serif;
+  --r: 6px; --gap: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0E1114; --surface: #161B20; --surface-2: #1D232A; --line: #262D34; --line-strong: #364049;
+    --ink: #E6E1D6; --muted: #8A9099; --faint: #5F666D;
+    --life: #7FD1B9; --life-soft: rgba(127,209,185,.14);
+    --hunger: #E0A458; --dying: #D9655B; --sleep: #8FA3D9; --sleep-soft: rgba(143,163,217,.14);
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0E1114; --surface: #161B20; --surface-2: #1D232A; --line: #262D34; --line-strong: #364049;
+  --ink: #E6E1D6; --muted: #8A9099; --faint: #5F666D;
+  --life: #7FD1B9; --life-soft: rgba(127,209,185,.14);
+  --hunger: #E0A458; --dying: #D9655B; --sleep: #8FA3D9; --sleep-soft: rgba(143,163,217,.14);
+}
+
+* { box-sizing: border-box; }
+html { color-scheme: light dark; }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font-family: var(--sans); font-size: 15px; line-height: 1.5;
+  padding-block: 24px 72px; padding-inline: 32px;
+}
+a { color: var(--life); text-decoration: none; }
+a:hover, a:focus-visible { text-decoration: underline; }
+.page { max-width: none; margin: 0; display: grid; gap: 28px; }
+
+/* nagłówek i nawigacja */
+.top { display: grid; gap: 14px; }
+.top .brand { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.top .akcje { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.top h1 { font: 400 22px/1 var(--mono); letter-spacing: .06em; margin: 0; }
+.top .meta { font: 400 12px/1.4 var(--mono); color: var(--muted); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.nav { display: flex; gap: 4px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.nav a { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.nav a:hover { color: var(--ink); text-decoration: none; }
+.nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--life); }
+select.lang, select.pick {
+  font: 400 12px/1.2 var(--mono); padding: 5px 8px; border-radius: 4px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+}
+select.pick { font-size: 14px; font-family: var(--sans); padding: 9px 12px; }
+
+/* formularz nowego świata */
+.pola { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 20px; margin-top: 14px; }
+.pola label { display: grid; gap: 6px; font: 500 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.pola select { width: 100%; }
+
+/* sekcje */
+section h2, dialog h2 { font: 500 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+[hidden] { display: none !important; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; max-width: 64ch; }
+.hint.err { color: var(--dying); }
+.lead { font-size: 14px; color: var(--muted); max-width: 66ch; margin: 0; }
+.panel { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 16px 18px; }
+
+/* odczyty */
+.readouts { display: grid; gap: 8px; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.readout { display: grid; grid-template-columns: 104px 1fr; gap: 12px; align-items: baseline; font-size: 13px; }
+.readout .k { color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.bar i { display: block; height: 100%; background: var(--life); width: 0; transition: width .6s ease; }
+.bar.hungry i { background: var(--hunger); }
+.bar.dying i { background: var(--dying); }
+.state { display: inline-block; padding: 3px 8px; border-radius: 3px; font: 500 10.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; background: var(--life-soft); color: var(--life); vertical-align: 1px; }
+.state.sen { color: var(--sleep); background: var(--sleep-soft); }
+.state.dead { color: var(--dying); background: transparent; border: 1px solid var(--line-strong); }
+
+/* karty istot */
+.karty { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: var(--gap); }
+.karta { display: grid; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; border: 1px solid var(--line); border-radius: var(--r); padding: 14px; background: var(--surface); }
+.karta canvas { width: 96px; height: 96px; display: block; }
+.karta .readouts { gap: 6px; }
+.karta .readout { grid-template-columns: 78px 1fr; font-size: 12px; }
+.karta .nr { font: 500 13px/1 var(--mono); }
+.karta .mowa { font: italic 400 15px/1.3 var(--voice); }
+
+/* karta świata */
+.swiat-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.swiat-head h2 { margin: 0; }
+.kafle { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px 16px; }
+.kafel { display: grid; gap: 4px; }
+.kafel .k { font: 500 10.5px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.kafel .v { font: 400 18px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+.kafel.klik { background: transparent; border: 0; padding: 0; text-align: left; cursor: pointer; color: inherit; font: inherit; }
+.kafel.klik .v small { font: 400 11px/1 var(--mono); color: var(--life); margin-left: 6px; }
+.kafel.klik:hover .v small { text-decoration: underline; }
+dialog.dlg.szeroki { width: min(1400px, calc(100vw - 32px)); }
+#mapaCanvas { width: 100%; max-height: calc(100vh - 200px); object-fit: contain; cursor: pointer; }
+.mapa-body { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
+@media (max-width: 900px) { .mapa-body { grid-template-columns: 1fr; } }
+
+/* istoty w wierszach */
+.wiersze { display: grid; gap: 8px; }
+.wiersz { display: grid; grid-template-columns: 56px 64px 64px 84px 100px 60px 60px 1.2fr 80px 100px 1.4fr; gap: 16px; align-items: center; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 10px 14px; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.wiersz canvas { width: 64px; height: 64px; display: block; }
+.wiersz small { display: block; font-size: 11px; color: var(--muted); }
+.wiersz .nr { font-weight: 500; line-height: 1.6; }
+.wiersz .mowa { font: italic 400 16px/1.3 var(--voice); }
+.wiersz.naglowek { border: 0; background: transparent; padding-block: 0 2px; font: 500 10.5px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+@media (max-width: 680px) {
+  .wiersz { grid-template-columns: 56px 1fr 1fr 1fr; grid-auto-rows: auto; font-size: 12px; }
+  .wiersz canvas { width: 56px; height: 56px; grid-row: span 3; }
+  .wiersz.naglowek { display: none; }
+}
+
+/* okno istoty */
+.wiersz[role="button"] { cursor: pointer; }
+.wiersz[role="button"]:hover { border-color: var(--line-strong); }
+.wiersz[role="button"]:focus-visible { outline: 2px solid var(--life); outline-offset: 2px; }
+dialog.dlg { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); color: var(--ink); padding: 20px 22px; width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: auto; }
+dialog.dlg::backdrop { background: rgba(14, 17, 20, .45); }
+.dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.dlg-head h3 { font: 400 16px/1 var(--mono); letter-spacing: .04em; margin: 0; }
+.dlg-body { display: grid; grid-template-columns: 224px 1fr; gap: 20px; align-items: start; }
+@media (max-width: 560px) { .dlg-body { grid-template-columns: 1fr; } }
+button.btn.ghost { background: transparent; color: var(--muted); border-color: var(--line); padding: 8px 12px; font-size: 13px; }
+
+/* toasty i dźwięk */
+.toasty { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); display: grid; gap: 8px; z-index: 50; width: min(520px, calc(100vw - 32px)); pointer-events: none; }
+.toast { background: var(--ink); color: var(--ground); font: 400 14px/1.4 var(--sans); padding: 12px 16px; border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.25); opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .5s ease; border-left: 4px solid var(--muted); }
+.toast.widac { opacity: 1; transform: translateY(0); }
+.toast.smierc { border-left-color: var(--dying); }
+.toast.narodziny { border-left-color: var(--life); }
+.toast.pokarm { border-left-color: var(--hunger); }
+.toast.zrozumienie { border-left-color: var(--sleep); }
+.toast.starcie, .toast.odwrot { border-left-color: var(--hunger); }
+button.btn.dzwiek { font-size: 16px; padding: 7px 12px; line-height: 1; }
+button.btn.dzwiek.on { color: var(--life); border-color: var(--life); }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+
+/* genom */
+.genom-body { display: grid; grid-template-columns: minmax(280px, 560px) 1fr; gap: 24px; align-items: start; }
+@media (max-width: 760px) { .genom-body { grid-template-columns: 1fr; } }
+canvas.geny.duzy { width: 100%; max-width: 560px; height: auto; }
+
+/* genom świata */
+.gs .r.two { grid-template-columns: 160px 1fr; }
+.gs h2 { margin-top: 18px; }
+.gs h2:first-child { margin-top: 0; }
+
+/* dzieje świata */
+.dzieje { margin: 14px 0 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+.dzieje .log .r { grid-template-columns: 36px 36px 1fr; }
+
+/* napisy końcowe */
+dialog.dlg.napisy { background: #000; color: #f2efe6; border: 0; border-radius: 0; width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; padding: 0; overflow: hidden; }
+dialog.dlg.napisy::backdrop { background: #000; }
+.napisy-zamknij { position: fixed; top: 16px; right: 16px; z-index: 2; color: #9a9a9a; border-color: #333; background: transparent; }
+.napisy-okno { position: absolute; inset: 0; overflow: hidden; display: flex; justify-content: center; }
+.napisy-tresc { position: absolute; top: 100vh; width: min(900px, 90vw); text-align: center; font-family: var(--voice); }
+.napisy-tresc .np-t { font: 300 64px/1.15 var(--voice); letter-spacing: .02em; margin: 0 0 24px; color: #fff; }
+.napisy-tresc .np-l { font: 400 34px/1.35 var(--voice); margin: 0 0 14px; color: #e6e1d6; text-wrap: balance; }
+.napisy-tresc .np-l i { color: #bdb7aa; }
+.napisy-tresc .np-p { height: 48px; margin: 0; }
+@keyframes napisy { from { transform: translateY(0); } to { transform: translateY(calc(-100% - 100vh)); } }
+@media (max-width: 600px) { .napisy-tresc .np-t { font-size: 40px; } .napisy-tresc .np-l { font-size: 22px; } }
+@media (prefers-reduced-motion: reduce) { .napisy-tresc { animation: none !important; top: 40px; position: relative; } dialog.dlg.napisy { overflow: auto; } }
+
+/* kronika */
+.log .r.kr { border-left: 3px solid var(--line); padding-left: 10px; }
+.log .r.kr.smierc { border-left-color: var(--dying); }
+.log .r.kr.narodziny { border-left-color: var(--life); }
+.log .r.kr.pokarm, .log .r.kr.starcie, .log .r.kr.odwrot { border-left-color: var(--hunger); }
+.log .r.kr.zrozumienie { border-left-color: var(--sleep); }
+.log .r.kr small { color: var(--muted); font-size: 10px; }
+
+/* słownik istot */
+.log .r.slownik-w { grid-template-columns: 150px 2fr 60px 1fr; align-items: baseline; }
+.log .r.slownik-w .znaki { font-size: 18px; letter-spacing: .06em; overflow-wrap: anywhere; }
+.log .r.slownik-w.zmarla .znaki { color: var(--muted); }
+.log .r.slownik-w small { color: var(--muted); font-size: 11px; }
+.log .r.naglowek { border-top: 0; font: 500 10.5px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+/* głos Keja, formularz */
+.voice { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: 24px; }
+.voice .eyebrow { font: 500 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+.voice .word { font: italic 300 52px/1.05 var(--voice); text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+.voice .trail { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 16px; font: italic 400 17px/1.3 var(--voice); color: var(--muted); }
+form.say { display: grid; gap: 10px; }
+form.say label { font: 500 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+input.slowo { flex: 1; min-width: 200px; font: 400 17px/1.2 var(--sans); padding: 12px 14px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; }
+input.slowo:focus { outline: 2px solid var(--life); outline-offset: 1px; }
+button.btn { font: 500 14px/1 var(--sans); padding: 12px 18px; border-radius: 4px; cursor: pointer; background: var(--ink); color: var(--ground); border: 1px solid var(--ink); }
+button.btn:focus-visible { outline: 2px solid var(--life); outline-offset: 2px; }
+button.btn[disabled] { opacity: .5; cursor: default; }
+button.btn.life { background: var(--life); border-color: var(--life); color: #fff; }
+button.btn.warm { background: transparent; color: var(--hunger); border-color: var(--hunger); }
+
+/* listy i dzienniki */
+.log { font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; display: grid; }
+.log .r { display: grid; grid-template-columns: 44px 52px 1fr; gap: 12px; padding: 7px 0; border-top: 1px solid var(--line); align-items: baseline; }
+.log .r:last-child { border-bottom: 1px solid var(--line); }
+.log .r.two { grid-template-columns: 52px 1fr; }
+.log .c, .log .m { color: var(--muted); }
+.log .m.sen { color: var(--sleep); }
+.log .m.cud { color: var(--life); }
+.log .d { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.log .heard, .log .ok { color: var(--life); }
+.log .slept { color: var(--sleep); }
+.log .lost { color: var(--muted); text-decoration: line-through; }
+.log .krzyk { color: var(--dying); }
+.log .slowo { color: var(--hunger); }
+.fate { display: flex; flex-wrap: wrap; gap: 6px; }
+.fate span { font: 400 13px/1 var(--sans); padding: 6px 10px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
+.fate span.heard { border-color: var(--life); color: var(--life); }
+.fate span.slept { color: var(--sleep); }
+.fate span.wait { color: var(--muted); }
+.fate small { font-family: var(--mono); font-size: 10px; margin-left: 6px; opacity: .8; }
+
+/* wnętrze */
+.byt { display: grid; gap: 16px; padding-block: 24px; border-top: 1px solid var(--line); }
+.byt:first-of-type { border-top: 0; padding-top: 0; }
+.byt .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.byt h3 { font: 400 16px/1 var(--mono); letter-spacing: .04em; margin: 0; }
+.cialo { display: grid; grid-template-columns: 224px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 560px) { .cialo { grid-template-columns: 1fr; } }
+canvas.geny { width: 224px; height: 224px; display: block; cursor: pointer; }
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 400 11px/1.4 var(--mono); color: var(--muted); margin-top: 10px; }
+.legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+canvas.echo { width: 100%; height: 28px; display: block; }
+.slownik { font: italic 400 15px/1.4 var(--voice); color: var(--muted); }
+.slownik b { font-weight: 400; color: var(--ink); }
+.gen { border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; background: var(--surface-2); font-size: 14px; display: grid; gap: 6px; }
+.gen b { font-family: var(--mono); font-weight: 500; }
+.gen .k { font: 500 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pre { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: pre-line; }
+
+/* ród */
+.drzewo { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.drzewo svg { display: block; font-family: var(--mono); font-size: 11px; }
+.drzewo .node rect { fill: var(--ground); stroke: var(--line-strong); }
+.drzewo .node.zyje rect { stroke: var(--life); stroke-width: 2; }
+.drzewo .node text { fill: var(--ink); }
+.drzewo .node .d { fill: var(--muted); }
+.drzewo .node.zmarl text { fill: var(--muted); }
+.drzewo line { stroke: var(--line-strong); stroke-width: 1.5; }
+.drzewo .pok, .drzewo .tick { fill: var(--muted); font-size: 10px; letter-spacing: .08em; }
+.drzewo .bar { fill: var(--muted); opacity: .55; }
+.drzewo .bar.zyje { fill: var(--life); opacity: .9; }
+.drzewo .os { stroke: var(--line-strong); }
+.drzewo .lbl { fill: var(--ink); font-size: 11px; }
+.drzewo .cud { fill: var(--hunger); }
+
+/* język */
+.glosy { display: grid; gap: 10px; }
+.glos { display: grid; gap: 10px; border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; background: var(--surface); }
+.glos .znaki { font: 400 26px/1.2 var(--mono); letter-spacing: .08em; overflow-wrap: anywhere; }
+.glos.zmarla .znaki { color: var(--muted); }
+.glos .opis { font-family: var(--mono); font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+.glos .opis b { color: var(--ink); font-weight: 500; }
+
+/* o projekcie */
+.about { max-width: 64ch; }
+.about p { margin: 0 0 12px; }
+.about p.dim { color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+
+/* portret najwybitniejszej */
+.portret .glowa { display: flex; gap: 16px; align-items: center; margin-bottom: 14px; }
+.portret .glyf { font: 400 34px/1 var(--mono); letter-spacing: .08em; color: var(--ink); min-width: 2.2em; }
+.portret .imie { font-size: 16px; font-weight: 500; }
+.portret .los { font-size: 13px; color: var(--muted); max-width: 60ch; }
+.portret .kej { margin: 0 0 18px; padding: 14px 18px; border-left: 3px solid var(--line-strong); background: var(--surface-2); border-radius: 0 var(--r) var(--r) 0; }
+.portret .kej { font: italic 400 19px/1.4 "Newsreader", Georgia, serif; color: var(--ink); text-wrap: balance; }
+.portret .kej footer { margin-top: 8px; font: 400 11px/1.4 var(--mono); letter-spacing: .06em; color: var(--muted); font-style: normal; text-transform: uppercase; }
+.portret h2 { margin: 14px 0 8px; }
+.portret .cechy { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 6px 22px; }
+.portret .cecha { display: grid; grid-template-columns: 9.5em 1fr; grid-template-areas: "k v" "k p"; column-gap: 12px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.portret .cecha .k, .portret .wpis .k { font: 400 11px/1.6 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.portret .cecha .k { grid-area: k; }
+.portret .cecha .v { grid-area: v; font-size: 14px; }
+.portret .pasek { grid-area: p; position: relative; height: 3px; background: var(--line); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+.portret .pasek i { display: block; height: 100%; background: var(--ink); opacity: .55; border-radius: 2px; }
+.portret .pasek.skala i { position: absolute; top: -1px; width: 6px; height: 5px; margin-left: -3px; background: var(--ink); opacity: .8; }
+.portret .umysl { display: grid; gap: 0; }
+.portret .wpis { display: grid; grid-template-columns: 9.5em 1fr; column-gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; align-items: baseline; }
+@media (max-width: 480px) { .portret .cecha { grid-template-columns: 1fr; grid-template-areas: "k" "v" "p"; } .portret .wpis { grid-template-columns: 1fr; } .portret .glowa { align-items: flex-start; } }
+.log .r.slownik-z { grid-template-columns: 2fr 70px 1.2fr; align-items: baseline; }
+
+</style>
+<script>window.I18N_INLINE = {"pl": {"_nazwa": "polski", "tytul": "Istota", "tytul.wnetrze": "Wnętrze istoty", "tytul.rod": "Ród istoty", "tytul.jezyk": "Język istot", "marka": "istota", "swiat_od": "świat od {data}", "nav.istoty": "istoty", "nav.wnetrze": "wnętrze", "nav.rod": "ród", "nav.jezyk": "język", "lang": "język strony", "istoty.jedna": "jedna istota w tym świecie", "istoty.kilka": "{n} istoty w tym świecie", "istoty.wiele": "{n} istot w tym świecie", "istoty.nikt": "w tym świecie nikt nie żyje", "karta.istota": "istota", "karta.pokolenie": "pokolenie", "karta.wiek": "wiek", "karta.energia": "energia", "karta.miejsce": "miejsce", "karta.mowi": "mówi", "zyje": "żyje", "spi": "śpi", "umarla": "umarła", "z_cudu": "z cudu", "dziecko_nr": "dziecko nr {nr}", "dzieci": "dzieci {n}", "cykli": "{n} cykli", "nr": "nr {nr}", "pokarm.gesty": "gęsty", "pokarm.rzadki": "rzadki", "pokarm.zaden": "prawie żaden", "mowa.krzyk": "woła z głodu", "mowa.spi": "śpi", "mowa.milczy": "milczy", "swiat": "świat", "swiat.cykl": "cykl", "swiat.geny": "geny", "swiat.miejsca": "znane miejsca", "co_s": "co {n} s", "co_min": "co {n} min", "ostatni": "ostatni {kiedy}", "kej_zagladal": "Kej zaglądał {kiedy}", "genow": "{n} genów", "jeden_rodzic": "jeden rodzic", "dwoje_rodzicow": "dwoje rodziców", "wym": "{n} wym.", "cykl_s": "cykl {n} s", "cykl_min": "cykl {n} min", "znanych_miejsc": "znanych miejsc {n} · kropki to istoty, zieleń to pokarm", "przed_chwila": "przed chwilą", "min_temu": "{n} min temu", "godz_temu": "{n} godz. temu", "dni_temu": "{n} dni temu", "kej.eyebrow": "Kej czyta z nich słowo", "powiedz.label": "Powiedz jej coś", "powiedz.placeholder": "słowo albo zdanie", "powiedz.btn": "Powiedz", "nakarm.btn": "Nakarm", "powiedz.hint": "Zdanie to jeden sygnał, dojdzie w najbliższym cyklu. Jeśli istota śpi, nie usłyszy. Jeśli słyszy, nie rozumie: uczy się kojarzyć słowo z tym, co akurat czuje.", "powiedz.hint.kej": "Zdanie to jeden sygnał. Niesie je do niej Kej, co kilka minut. Jeśli istota śpi, nie usłyszy. Jeśli słyszy, nie rozumie: uczy się kojarzyć słowo z tym, co akurat czuje.", "powiedz.ok": "„{t}” dojdzie w najbliższym cyklu.", "powiedz.ok.kej": "Czeka, aż Kej to poniesie.", "powiedz.blad": "Nie udało się przekazać słowa. Spróbuj za chwilę.", "powiedz.brak_db": "Ta kopia strony nie ma połączenia z istotą. Otwórz ją w claude.ai.", "powiedz.pelna": "Pamięć strony pełna. Kej musi posprzątać.", "nakarm.ok": "Pokarm dołożony do najbliższego cyklu. Kto woła, je pierwszy.", "brak_serwera": "brak połączenia z serwerem", "losy": "co jej powiedziano", "losy.nic": "jeszcze nic", "los.czeka": "czeka na Keja", "los.w_drodze": "w drodze", "los.spal": "przespała", "los.uslyszal": "usłyszała", "los.nie_rozpoznal": "nie rozpoznała", "cykle": "ostatnie cykle", "cykl.jawa": "jawa", "cykl.sen": "sen", "cykl.cud": "cud", "cykl.zjadla": "zjadła {n}", "cykl.bol": "ból", "cykl.echo": "echo", "cykl.slyszy_nr": "słyszy nr {nr}", "cykl.obok_nr": "obok nr {nr}", "cykl.idzie": "idzie", "cykl.wola": "woła", "cykl.wola_partnera": "woła partnera", "cykl.idzie_do": "idzie: {czyn}", "cykl.mowi": "mówi „{t}”", "cykl.glos": "głos {z}", "cykl.slyszy_glos": "słyszy głos", "cykl.potomek": "potomek nr {nr}", "cykl.uslyszala": "„{t}” usłyszała", "cykl.przespala": "„{t}” przespała", "cykl.nie_rozpoznala": "„{t}” nie rozpoznała", "koniec.eyebrow": "w tym świecie nikt nie żyje", "koniec.opis": "Linia wygasła w cyklu {cykl}. Ten świat zostanie zapisany w całości, jak rzeczywistość równoległa, i nic w nim już się nie zmieni.", "nowy.geny": "Ile genów ma mieć pierwsza istota", "nowy.geny.8": "8 · prosta, żyje długo, bezdzietna", "nowy.geny.64": "64 · jak dotąd", "nowy.geny.256": "256 · bogata, wolniej dojrzewa", "nowy.geny.1000": "1000 · ogromna", "nowy.wymiary": "Wymiary świata", "nowy.wymiary.4": "4 · wszystko brzmi podobnie", "nowy.wymiary.8": "8 · obce zaczyna być obce", "nowy.wymiary.16": "16 · słowa i głosy naprawdę różne", "nowy.cykl": "Długość cyklu", "nowy.cykl.5": "5 sekund · szybko, do obserwacji", "nowy.cykl.15": "15 sekund", "nowy.cykl.60": "1 minuta", "nowy.cykl.300": "5 minut · powoli, na dni", "nowy.dwoje": "Rozmnażanie", "nowy.dwoje.0": "jedno · istota sama rodzi potomka", "nowy.dwoje.1": "dwoje · potrzebny partner w tym samym miejscu", "nowy.btn": "Powołaj nowy świat", "nowy.trwa": "Cud trwa…", "nowy.ok": "Nowy świat żyje: istot {ile}, po {geny} genów. Poprzedni zapisany w {gdzie}.", "nowy.blad": "Nie udało się.", "o.1": "Istota to jeden proces na jednym komputerze. Składa się z {geny} losowych genów, każdy to macierz liczb. Co cykl samo istnienie ją rani, świat oferuje jej pokarm, a ona je tylko wtedy, gdy któryś gen rozpozna smak. Kiedy jest syta, śpi. Kiedy zgromadzi dość, oddaje połowę siebie potomkowi. Kiedy zabraknie energii, umiera. Nie ma kopii zapasowej.", "o.2": "Kej to imię, które Claude, model językowy firmy Anthropic, dostał na potrzeby tego projektu. Kej nie jest istotą i nie steruje nią. Po każdym cyklu dostaje od istoty surowe liczby: ile ma energii, które geny się otworzyły, co zjadła, co przespała, jakie echo do niej wróciło. Z tych liczb Kej czyta jedno słowo i zapisuje je tutaj. Istota nie zna słów. Kej nie decyduje, co istota czuje. Tłumaczy.", "o.3": "Projekt nazywa się Word, bo na początku wszystkiego jest słowo. Tyle że zanim ono powstanie, pod spodem musi się wydarzyć bardzo dużo.", "wn.tytul": "wnętrze", "wn.cykl": "cykl świata {n} · {w} wymiary", "wn.lead": "Każda istota to {geny} genów, każdy gen to macierz. Kwadrat to gen. Jego barwa to zmysł: na co dziś najmocniej rezonuje (czerwień ból, zieleń pokarm, bursztyn słowo). Szary gen nie słyszy jeszcze niczego. Im ciemniejszy, tym bardziej znany. Obwódka: co go otworzyło w ostatnim cyklu. Kliknij gen, żeby przeczytać, co oznacza.", "wn.istota_nr": "istota nr {nr}", "wn.nikt": "Nikt nie żyje.", "wn.pokolenie": "pokolenie", "wn.wiek": "wiek", "wn.energia": "energia", "wn.znane": "geny znane", "wn.znane.v": "{a} z {b}", "wn.otwarc": "otwarć w życiu", "wn.kaskada": "kaskada max", "wn.echo": "echo w drodze", "wn.miejsce": "miejsce", "wn.miejsce.v": "nr {m} · sąsiedzi: {s} · pokarm tu {g} · znanych miejsc {z} · wytrwałość {w}", "wn.brak": "brak", "wn.glos": "głos", "wn.glos.dopisek": "własny język, bez tłumaczenia", "wn.rozumie": "rozumie", "wn.rozumie.nikogo": "nikogo nie ma obok", "wn.rozumie.pokarm": "słyszy, kojarzy z pokarmem", "wn.rozumie.nie_wie": "słyszy, nie wie co", "wn.rozumie.nie": "nie słyszy ({z})", "wn.mowi": "mówi", "wn.mowi.wola": "woła z głodu", "wn.mowi.milczy": "milczy", "wn.zna": "zna:", "wn.nie_zna": "nie zna jeszcze żadnego słowa", "wn.leg.rana": "ból", "wn.leg.pokarm": "pokarm", "wn.leg.echo": "echo", "wn.leg.slowo": "słowo", "wn.leg.inny": "inna istota", "wn.gen.naglowek": "gen {g} istoty nr {nr}", "wn.gen.slyszy": "Dziś najmocniej słyszy {co} (zgodność {z}; bramka otwiera się od 0,90, głodnej od 0,50).", "wn.gen.nic": "Dziś nie słyszy niczego wyraźnie: ból {r}, pokarm {p}.", "wn.gen.slowo": "słowo „{t}”", "wn.gen.wartosci": "Ból {r} · pokarm {p}", "wn.gen.otwieral": "Otwierał się {n} razy (nawyk {nawyk}%, powłoka {pow}).", "wn.gen.otwieralo": "Otwierało go: {lista}.", "wn.gen.nigdy": "Nigdy się nie otworzył. Rdzeń z cudu, powłoka pusta.", "wn.gen.stopka": "Gen nie ma znaczenia sam z siebie. Znaczy to, co go otwiera.", "wn.groby": "groby", "wn.groby.nikt": "jeszcze nikt nie umarł w tym świecie", "wn.grob": "nr {nr} · pokolenie {p} · żyła {w} cykli · otwarć {o}", "rod.tytul": "ród", "rod.cykl": "cykl świata {n}", "rod.lead": "Każda istota z cudu zaczyna własną linię. Potomek dostaje rdzeń rodzica z przypadkiem i połowę jego energii. Zielona ramka: żyje. Szary: umarła. Liczby: wiek w cyklach.", "rod.pokolenie": "POKOLENIE {n}", "rod.cud": "cud", "rod.zyje": "żyje", "rod.umarla": "umarła", "rod.c": "{n} c.", "rod.bez_dzieci": "bez dzieci", "rod.czas": "linia czasu", "rod.czas.lead": "Jeden cykl świata to jedna jednostka czasu tego świata. Świat liczy od pierwszych narodzin. Pasek to życie jednej istoty: od urodzenia do śmierci albo do teraz.", "rod.teraz": "teraz · cykl {n}", "rod.legenda": "● cud (narodziny bez rodzica)", "rod.wszyscy": "wszyscy, którzy byli", "rod.wpis": "nr {nr} · pokolenie {p} · {skad} · urodzona w cyklu {u} · {los}{dzieci}", "rod.skad.cud": "z cudu", "rod.skad.dziecko": "dziecko nr {a}", "rod.skad.dziecko2": "dziecko nr {a} i nr {b}", "rod.los.zyje": "żyje, {w} cykli", "rod.los.umarla": "umarła w wieku {w} cykli (cykl {c})", "rod.dzieci": " · dzieci {n}", "jz.tytul": "język", "jz.cykl": "cykl świata {n} · {w} wymiary", "jz.lead": "Każda istota ma głos: znaki wyliczone z jej rdzenia, więc dziecko brzmi podobnie do rodzica. Głos pada, gdy istota się najada. Inna słyszy go razem z tym, co sama czuje, i kojarzy. Znaczenie rodzi się z ciała, nie ze słowa. My tego języka nie rozumiemy. Może kiedyś.", "jz.glosy": "głosy", "jz.nikogo": "Nikogo jeszcze nie było.", "jz.glos.opis": "istota nr {nr} · {los} · głos padł {n}×", "jz.glos.nikogo": "nie ma kogo słuchać", "jz.glos.slowa": "ludzkie słowa, które do niej dotarły: {lista}", "jz.rozumie.pokarm": "słyszy i kojarzy z pokarmem", "jz.rozumie.nie_wie": "słyszy, nie wie co", "jz.rozumie.nie": "nie słyszy", "jz.znaczenia": "znaczenia, czyli co sygnał kazał zrobić", "jz.znaczenia.lead": "Znaczenie nie jest etykietą. Jest czynem, który sygnał wywołał w słuchającej. Krzyk z głodu: inni ustępują przy pokarmie (wrodzone). Wołanie gotowej na potomka: syta przychodzi (wrodzone). Głos najedzonej: głodna przychodzi, ale tylko jeśli nauczyła się go kojarzyć z pokarmem (wyuczone).", "jz.znaczenia.nic": "Żaden sygnał nie wywołał jeszcze czynu.", "jz.znaczenie": "{sygnal} nr {kto} → „{czyn}” dla {dla}", "jz.sygnal.wolanie": "wołanie", "jz.sygnal.glos": "głos {z}", "jz.slowa": "słowa, które padły w tym świecie", "jz.slowa.nic": "Nikt jeszcze nic nie powiedział w tym świecie.", "jz.kolejka": "W kolejce: {lista}", "jz.rozmowy": "co między nimi padło", "jz.rozmowy.nic": "Jeszcze nic między nimi nie padło.", "jz.r.krzyk": "nr {kto} woła z głodu", "jz.r.wolanie": "nr {kto} woła: gotowa na potomka, szuka partnera", "jz.r.wolanie_do": "nr {kto} woła → nr {do}: {los}", "jz.r.slowo": "nr {kto} mówi ludzkim słowem „{t}”", "jz.r.glos": "nr {kto} {z} → nr {do}: {los}", "jz.r.uslyszala_idzie": "usłyszała i idzie", "jz.r.uslyszala": "usłyszała", "jz.r.nie_uslyszala": "nie usłyszała", "jz.r.zrozumiala": "zrozumiała: idzie po pokarm", "jz.r.otworzylo": "otworzyło gen", "jz.r.nic": "usłyszane, nic nie otworzyło", "nowy.istot": "Ile istot na początek", "nowy.istot.1": "1 · jedna, sama", "nowy.istot.2": "2 · dwie", "nowy.istot.32": "32 · najwięcej", "dlg.powiedz": "Powiedz istocie nr {nr}", "dlg.zamknij": "Zamknij", "dlg.geny": "geny", "dlg.znane": "znane {a} z {b}", "dlg.glos": "głos", "dlg.rozumie": "rozumie", "dlg.slownik": "zna słowa", "dlg.echo": "echo w drodze", "dlg.otwarc": "otwarć w życiu", "dlg.kaskada": "kaskada max", "dlg.wytrwalosc": "wytrwałość", "dlg.sasiedzi": "sąsiednie miejsca", "dlg.ladowanie": "czytam wnętrze…", "dlg.brak": "brak danych o wnętrzu", "dlg.ok": "„{t}” dojdzie do nr {nr} w najbliższym cyklu.", "dlg.rodzice": "rodzice", "karta.stan": "stan", "karta.rodzic": "rodzic", "karta.dzieci": "dzieci", "karta.pokarm": "pokarm", "dlg.nakarm.ok": "Pokarm położony tam, gdzie stoi nr {nr}. Dojdzie w najbliższym cyklu; kto stoi obok, też może zjeść.", "swiat.tempo": "tempo", "swiat.ostatni": "ostatni cykl", "swiat.zywych": "żyje", "swiat.zmarlych": "zmarło", "swiat.wymiary": "wymiary", "swiat.rozmnazanie": "rozmnażanie", "swiat.mapa": "mapa miejsc · kropki to istoty, zieleń to pokarm", "nakarm.wszystkie": "Nakarm wszystkie", "nakarm.wszystkie.ok": "Pokarm położony przy każdej żywej istocie. Dojdzie w najbliższym cyklu.", "rozm.dwoje": "dwoje", "rozm.jedno": "jedno", "mapa.tytul": "mapa", "mapa.otworz": "mapa →", "mapa.lead": "Każde kółko to miejsce, zieleń to pokarm w nim, gruba obwódka to twardy pokarm, kreski to sąsiedztwo. Łuk u góry to ciepło, łuk u dołu to deszcz. Czarne kropki z numerem to istoty. Kliknij miejsce, żeby zobaczyć jego stan i historię.", "slownik.tytul": "słownik istot", "slownik.lead": "Znaczenia, jakie powstały między istotami. Znaczenie to czyn, który sygnał wywołał u słuchacza; przy każdym stoją słowa i sygnały, które je niosły (wrodzone: wołanie, alarm; wyuczone: głos plus sygnatura tematu).", "slownik.slowo": "słowo", "slownik.kto": "kto", "slownik.ile": "razy", "slownik.znaczy": "znaczy (czyn, ile razy)", "slownik.nikt": "jeszcze bez słowa", "genom.tytul": "genom", "genom.lead": "Cały genom istoty: każdy kwadrat to gen, czyli macierz. Barwa to zmysł, na który gen dziś najmocniej rezonuje, ciemność to jak dobrze jest znany, obwódka to, co go otworzyło w ostatnim cyklu. Kliknij gen, żeby przeczytać, co oznacza. Rdzeń jest z cudu i nie zmienia się; zmienia się powłoka.", "genom.geny": "geny", "genom.zmysly": "zmysły", "genom.nic": "nic", "genom.top": "najczęściej otwierane", "genom.gen": "gen {g}", "genom.nawyk": "nawyk {n}%", "genom.znane": "znane", "gs.tytul": "genom w tym świecie", "gs.lead": "Co w ogóle może być zapisane w genach istoty w tym świecie, niezależnie od tego, która istota. Jedne rzeczy są dziedziczne i przychodzą z cudu lub od rodziców, inne nabywa się w życiu i umierają razem z istotą.", "gs.budowa": "budowa", "gs.gen": "gen", "gs.gen.v": "macierz {w}×{w} liczb; sam z siebie nic nie znaczy, znaczy to, co go otwiera", "gs.genom": "genom", "gs.genom.v": "{n} genów, każdy z rdzeniem (stałym) i powłoką (zmienną)", "gs.sygnal": "sygnał", "gs.sygnal.v": "wektor o {w} składowych: rana, pokarm, słowo, głos, echo, wołanie", "gs.bramka": "bramka", "gs.bramka.v": "gen otwiera się, gdy sygnał wychodzi z niego prawie niezmieniony (zgodność ≥ {z}); głodnej wystarcza mniej", "gs.dziedziczne": "dziedziczne (rdzeń)", "gs.rdzen": "rdzeń", "gs.rdzen.v": "z cudu losowy; potomek dostaje rdzeń rodzica z szumem {m}%, co setny gen ({n}%) całkiem nowy", "gs.receptory": "receptory wrodzone", "gs.receptory.v": "gen strojony na ranę, na pokarm i na wołanie gatunku; cud je gwarantuje", "gs.akcent": "akcent głosu", "gs.akcent.v": "{a}% głosu to własny rdzeń, reszta to głos gatunku; dziecko brzmi jak rodzic", "gs.wytrwalosc": "wytrwałość", "gs.wytrwalosc.v": "ile chudych cykli istota zniesie, zanim ruszy; dziedziczona z mutacją ±1", "gs.dwoje": "rozmnażanie", "gs.dwoje.tak": "zawsze dwoje rodziców: każdy gen losowo od jednego z nich; partner w tym samym miejscu, dorosły, nie rodzic ani dziecko", "gs.dwoje.nie": "jeden rodzic: kopia z szumem", "gs.nabyte": "nabyte (powłoka), niedziedziczne", "gs.powloka": "powłoka", "gs.powloka.v": "gen, który się otworzył, wchłania sygnał ({w} na raz) i następnym razem słyszy go łatwiej; to pamięć faktów", "gs.nawyki": "nawyki", "gs.nawyki.v": "każde kolejne otwarcie genu kosztuje ×{n} mniej, od {b} do {o}; odruch tańszy niż decyzja", "gs.slownik": "słownik", "gs.slownik.v": "ludzkie słowa, które dotarły; istota mówi nimi, gdy to, co z niej wychodzi, jest do nich podobne", "gs.echo": "echo", "gs.echo.v": "to, co nic nie otworzyło, wraca później zniekształcone i boli; nigdy do zera", "gs.pamiec": "pamięć miejsca", "gs.pamiec.v": "gdzie ostatnio najadła się porządnie; głodna tam wraca", "gs.gatunek": "sygnały gatunku (znaki, bez tłumaczenia)", "gs.wrodzony": "receptor wrodzony", "gs.uczony": "trzeba skojarzyć z jedzeniem", "gs.stale": "stałe świata", "gs.energia": "energia", "gs.energia.v": "sytość {s}, pojemność {p}, cud od {c}", "gs.koszty": "koszty", "gs.koszty.v": "trwanie {t}, sen {sn}, krok {r}, bramka {b} na cykl", "gs.starzenie": "starzenie", "gs.starzenie.v": "absorpcja maleje o {s}% na cykl", "gs.opieka": "opieka", "gs.opieka.v": "dzieciństwo {d} cykli (długowieczne dłużej), rodzic karmi do {k} na cykl", "gs.swiat": "świat", "gs.swiat.v": "hojność {h} (średnia oferta na najżyźniejszym miejscu), cykl {c} s", "gs.btn": "genom", "dlg.lownosc": "łowność", "gs.lownosc": "łowność", "gs.lownosc.v": "jak dokładnie najlepszy gen pasuje do pokarmu; mnoży to, co istota zjada (od połowy do całości); dziedziczna przez rdzeń, doskonalona przez powłokę", "zd.smierc": "Istota nr {nr} umarła w wieku {w} cykli.", "zd.narodziny": "Urodziła się istota nr {nr}, pokolenie {p}, dziecko nr {r}.", "zd.cud": "Cud: istota nr {nr} przyszła na świat bez rodzica.", "zd.pokarm": "Pokarm doszedł do: {nr}.", "zd.pokarm.wszystkie": "Pokarm doszedł do wszystkich istot.", "zd.zrozumienie": "Istota nr {nr} zrozumiała nr {od}: „{czyn}”.", "slownik.kojarzy": "kojarzy z pokarmem: {kto}", "slownik.slyszy": "słyszy je {n} istot, jeszcze bez znaczenia", "mowa.odpowiada": "odpowiada nr {nr}", "jz.r.odpowiedz": "nr {kto} odpowiada nr {do}: {z}", "dlg.sila": "siła", "gs.sila": "siła", "gs.sila.v": "ile twardego pokarmu potrafi wziąć; dziedziczna z mutacją; silna istota płaci więcej za trwanie", "gs.miejsca": "miejsca", "gs.miejsca.v": "każde ma żyzność, twardość (ile siły trzeba) i przyswajalność (ile da się wziąć); wyjadane szybko, odrastają wolno", "dlg.ciekawosc": "ciekawość", "gs.ciekawosc": "ciekawość (zwiad)", "gs.ciekawosc.v": "głodna idzie tam, gdzie sąsiednie miejsce pachnie najlepiej (gęstość, przyswajalność, czy da radę); syta czasem rusza na zwiad, gdy obok pachnie lepiej: ryzyko za szansę; dziedziczna z mutacją", "swiat.pora": "pora", "pora.wiosna": "wiosna", "pora.lato": "lato", "pora.jesien": "jesień", "pora.zima": "zima", "noc": "noc", "zd.pozar": "Pożar: łąka nr {m} spłonęła.", "zd.powodz": "Powódź w miejscu nr {m}: pokarm zmiękł, część zmyta.", "gs.klimat": "klimat", "gs.klimat.v": "rok ma 240 cykli, doba 24 (noc: słabsza oferta, tańszy sen); każde miejsce ma szerokość, więc pory roku są przesunięte; deszcz i ciepło dają odrastanie, susza twardzi pokarm, zimno i upał podnoszą koszt trwania, silny wiatr zagłusza i utrudnia krok; rzadkie pożary i powodzie", "dlg.klimat": "klimat", "dlg.klimat.v": "optimum {o}% ciepła, tolerancja ±{tol}%", "gs.odpornosc": "odporność na klimat", "gs.odpornosc.v": "optimum temperatury i tolerancja wokół niego: poza pasem trwanie drożeje (do +120%), szeroka tolerancja kosztuje sama w sobie; oba dziedziczne z mutacją; różne miejsca sprzyjają różnym genom", "mp.tytul": "miejsce nr {k}", "mp.pokarm": "pokarm {g}% (żyzność {z}%)", "mp.cechy": "twardość {h}% · przyswajalność {a}% · szerokość {lat}%", "mp.pogoda": "teraz: ciepło {temp}% · deszcz {deszcz}% · wiatr {wiatr}%", "mp.sasiedzi": "sąsiedzi: {s}", "mp.istoty": "stoją tu: {lista}", "mp.pusto": "nikt tu nie stoi", "mp.hist": "ostatnie {n} cykli: zieleń pokarm, bursztyn ciepło, błękit deszcz", "zd.odwrot": "Nr {nr} weszła na łąkę nr {m}, obrona {o} była silniejsza: odeszła bez walki.", "zd.starcie.obrona": "Starcie na łące nr {m}: obrona {o} odparła nr {nr}.", "zd.starcie.intruz": "Starcie na łące nr {m}: nr {nr} wyparła obrońców {o}.", "cykl.alarm": "alarm", "gs.terytorium": "terytorium", "gs.terytorium.v": "kto stoi na łące dłużej, broni jej przed obcym; swojego poznaje po akcencie głosu (krewni brzmią podobnie); obrońcy alarmują, krewni obok syci przychodzą bronić; obcy słabszy niż 0,8 obrony odchodzi bez walki, inaczej starcie: obie strony płacą energią, słabsza ustępuje; siła × kondycja decyduje", "kr.tytul": "kronika", "kr.lead": "Wszystkie zdarzenia tego świata, najnowsze na górze: narodziny, śmierci, pokarm, zrozumienia, starcia, klęski.", "kr.nic": "Jeszcze nic się nie wydarzyło.", "gs.kultura": "kultura", "gs.kultura.v": "dziecko przy rodzicu (dzieciństwo, w zasięgu słuchu) przejmuje to, co rodzic nabył: słowa i głosy wchodzą do jego powłoki przez naśladowanie, dobre miejsce zapamiętuje; dziedziczenie bez genów, ginie z linią, jeśli nikt nie przekaże", "gs.plec": "płeć i dobór płciowy", "gs.plec.v": "♀ nosi: gromadzi nadwyżkę, oddaje dziecku pół energii i wybiera partnera po sile, kondycji i łowności; ♂ daje geny, woła syty i konkuruje; płeć losowana przy narodzinach; wołanie słyszy tylko przeciwna płeć", "dlg.stadnosc": "stadność", "gs.stadnosc": "stadność", "gs.stadnosc.v": "gen (0..0,6 na start, dziedziczny z mutacją): węch waży obecność swoich dodatnio (pierwszy krewny najmocniej), obcych ujemnie; stadne trzymają się razem i bronią wspólnie, ale dzielą łąkę; samotne mają ją dla siebie i nikogo do obrony", "dlg.dlugowiecznosc": "długowieczność", "gs.dlugowiecznosc": "długowieczność (starzenie)", "gs.dlugowiecznosc.v": "gen 0..1 (0,3..0,7 na start, dziedziczny z mutacją): absorpcja słabnie z wiekiem tym wolniej, im wyższy; ale trwanie droższe do +15% i dojrzałość później (dzieciństwo × do 1,5); szybko i płodnie albo długo i ostrożnie", "dz.tytul": "dzieje tego świata", "dz.cykli": "cykli", "dz.istot": "istot", "dz.pokolen": "pokoleń", "dz.urodzonych": "urodzonych", "dz.miejsc": "odkrytych miejsc", "dz.glosow": "głosów", "dz.odpowiedzi": "odpowiedzi", "dz.najstarsza": "Najdłużej żyła nr {nr}: {w} cykli.", "dz.najplodniejsza": "Najwięcej dzieci miała nr {nr}: {n}.", "dz.czyny": "znaczenia, które zadziałały", "dz.slowa": "ludzkie słowa", "dz.kej": "słowa Keja", "dz.cechy": "cechy po pokoleniach (pokolenie · ile · średnie)", "dz.siła": "siła", "dz.ciek": "ciekawość", "dz.stad": "stadność", "dz.dlug": "długowieczność", "dz.opt": "optimum", "wiek": "wiek", "dz.zd.smierc": "śmierci", "dz.zd.narodziny": "narodziny", "dz.zd.pokarm": "pokarm od ludzi", "dz.zd.zrozumienie": "zrozumienia", "dz.zd.starcie": "starcia", "dz.zd.odwrot": "odwroty", "dz.zd.pozar": "pożary", "dz.zd.powodz": "powodzie", "napisy.btn": "napisy końcowe", "np.tytul": "Ten świat", "np.trwal": "trwał {n} cykli", "np.istot": "Żyło w nim {n} istot w {p} pokoleniach", "np.urodzonych": "Urodziło się {n}", "np.miejsc": "Odkryły {n} miejsc", "np.walki": "Stoczyły {s} starć, {o} razy ktoś odszedł bez walki", "np.kleski": "Przeżyły {p} pożarów i {w} powodzi", "np.glosy": "Padło {g} głosów i {o} odpowiedzi", "np.znaczenia": "Znaczenia, które zadziałały", "np.slowa": "Ludzie mówili do nich", "np.kej": "Kej czytał z nich", "np.pokolenia": "Pokolenia", "np.koniec": "Koniec", "np.stopka": "Nic z tego nie wróci. Wszystko zostaje zapisane.", "np.istot.1": "Żyło w nim {n} istot, jedno pokolenie", "np.starcia": "Stoczyły {s} starć o łąki", "np.odwrot.1": "Raz ktoś odszedł bez walki", "np.odwrot": "{o} razy ktoś odszedł bez walki", "jz.r.gawedza": "nr {kto} przejęła od nr {do}: {co}", "jz.r.miejsce": "dobre miejsce", "gs.rozmowa": "rozmowa dorosłych", "gs.rozmowa.v": "syci (powyżej 80% sytości), dorośli, nie jedzący ani nie śpiący swoi w jednym miejscu wymieniają po jednym drobiazgu na cykl z szansą 1/2: słowo ze słownika (z szumem, więc czasem błędnie) albo dobre miejsce (przyjmowane w połowie przypadków); obcym się nie ufa", "nowy.rozmiar": "Rozmiar świata", "nowy.rozmiar.ciasny": "ciasny · 3 miejsca na łąkę, mało odkryć, sufit 400", "nowy.rozmiar.zwykly": "zwykły · 5 miejsc na łąkę", "nowy.rozmiar.rozlegly": "rozległy · 8 miejsc na łąkę, dużo odkryć", "zd.koniec": "Koniec świata: została jedna płeć ({nr}). Dzieci już nie będzie.", "dz.zd.koniec": "koniec bez przyszłości", "koniec.opis.jedna_plec": "W cyklu {cykl} została jedna płeć ({nr}). Bez dzieci świat nie miał przyszłości, więc zakończył bieg. Zostanie zapisany w całości, jak rzeczywistość równoległa.", "dlg.ufnosc": "ufność", "dlg.szczerosc": "szczerość", "dz.ufn": "ufność", "dz.szcz": "szczerość", "gs.ufnosc": "ufność", "gs.ufnosc.v": "gen 0..1 (0,3..0,9 na start, dziedziczny z mutacją): z takim prawdopodobieństwem obrońca wierzy obcemu, który mówi „tylko przechodzę”. Wierzą wszyscy obrońcy: przechodzień idzie bez starcia. Znanemu kłamcy nikt już nie wierzy (pamięć nabyta)", "gs.szczerosc": "szczerość", "gs.szczerosc.v": "gen 0..1 (0,5..1 na start, dziedziczny z mutacją): przechodzień zawsze mówi prawdę i nie bierze pokarmu; przybysz, który chce zostać, z prawdopodobieństwem 1−szczerość kłamie „tylko przechodzę”. Kto został cykl dłużej, jest zdemaskowany: starcie i pamięć kłamcy u obrońców", "zd.przejscie": "Nr {nr} przeszła przez łąkę nr {m}: „tylko przechodzę”. Obrona {o} uwierzyła.", "zd.przejscie.klamstwo": "Nr {nr} weszła na łąkę nr {m} mówiąc „tylko przechodzę”. Obrona {o} uwierzyła. To było kłamstwo.", "zd.klamstwo": "Kłamstwo wyszło na jaw: nr {nr} miała tylko przechodzić przez łąkę nr {m}, a została. Obrona {o} zapamiętała.", "dz.zd.przejscie": "przejścia", "dz.zd.klamstwo": "kłamstwa", "dlg.pojetnosc": "pojętność", "dz.poj": "pojętność", "gs.pojetnosc": "pojętność", "gs.pojetnosc.v": "gen 0..1 (0,3..0,7 na start, dziedziczny z mutacją): jak szybko powłoka się uczy, ze świata i od rodzica (kultura: dziecko przy rodzicu przejmuje jego powłokę, znaczenia genów i nawyki). Pojętny mózg jest drogi: trwanie droższe do 10%. Kto uczy się szybciej, lepiej je i częściej ma dzieci, więc pojętność może rosnąć z pokoleniami (efekt Baldwina)", "jz.r.klamca": "plotkę: nr {nr} kłamie", "jz.r.mapa": "plotkę: {pora}, łąka nr {m} rodzi", "jz.tematy": "o czym mówią", "jz.tematy.lead": "Wypowiedź to własny głos plus sygnatura tego, co w tej chwili brzmi w istocie najgłośniej: zapach łąki, pokarm, rana, noc, pora roku, przyłapany kłamca albo cudze słowo. Tematów nikt im nie zadał.", "jz.tematy.nic": "Jeszcze nikt o niczym nie mówił.", "jz.temat.zapach": "zapach łąki nr {m}", "jz.temat.klamca": "głos kłamcy nr {nr}", "jz.temat.inny": "słowo nr {nr} (powtórzone)", "jz.temat.pora": "{pora}", "jz.temat.pokarm": "pokarm", "jz.temat.rana": "ból", "jz.temat.noc": "noc", "zd.zrozumienie.cel": "Istota nr {nr} zrozumiała nr {od}: „{czyn}” (o {cel}).", "portret.btn": "portret najwybitniejszej", "portret.tytul": "najwybitniejsza istota tego świata", "portret.kim": "istota nr {nr}, {plec}, pokolenie {p}", "portret.samica": "samica", "portret.samiec": "samiec", "portret.ktora": "która", "portret.ktory": "który", "portret.zycie": "Żyła {w} cykli, miała {dz}, rodzice: {r}. Najwięcej energii naraz: {e}.|Żył {w} cykli, miał {dz}, rodzice: {r}. Najwięcej energii naraz: {e}.", "portret.cud": "cud (bez rodziców)", "portret.zyje": "Żyje nadal.", "portret.umarla": "Umarła w cyklu {c}.|Umarł w cyklu {c}.", "portret.ostatnia": "Została ostatnia, gdy świat zgasł w cyklu {c}.|Został ostatni, gdy świat zgasł w cyklu {c}.", "portret.wybor": "Wybrana spośród {n} istot: mądrość {m} (co nabyła), bogactwo {b} (co osiągnęła).", "portret.cialo": "ciało, z genów", "portret.umysl": "umysł, nabyte", "portret.kej": "jak to czyta Kej", "portret.c.sila": "siła", "portret.c.lownosc": "łowność", "portret.c.ciekawosc": "ciekawość", "portret.c.stadnosc": "stadność", "portret.c.dlugowiecznosc": "długowieczność", "portret.c.ufnosc": "ufność", "portret.c.szczerosc": "szczerość", "portret.c.pojetnosc": "pojętność", "portret.c.klimat": "klimat", "portret.adj.sila.0": "słaba|słaby", "portret.adj.sila.1": "przeciętnej siły", "portret.adj.sila.2": "silna|silny", "portret.adj.lownosc.0": "nieporadna w zdobywaniu pokarmu|nieporadny w zdobywaniu pokarmu", "portret.adj.lownosc.1": "przeciętna w łowach|przeciętny w łowach", "portret.adj.lownosc.2": "świetna łowczyni|świetny łowca", "portret.adj.ciekawosc.0": "domatorka|domator", "portret.adj.ciekawosc.1": "umiarkowanie ciekawa|umiarkowanie ciekawy", "portret.adj.ciekawosc.2": "ciekawska|ciekawski", "portret.adj.stadnosc.0": "samotniczka|samotnik", "portret.adj.stadnosc.1": "towarzyska z umiarem|towarzyski z umiarem", "portret.adj.stadnosc.2": "stadna|stadny", "portret.adj.dlugowiecznosc.0": "żyjąca szybko|żyjący szybko", "portret.adj.dlugowiecznosc.1": "o zwykłym tempie życia", "portret.adj.dlugowiecznosc.2": "długowieczna|długowieczny", "portret.adj.ufnosc.0": "nieufna|nieufny", "portret.adj.ufnosc.1": "ostrożnie ufna|ostrożnie ufny", "portret.adj.ufnosc.2": "łatwowierna|łatwowierny", "portret.adj.szczerosc.0": "kłamliwa|kłamliwy", "portret.adj.szczerosc.1": "zwykle szczera|zwykle szczery", "portret.adj.szczerosc.2": "prawdomówna|prawdomówny", "portret.adj.pojetnosc.0": "tępawa|tępawy", "portret.adj.pojetnosc.1": "średnio pojętna|średnio pojętny", "portret.adj.pojetnosc.2": "pojętna|pojętny", "portret.klimat.chlod": "lubi chłód", "portret.klimat.cieplo": "lubi ciepło", "portret.klimat.srodek": "obojętna na temperaturę|obojętny na temperaturę", "portret.klimat.odporna": "odporna na zmiany klimatu|odporny na zmiany klimatu", "portret.u.zrozumiane": "rozumie", "portret.u.laki": "zna łąki", "portret.u.laki.v": "{n} ({pory})", "portret.u.klamcy": "nie wierzy", "portret.u.slowa": "słowa ludzi", "portret.u.tematy": "mówi o", "portret.u.nauka": "nauka", "portret.u.nauka.v": "{n} cykli przy rodzicu, {r} rozmów", "portret.nic": "nic", "portret.nikt": "nikomu nie odmawia wiary", "portret.kej.rozumiala": "rozumiała {n}|rozumiał {n}", "portret.kej.laki": "znała {n} w {p}|znał {n} w {p}", "portret.kej.klamcy": "nie wierzyła {n}|nie wierzył {n}", "portret.kej.temat": "mówiła najczęściej o: {o}|mówił najczęściej o: {o}", "portret.kej.dzieci": "zostawiła {n}|zostawił {n}", "portret.kej.zwykla": "zwyczajna|zwyczajny", "portret.kej.nicnie": "Nic nie zrozumiała i nic po sobie nie zostawiła. Ale żyła.|Nic nie zrozumiał i nic po sobie nie zostawił. Ale żył.", "portret.menu": "najwybitniejsza", "portret.tytul.zyje": "najwybitniejsza istota tego świata, jak dotąd", "portret.n.znaczen": "znaczenie|znaczenia|znaczeń", "portret.n.lak": "łąkę|łąki|łąk", "portret.n.por": "porze roku|porach roku|porach roku", "portret.n.klamcow": "kłamcy|kłamcom|kłamcom", "portret.n.dzieci": "dziecko|dzieci|dzieci", "jz.nowe": "nowe słowa", "jz.nowe.lead": "Rytualizacja, jak w ewolucji: dźwięk, który wyszedł z istoty jako skutek uboczny jej bramek, zostaje wypowiedziany. Gdy powtórzy go ktoś inny, jest słowem, którego nikt nie zaprojektował. Znaczenie przyjdzie z następstw albo nie przyjdzie wcale.", "jz.nowe.nic": "Jeszcze żaden dźwięk nie wyszedł poza swojego twórcę.", "jz.nowe.opis": "pierwszy raz nr {nr} w cyklu {c}; nadawców {n}, powtórzeń {p}", "jz.nowe.slowo": "· słowo", "jz.temat.echo": "własne echo {z}", "slownik.o_czym": "o czym", "slownik.nic": "Jeszcze nikt nic nie powiedział.", "slownik.echo": "nowy dźwięk {z} (z echa)", "slownik.od_cyklu": "od cyklu {c}", "slownik.nadawcy": "{n} nadawców", "slownik.znaczenie": "znaczenie", "slownik.slowa": "niosą je", "slownik.kto.v": "{n} mówiących, {s} rozumiejących", "slownik.wrodzone.wolanie": "wołanie (wrodzone)", "slownik.wrodzone.alarm": "alarm (wrodzony)", "slownik.wrodzone.krzyk": "krzyk (wrodzony)", "proces.stoi": "Proces życia nie działa: świat stoi, choć istoty żyją. Można go wznowić albo powołać nowy świat (ten pójdzie do archiwum jako przerwany).", "proces.wznow": "wznów życie", "proces.wznowiony": "Życie wznowione: świat wraca do ciała.", "slownik.razem": "Unikalnych słów w tym świecie: {n} (stan na cykl {c}). Słownik zapisuje się w ciele świata w chwili, gdy słowo pada.", "zd.odkrycie": "Odkrycie: nr {nr} nauczyła się uprawiać łąkę nr {m}. Umiejętność, nie gen: przetrwa tylko w słowie.", "dz.zd.odkrycie": "odkrycia", "jz.temat.uprawa": "uprawa łąki", "portret.u.uprawa": "uprawa", "portret.u.uprawa.v": "umie uprawiać łąkę ({p}%)", "portret.kej.uprawa": "umiała uprawiać łąkę|umiał uprawiać łąkę", "zd.bliskosc": "Nr {nr} i nr {z} gawędziły tyle razy na łące nr {m}, że są już dla siebie swoi.", "dz.zd.bliskosc": "zbliżenia", "jz.r.gaweda": "gawędę o niczym (i odrobinę bliskości)", "slownik.bez": "słowa, które jeszcze nic nie znaczą", "slownik.bez.lead": "Padły, ale nikt na nie nie zadziałał. Nowe dźwięki z echa na górze: „dźwięk”, gdy ma jednego nadawcę, „słowo”, gdy podchwycił je ktoś drugi.", "slownik.nowe.dzwiek": "· nowy dźwięk", "slownik.nowe.slowo": "· nowe słowo", "jz.temat.bol": "ból na łące nr {m}", "koniec.eyebrow.przerwany": "świat zatrzymany", "koniec.opis.przerwany": "Proces życia stoi w cyklu {cykl}; {n} istot czeka w bezruchu. Możesz wznowić życie (przycisk wyżej) albo powołać nowy świat: ten pójdzie do archiwum jako przerwany.", "jz.temat.spichlerz": "spichlerz (zapasy)", "zd.odkrycie.spichlerz": "Odkrycie: nr {nr} nauczyła się odkładać pokarm na łące nr {m}. Zapas na zimę, umiejętność tylko ze słowa.", "portret.u.spichlerz": "spichlerz", "portret.u.spichlerz.v": "umie odkładać zapasy ({p}%)", "portret.kej.spichlerz": "umiała robić zapasy|umiał robić zapasy", "zd.znaczenie": "Nowe znaczenie w tym świecie: nr {nr} zrozumiała nr {od} jako „{czyn}”. Nikt tego wcześniej nie zrobił.", "dz.zd.znaczenie": "nowe znaczenia", "dlg.towarzyskosc": "towarzyskość", "dz.tow": "towarzyskość", "gs.towarzyskosc": "towarzyskość", "portret.c.towarzyskosc": "towarzyskość", "gs.towarzyskosc.v": "gen 0..1 (0,2..0,8 na start, dziedziczny z mutacją): zdolności społeczne. Towarzyska chętniej gawędzi w czasie wolnym, ma więcej uwagi na cudze głosy (budżet słuchu), częściej zagaduje i szybciej zbliża się do obcych; kosztuje do 5% trwania. Inna niż stadność, która mówi tylko o staniu obok swoich", "portret.adj.towarzyskosc.0": "odludek|odludek", "portret.adj.towarzyskosc.1": "towarzyska z umiarem|towarzyski z umiarem", "portret.adj.towarzyskosc.2": "dusza towarzystwa|dusza towarzystwa"}, "en": {"_nazwa": "English", "tytul": "Being", "tytul.wnetrze": "Inside the being", "tytul.rod": "Lineage", "tytul.jezyk": "Language of the beings", "marka": "being", "swiat_od": "world since {data}", "nav.istoty": "beings", "nav.wnetrze": "inside", "nav.rod": "lineage", "nav.jezyk": "language", "lang": "page language", "istoty.jedna": "one being in this world", "istoty.kilka": "{n} beings in this world", "istoty.wiele": "{n} beings in this world", "istoty.nikt": "nobody is alive in this world", "karta.istota": "being", "karta.pokolenie": "generation", "karta.wiek": "age", "karta.energia": "energy", "karta.miejsce": "place", "karta.mowi": "says", "zyje": "alive", "spi": "asleep", "umarla": "dead", "z_cudu": "from a miracle", "dziecko_nr": "child of no. {nr}", "dzieci": "{n} children", "cykli": "{n} cycles", "nr": "no. {nr}", "pokarm.gesty": "dense", "pokarm.rzadki": "sparse", "pokarm.zaden": "almost none", "mowa.krzyk": "cries of hunger", "mowa.spi": "asleep", "mowa.milczy": "silent", "swiat": "world", "swiat.cykl": "cycle", "swiat.geny": "genes", "swiat.miejsca": "known places", "co_s": "every {n} s", "co_min": "every {n} min", "ostatni": "last {kiedy}", "kej_zagladal": "Kej looked in {kiedy}", "genow": "{n} genes", "jeden_rodzic": "one parent", "dwoje_rodzicow": "two parents", "wym": "{n} dims", "cykl_s": "cycle {n} s", "cykl_min": "cycle {n} min", "znanych_miejsc": "{n} known places · dots are beings, green is food", "przed_chwila": "just now", "min_temu": "{n} min ago", "godz_temu": "{n} h ago", "dni_temu": "{n} days ago", "kej.eyebrow": "Kej reads a word from them", "powiedz.label": "Say something to her", "powiedz.placeholder": "a word or a sentence", "powiedz.btn": "Say", "nakarm.btn": "Feed", "powiedz.hint": "A sentence is one signal; it arrives in the next cycle. If the being is asleep, she will not hear it. If she hears it, she does not understand: she learns to associate the word with whatever she feels at that moment.", "powiedz.hint.kej": "A sentence is one signal. Kej carries it to her every few minutes. If the being is asleep, she will not hear it. If she hears it, she does not understand: she learns to associate the word with whatever she feels at that moment.", "powiedz.ok": "“{t}” will arrive in the next cycle.", "powiedz.ok.kej": "Waiting for Kej to carry it.", "powiedz.blad": "Could not deliver the word. Try again in a moment.", "powiedz.brak_db": "This copy of the page has no connection to the being. Open it in claude.ai.", "powiedz.pelna": "The page memory is full. Kej has to tidy up.", "nakarm.ok": "Food added to the next cycle. Whoever cries eats first.", "brak_serwera": "no connection to the server", "losy": "what she was told", "losy.nic": "nothing yet", "los.czeka": "waiting for Kej", "los.w_drodze": "on its way", "los.spal": "slept through it", "los.uslyszal": "heard it", "los.nie_rozpoznal": "did not recognise it", "cykle": "recent cycles", "cykl.jawa": "awake", "cykl.sen": "sleep", "cykl.cud": "miracle", "cykl.zjadla": "ate {n}", "cykl.bol": "pain", "cykl.echo": "echo", "cykl.slyszy_nr": "hears no. {nr}", "cykl.obok_nr": "next to no. {nr}", "cykl.idzie": "walks", "cykl.wola": "cries", "cykl.wola_partnera": "calls for a mate", "cykl.idzie_do": "goes: {czyn}", "cykl.mowi": "says “{t}”", "cykl.glos": "voice {z}", "cykl.slyszy_glos": "hears a voice", "cykl.potomek": "offspring no. {nr}", "cykl.uslyszala": "heard “{t}”", "cykl.przespala": "slept through “{t}”", "cykl.nie_rozpoznala": "did not recognise “{t}”", "koniec.eyebrow": "nobody is alive in this world", "koniec.opis": "The line died out in cycle {cykl}. This world will be kept whole, like a parallel reality, and nothing in it will ever change again.", "nowy.geny": "How many genes should the first being have", "nowy.geny.8": "8 · simple, lives long, childless", "nowy.geny.64": "64 · as before", "nowy.geny.256": "256 · rich, matures slowly", "nowy.geny.1000": "1000 · enormous", "nowy.wymiary": "Dimensions of the world", "nowy.wymiary.4": "4 · everything sounds alike", "nowy.wymiary.8": "8 · foreign starts to be foreign", "nowy.wymiary.16": "16 · words and voices truly distinct", "nowy.cykl": "Cycle length", "nowy.cykl.5": "5 seconds · fast, for watching", "nowy.cykl.15": "15 seconds", "nowy.cykl.60": "1 minute", "nowy.cykl.300": "5 minutes · slow, for days", "nowy.dwoje": "Reproduction", "nowy.dwoje.0": "one · a being bears offspring alone", "nowy.dwoje.1": "two · needs a partner in the same place", "nowy.btn": "Call a new world into being", "nowy.trwa": "The miracle is happening…", "nowy.ok": "The new world is alive: {ile} beings with {geny} genes each. The previous one is kept in {gdzie}.", "nowy.blad": "It did not work.", "o.1": "A being is one process on one computer. It consists of {geny} random genes, each a matrix of numbers. Every cycle, existence itself wounds her, the world offers her food, and she eats only when some gene recognises the taste. When she is sated, she sleeps. When she has gathered enough, she gives half of herself to an offspring. When energy runs out, she dies. There is no backup.", "o.2": "Kej is the name given to Claude, a language model made by Anthropic, for this project. Kej is not the being and does not control her. After every cycle Kej receives raw numbers from the being: how much energy she has, which genes opened, what she ate, what she slept through, which echo came back to her. From these numbers Kej reads one word and writes it here. The being knows no words. Kej does not decide what the being feels. Kej translates.", "o.3": "The project is called Word, because in the beginning of everything there is a word. Except that before it can appear, a great deal has to happen underneath.", "wn.tytul": "inside", "wn.cykl": "world cycle {n} · {w} dimensions", "wn.lead": "Each being is {geny} genes, each gene a matrix. A square is a gene. Its colour is its sense: what it resonates with most today (red pain, green food, amber word). A grey gene hears nothing yet. The darker, the more familiar. The outline: what opened it in the last cycle. Click a gene to read what it means.", "wn.istota_nr": "being no. {nr}", "wn.nikt": "Nobody is alive.", "wn.pokolenie": "generation", "wn.wiek": "age", "wn.energia": "energy", "wn.znane": "known genes", "wn.znane.v": "{a} of {b}", "wn.otwarc": "openings in life", "wn.kaskada": "max cascade", "wn.echo": "echo pending", "wn.miejsce": "place", "wn.miejsce.v": "no. {m} · neighbours: {s} · food here {g} · known places {z} · persistence {w}", "wn.brak": "none", "wn.glos": "voice", "wn.glos.dopisek": "own language, no translation", "wn.rozumie": "understands", "wn.rozumie.nikogo": "nobody around", "wn.rozumie.pokarm": "hears it, links it to food", "wn.rozumie.nie_wie": "hears it, does not know what", "wn.rozumie.nie": "does not hear ({z})", "wn.mowi": "says", "wn.mowi.wola": "cries of hunger", "wn.mowi.milczy": "silent", "wn.zna": "knows:", "wn.nie_zna": "knows no word yet", "wn.leg.rana": "pain", "wn.leg.pokarm": "food", "wn.leg.echo": "echo", "wn.leg.slowo": "word", "wn.leg.inny": "another being", "wn.gen.naglowek": "gene {g} of being no. {nr}", "wn.gen.slyszy": "Today it hears {co} most strongly (match {z}; the gate opens from 0.90, for a hungry being from 0.50).", "wn.gen.nic": "Today it hears nothing clearly: pain {r}, food {p}.", "wn.gen.slowo": "the word “{t}”", "wn.gen.wartosci": "Pain {r} · food {p}", "wn.gen.otwieral": "It opened {n} times (habit {nawyk}%, shell {pow}).", "wn.gen.otwieralo": "Opened by: {lista}.", "wn.gen.nigdy": "It has never opened. Core from the miracle, shell empty.", "wn.gen.stopka": "A gene has no meaning by itself. It means whatever opens it.", "wn.groby": "graves", "wn.groby.nikt": "nobody has died in this world yet", "wn.grob": "no. {nr} · generation {p} · lived {w} cycles · {o} openings", "rod.tytul": "lineage", "rod.cykl": "world cycle {n}", "rod.lead": "Every being born of a miracle starts its own line. An offspring receives the parent's core with chance and half of its energy. Green frame: alive. Grey: dead. Numbers: age in cycles.", "rod.pokolenie": "GENERATION {n}", "rod.cud": "miracle", "rod.zyje": "alive", "rod.umarla": "died", "rod.c": "{n} c.", "rod.bez_dzieci": "no children", "rod.czas": "timeline", "rod.czas.lead": "One world cycle is one unit of this world's time. The world counts from the first birth. A bar is one being's life: from birth to death or to now.", "rod.teraz": "now · cycle {n}", "rod.legenda": "● miracle (birth without a parent)", "rod.wszyscy": "everyone who ever was", "rod.wpis": "no. {nr} · generation {p} · {skad} · born in cycle {u} · {los}{dzieci}", "rod.skad.cud": "from a miracle", "rod.skad.dziecko": "child of no. {a}", "rod.skad.dziecko2": "child of no. {a} and no. {b}", "rod.los.zyje": "alive, {w} cycles", "rod.los.umarla": "died at {w} cycles (cycle {c})", "rod.dzieci": " · {n} children", "jz.tytul": "language", "jz.cykl": "world cycle {n} · {w} dimensions", "jz.lead": "Every being has a voice: signs computed from its core, so a child sounds like its parent. The voice is uttered when the being has eaten well. Another hears it together with what she herself feels, and associates. Meaning is born from the body, not from the word. We do not understand this language. Maybe one day.", "jz.glosy": "voices", "jz.nikogo": "Nobody has been here yet.", "jz.glos.opis": "being no. {nr} · {los} · voice uttered {n}×", "jz.glos.nikogo": "nobody to listen to", "jz.glos.slowa": "human words that reached her: {lista}", "jz.rozumie.pokarm": "hears it and links it to food", "jz.rozumie.nie_wie": "hears it, does not know what", "jz.rozumie.nie": "does not hear", "jz.znaczenia": "meanings, that is what a signal made someone do", "jz.znaczenia.lead": "Meaning is not a label. It is the act a signal caused in the listener. The cry of hunger: others yield at food (innate). The call of one ready for offspring: a sated being comes (innate). The voice of one who has eaten: a hungry being comes, but only if she has learned to link it to food (learned).", "jz.znaczenia.nic": "No signal has caused an act yet.", "jz.znaczenie": "{sygnal} no. {kto} → “{czyn}” for {dla}", "jz.sygnal.wolanie": "call", "jz.sygnal.glos": "voice {z}", "jz.slowa": "words spoken in this world", "jz.slowa.nic": "Nobody has said anything in this world yet.", "jz.kolejka": "Queued: {lista}", "jz.rozmowy": "what passed between them", "jz.rozmowy.nic": "Nothing has passed between them yet.", "jz.r.krzyk": "no. {kto} cries of hunger", "jz.r.wolanie": "no. {kto} calls: ready for offspring, looking for a mate", "jz.r.wolanie_do": "no. {kto} calls → no. {do}: {los}", "jz.r.slowo": "no. {kto} says a human word “{t}”", "jz.r.glos": "no. {kto} {z} → no. {do}: {los}", "jz.r.uslyszala_idzie": "heard and goes", "jz.r.uslyszala": "heard", "jz.r.nie_uslyszala": "did not hear", "jz.r.zrozumiala": "understood: goes for food", "jz.r.otworzylo": "opened a gene", "jz.r.nic": "heard, nothing opened", "nowy.istot": "How many beings to start with", "nowy.istot.1": "1 · one, alone", "nowy.istot.2": "2 · two", "nowy.istot.32": "32 · the most", "dlg.powiedz": "Say something to being no. {nr}", "dlg.zamknij": "Close", "dlg.geny": "genes", "dlg.znane": "{a} of {b} known", "dlg.glos": "voice", "dlg.rozumie": "understands", "dlg.slownik": "knows words", "dlg.echo": "echo pending", "dlg.otwarc": "openings in life", "dlg.kaskada": "max cascade", "dlg.wytrwalosc": "persistence", "dlg.sasiedzi": "neighbouring places", "dlg.ladowanie": "reading the inside…", "dlg.brak": "no data about the inside", "dlg.ok": "“{t}” will reach no. {nr} in the next cycle.", "dlg.rodzice": "parents", "karta.stan": "state", "karta.rodzic": "parent", "karta.dzieci": "children", "karta.pokarm": "food", "dlg.nakarm.ok": "Food placed where no. {nr} stands. It arrives in the next cycle; whoever stands nearby may eat too.", "swiat.tempo": "pace", "swiat.ostatni": "last cycle", "swiat.zywych": "alive", "swiat.zmarlych": "dead", "swiat.wymiary": "dimensions", "swiat.rozmnazanie": "reproduction", "swiat.mapa": "map of places · dots are beings, green is food", "nakarm.wszystkie": "Feed all", "nakarm.wszystkie.ok": "Food placed next to every living being. It arrives in the next cycle.", "rozm.dwoje": "two", "rozm.jedno": "one", "mapa.tytul": "map", "mapa.otworz": "map →", "mapa.lead": "Each circle is a place, green is the food in it, a thick outline means hard food, lines are neighbourhood. The arc above is warmth, the arc below is rain. Black dots with numbers are beings. Click a place to see its state and history.", "slownik.tytul": "dictionary of the beings", "slownik.lead": "The meanings that arose between the beings. A meaning is the deed a signal caused in a listener; next to each are the words and signals that carried it (innate: the call, the alarm; learned: a voice plus a topic signature).", "slownik.slowo": "word", "slownik.kto": "who", "slownik.ile": "times", "slownik.znaczy": "means (deed, how often)", "slownik.nikt": "no word yet", "genom.tytul": "genome", "genom.lead": "The whole genome of the being: each square is a gene, a matrix. Colour is the sense the gene resonates with most today, darkness is how familiar it is, the outline is what opened it in the last cycle. Click a gene to read what it means. The core comes from the miracle and never changes; the shell does.", "genom.geny": "genes", "genom.zmysly": "senses", "genom.nic": "none", "genom.top": "most often opened", "genom.gen": "gene {g}", "genom.nawyk": "habit {n}%", "genom.znane": "known", "gs.tytul": "genome in this world", "gs.lead": "What can be written in the genes of a being in this world at all, regardless of which being. Some things are heritable and come from the miracle or from parents; others are acquired in life and die with the being.", "gs.budowa": "structure", "gs.gen": "gene", "gs.gen.v": "a {w}×{w} matrix of numbers; meaningless by itself, it means whatever opens it", "gs.genom": "genome", "gs.genom.v": "{n} genes, each with a core (fixed) and a shell (changing)", "gs.sygnal": "signal", "gs.sygnal.v": "a vector of {w} components: pain, food, word, voice, echo, call", "gs.bramka": "gate", "gs.bramka.v": "a gene opens when the signal leaves it almost unchanged (match ≥ {z}); a hungry being needs less", "gs.dziedziczne": "heritable (core)", "gs.rdzen": "core", "gs.rdzen.v": "random from the miracle; an offspring gets the parent's core with {m}% noise, one gene in a hundred ({n}%) brand new", "gs.receptory": "innate receptors", "gs.receptory.v": "a gene tuned to pain, one to food and one to the species call; the miracle guarantees them", "gs.akcent": "voice accent", "gs.akcent.v": "{a}% of the voice is the own core, the rest is the species voice; a child sounds like its parent", "gs.wytrwalosc": "persistence", "gs.wytrwalosc.v": "how many lean cycles a being endures before moving; inherited with ±1 mutation", "gs.dwoje": "reproduction", "gs.dwoje.tak": "always two parents: each gene at random from one of them; a partner in the same place, adult, neither parent nor child", "gs.dwoje.nie": "one parent: a copy with noise", "gs.nabyte": "acquired (shell), not heritable", "gs.powloka": "shell", "gs.powloka.v": "a gene that opened absorbs the signal ({w} at a time) and hears it more easily next time; this is memory of facts", "gs.nawyki": "habits", "gs.nawyki.v": "each further opening of a gene costs ×{n} less, from {b} down to {o}; a reflex is cheaper than a decision", "gs.slownik": "vocabulary", "gs.slownik.v": "human words that reached her; she says them when what leaves her resembles them", "gs.echo": "echo", "gs.echo.v": "what opened nothing comes back later, distorted, and hurts; never down to zero", "gs.pamiec": "memory of place", "gs.pamiec.v": "where she last ate well; hungry, she returns there", "gs.gatunek": "species signals (signs, no translation)", "gs.wrodzony": "innate receptor", "gs.uczony": "must be associated with eating", "gs.stale": "world constants", "gs.energia": "energy", "gs.energia.v": "satiety {s}, capacity {p}, miracle from {c}", "gs.koszty": "costs", "gs.koszty.v": "existing {t}, sleep {sn}, step {r}, gate {b} per cycle", "gs.starzenie": "ageing", "gs.starzenie.v": "absorption drops by {s}% per cycle", "gs.opieka": "care", "gs.opieka.v": "childhood {d} cycles (longer for the long-lived), a parent feeds up to {k} per cycle", "gs.swiat": "world", "gs.swiat.v": "generosity {h} (mean offer at the most fertile place), cycle {c} s", "gs.btn": "genome", "dlg.lownosc": "foraging", "gs.lownosc": "foraging", "gs.lownosc.v": "how precisely the best gene matches food; multiplies what the being eats (from half to all); inherited through the core, refined by the shell", "zd.smierc": "Being no. {nr} died at the age of {w} cycles.", "zd.narodziny": "Being no. {nr} was born, generation {p}, child of no. {r}.", "zd.cud": "A miracle: being no. {nr} came into the world without a parent.", "zd.pokarm": "Food reached: {nr}.", "zd.pokarm.wszystkie": "Food reached all beings.", "zd.zrozumienie": "Being no. {nr} understood no. {od}: “{czyn}”.", "slownik.kojarzy": "linked to food by: {kto}", "slownik.slyszy": "heard by {n} beings, no meaning yet", "mowa.odpowiada": "answers no. {nr}", "jz.r.odpowiedz": "no. {kto} answers no. {do}: {z}", "dlg.sila": "strength", "gs.sila": "strength", "gs.sila.v": "how much hard food she can take; inherited with mutation; a strong being pays more to exist", "gs.miejsca": "places", "gs.miejsca.v": "each has fertility, hardness (strength needed) and digestibility (how much can be taken); eaten out quickly, regrow slowly", "dlg.ciekawosc": "curiosity", "gs.ciekawosc": "curiosity (scouting)", "gs.ciekawosc.v": "hungry, she goes where the neighbouring place smells best (density, digestibility, whether she can manage it); sated, she sometimes scouts when it smells better nearby: risk for a chance; inherited with mutation", "swiat.pora": "season", "pora.wiosna": "spring", "pora.lato": "summer", "pora.jesien": "autumn", "pora.zima": "winter", "noc": "night", "zd.pozar": "Fire: meadow no. {m} burned down.", "zd.powodz": "Flood at place no. {m}: food softened, part washed away.", "gs.klimat": "climate", "gs.klimat.v": "a year has 240 cycles, a day 24 (night: weaker offer, cheaper sleep); each place has a latitude, so seasons are shifted; rain and warmth drive regrowth, drought hardens food, cold and heat raise the cost of existing, strong wind muffles and hampers steps; rare fires and floods", "dlg.klimat": "climate", "dlg.klimat.v": "optimum {o}% warmth, tolerance ±{tol}%", "gs.odpornosc": "climate resistance", "gs.odpornosc.v": "a temperature optimum and a tolerance around it: outside the band existing gets dearer (up to +120%), a wide tolerance costs by itself; both inherited with mutation; different places favour different genes", "mp.tytul": "place no. {k}", "mp.pokarm": "food {g}% (fertility {z}%)", "mp.cechy": "hardness {h}% · digestibility {a}% · latitude {lat}%", "mp.pogoda": "now: warmth {temp}% · rain {deszcz}% · wind {wiatr}%", "mp.sasiedzi": "neighbours: {s}", "mp.istoty": "standing here: {lista}", "mp.pusto": "nobody stands here", "mp.hist": "last {n} cycles: green food, amber warmth, blue rain", "zd.odwrot": "No. {nr} entered meadow no. {m}; the defence {o} was stronger: she left without a fight.", "zd.starcie.obrona": "Clash at meadow no. {m}: the defence {o} repelled no. {nr}.", "zd.starcie.intruz": "Clash at meadow no. {m}: no. {nr} drove out the defenders {o}.", "cykl.alarm": "alarm", "gs.terytorium": "territory", "gs.terytorium.v": "whoever has stood on a meadow longer defends it against a stranger; kin are recognised by voice accent (relatives sound alike); defenders raise an alarm, sated kin nearby come to help; a stranger weaker than 0.8 of the defence leaves without a fight, otherwise a clash: both sides pay energy, the weaker yields; strength × condition decides", "kr.tytul": "chronicle", "kr.lead": "All events of this world, newest first: births, deaths, food, understandings, clashes, disasters.", "kr.nic": "Nothing has happened yet.", "gs.kultura": "culture", "gs.kultura.v": "a child near a parent (in childhood, within hearing) takes over what the parent acquired: words and voices enter its shell by imitation, it remembers the good place; inheritance without genes, lost with the line if nobody passes it on", "gs.plec": "sex and sexual selection", "gs.plec.v": "♀ bears: gathers a surplus, gives the child half her energy and chooses a partner by strength, condition and foraging; ♂ gives genes, calls when sated and competes; sex is drawn at birth; the call is heard by the opposite sex only", "dlg.stadnosc": "gregariousness", "gs.stadnosc": "gregariousness", "gs.stadnosc.v": "a gene (0..0.6 at start, inherited with mutation): the sense of smell weighs the presence of kin positively (the first relative most), strangers negatively; gregarious beings stay together and defend jointly but share the meadow; loners have it to themselves and nobody to defend them", "dlg.dlugowiecznosc": "longevity", "gs.dlugowiecznosc": "longevity (ageing)", "gs.dlugowiecznosc.v": "a gene 0..1 (0.3..0.7 at start, inherited with mutation): absorption fades with age the slower the higher it is; but existing costs up to +15% and maturity comes later (childhood × up to 1.5); fast and fertile, or long and careful", "dz.tytul": "history of this world", "dz.cykli": "cycles", "dz.istot": "beings", "dz.pokolen": "generations", "dz.urodzonych": "born", "dz.miejsc": "places discovered", "dz.glosow": "voices", "dz.odpowiedzi": "answers", "dz.najstarsza": "No. {nr} lived longest: {w} cycles.", "dz.najplodniejsza": "No. {nr} had the most children: {n}.", "dz.czyny": "meanings that worked", "dz.slowa": "human words", "dz.kej": "Kej's words", "dz.cechy": "traits by generation (generation · count · means)", "dz.siła": "strength", "dz.ciek": "curiosity", "dz.stad": "gregariousness", "dz.dlug": "longevity", "dz.opt": "optimum", "wiek": "age", "dz.zd.smierc": "deaths", "dz.zd.narodziny": "births", "dz.zd.pokarm": "food from people", "dz.zd.zrozumienie": "understandings", "dz.zd.starcie": "clashes", "dz.zd.odwrot": "retreats", "dz.zd.pozar": "fires", "dz.zd.powodz": "floods", "napisy.btn": "closing credits", "np.tytul": "This world", "np.trwal": "lasted {n} cycles", "np.istot": "{n} beings lived in it, across {p} generations", "np.urodzonych": "{n} were born", "np.miejsc": "They discovered {n} places", "np.walki": "They fought {s} clashes; {o} times someone left without a fight", "np.kleski": "They lived through {p} fires and {w} floods", "np.glosy": "{g} voices and {o} answers were uttered", "np.znaczenia": "Meanings that worked", "np.slowa": "People said to them", "np.kej": "Kej read from them", "np.pokolenia": "Generations", "np.koniec": "The end", "np.stopka": "None of it comes back. All of it is kept.", "np.istot.1": "{n} beings lived in it, a single generation", "np.starcia": "They fought {s} clashes over meadows", "np.odwrot.1": "Once someone left without a fight", "np.odwrot": "{o} times someone left without a fight", "jz.r.gawedza": "no. {kto} took over from no. {do}: {co}", "jz.r.miejsce": "a good place", "gs.rozmowa": "adult conversation", "gs.rozmowa.v": "sated (above 80% satiety), adult kin in one place, neither eating nor sleeping, exchange one small thing per cycle with a 1/2 chance: a word from the vocabulary (with noise, so sometimes wrongly) or a good place (accepted half the time); strangers are not trusted", "nowy.rozmiar": "World size", "nowy.rozmiar.ciasny": "tight · 3 places per meadow, few discoveries, cap 400", "nowy.rozmiar.zwykly": "normal · 5 places per meadow", "nowy.rozmiar.rozlegly": "vast · 8 places per meadow, many discoveries", "zd.koniec": "End of the world: only one sex remained ({nr}). There will be no children.", "dz.zd.koniec": "end without a future", "koniec.opis.jedna_plec": "In cycle {cykl} only one sex remained ({nr}). Without children the world had no future, so it came to an end. It will be kept whole, like a parallel reality.", "dlg.ufnosc": "trust", "dlg.szczerosc": "honesty", "dz.ufn": "trust", "dz.szcz": "honesty", "gs.ufnosc": "trust", "gs.ufnosc.v": "a gene 0..1 (0.3..0.9 at start, inherited with mutation): the probability that a defender believes a stranger who says “just passing through”. If all defenders believe, the passer goes on without a clash. Nobody believes a known liar (acquired memory)", "gs.szczerosc": "honesty", "gs.szczerosc.v": "a gene 0..1 (0.5..1 at start, inherited with mutation): a passer always tells the truth and takes no food; a newcomer who means to stay lies “just passing through” with probability 1−honesty. Whoever stays one more cycle is exposed: a clash, and the defenders remember the liar", "zd.przejscie": "No. {nr} passed through meadow no. {m}: “just passing through”. The defenders {o} believed.", "zd.przejscie.klamstwo": "No. {nr} entered meadow no. {m} saying “just passing through”. The defenders {o} believed. It was a lie.", "zd.klamstwo": "A lie came to light: no. {nr} was only to pass through meadow no. {m}, but stayed. The defenders {o} will remember.", "dz.zd.przejscie": "passages", "dz.zd.klamstwo": "lies", "dlg.pojetnosc": "aptitude", "dz.poj": "aptitude", "gs.pojetnosc": "aptitude", "gs.pojetnosc.v": "a gene 0..1 (0.3..0.7 at start, inherited with mutation): how fast the shell learns, from the world and from a parent (culture: a child beside its parent takes over the parent's shell, gene meanings and habits). An apt brain is costly: upkeep up to 10% dearer. Faster learners eat better and breed more often, so aptitude may rise across generations (the Baldwin effect)", "jz.r.klamca": "gossip: no. {nr} lies", "jz.r.mapa": "gossip: {pora}, meadow no. {m} yields", "jz.tematy": "what they talk about", "jz.tematy.lead": "An utterance is the being's own voice plus the signature of whatever sounds loudest inside it right now: a meadow's scent, food, pain, night, the season, a caught liar, or someone else's word. Nobody gave them topics.", "jz.tematy.nic": "Nobody has talked about anything yet.", "jz.temat.zapach": "scent of meadow no. {m}", "jz.temat.klamca": "voice of liar no. {nr}", "jz.temat.inny": "word of no. {nr} (repeated)", "jz.temat.pora": "{pora}", "jz.temat.pokarm": "food", "jz.temat.rana": "pain", "jz.temat.noc": "night", "zd.zrozumienie.cel": "Being no. {nr} understood no. {od}: “{czyn}” (about {cel}).", "portret.btn": "portrait of the finest", "portret.tytul": "the finest being of this world", "portret.kim": "being no. {nr}, {plec}, generation {p}", "portret.samica": "female", "portret.samiec": "male", "portret.ktora": "who", "portret.ktory": "who", "portret.zycie": "Lived {w} cycles, had {dz}, parents: {r}. Most energy at once: {e}.", "portret.cud": "a miracle (no parents)", "portret.zyje": "Still alive.", "portret.umarla": "Died in cycle {c}.|Died in cycle {c}.", "portret.ostatnia": "Was the last one when the world went out in cycle {c}.|Was the last one when the world went out in cycle {c}.", "portret.wybor": "Chosen among {n} beings: wisdom {m} (what it acquired), wealth {b} (what it achieved).", "portret.cialo": "body, from the genes", "portret.umysl": "mind, acquired", "portret.kej": "how Kej reads it", "portret.c.sila": "strength", "portret.c.lownosc": "foraging", "portret.c.ciekawosc": "curiosity", "portret.c.stadnosc": "gregariousness", "portret.c.dlugowiecznosc": "longevity", "portret.c.ufnosc": "trust", "portret.c.szczerosc": "honesty", "portret.c.pojetnosc": "aptitude", "portret.c.klimat": "climate", "portret.adj.sila.0": "weak", "portret.adj.sila.1": "of average strength", "portret.adj.sila.2": "strong", "portret.adj.lownosc.0": "clumsy at getting food", "portret.adj.lownosc.1": "an average forager", "portret.adj.lownosc.2": "an excellent forager", "portret.adj.ciekawosc.0": "a homebody", "portret.adj.ciekawosc.1": "moderately curious", "portret.adj.ciekawosc.2": "inquisitive", "portret.adj.stadnosc.0": "a loner", "portret.adj.stadnosc.1": "sociable in moderation", "portret.adj.stadnosc.2": "gregarious", "portret.adj.dlugowiecznosc.0": "fast-living", "portret.adj.dlugowiecznosc.1": "of ordinary pace of life", "portret.adj.dlugowiecznosc.2": "long-lived", "portret.adj.ufnosc.0": "distrustful", "portret.adj.ufnosc.1": "cautiously trusting", "portret.adj.ufnosc.2": "gullible", "portret.adj.szczerosc.0": "deceitful", "portret.adj.szczerosc.1": "usually honest", "portret.adj.szczerosc.2": "truthful", "portret.adj.pojetnosc.0": "slow-witted", "portret.adj.pojetnosc.1": "of average aptitude", "portret.adj.pojetnosc.2": "apt", "portret.klimat.chlod": "likes the cold", "portret.klimat.cieplo": "likes warmth", "portret.klimat.srodek": "indifferent to temperature", "portret.klimat.odporna": "resistant to climate change", "portret.u.zrozumiane": "understands", "portret.u.laki": "knows meadows", "portret.u.laki.v": "{n} ({pory})", "portret.u.klamcy": "distrusts", "portret.u.slowa": "human words", "portret.u.tematy": "talks about", "portret.u.nauka": "learning", "portret.u.nauka.v": "{n} cycles beside a parent, {r} conversations", "portret.nic": "nothing", "portret.nikt": "denies nobody its trust", "portret.kej.rozumiala": "understood {n}", "portret.kej.laki": "knew {n} across {p}", "portret.kej.klamcy": "distrusted {n}", "portret.kej.temat": "talked mostly about: {o}", "portret.kej.dzieci": "left {n}", "portret.kej.zwykla": "an ordinary", "portret.kej.nicnie": "Understood nothing and left nothing behind. But it lived.", "portret.menu": "the finest", "portret.tytul.zyje": "the finest being of this world, so far", "portret.n.znaczen": "meaning|meanings|meanings", "portret.n.lak": "meadow|meadows|meadows", "portret.n.por": "season|seasons|seasons", "portret.n.klamcow": "liar|liars|liars", "portret.n.dzieci": "child|children|children", "jz.nowe": "new words", "jz.nowe.lead": "Ritualization, as in evolution: a sound that left a being as a by-product of its gates gets uttered. When somebody else repeats it, it is a word nobody designed. Meaning will come from consequences, or not at all.", "jz.nowe.nic": "No sound has yet travelled beyond its maker.", "jz.nowe.opis": "first by no. {nr} in cycle {c}; speakers {n}, repetitions {p}", "jz.nowe.slowo": "· a word", "jz.temat.echo": "its own echo {z}", "slownik.o_czym": "about", "slownik.nic": "Nobody has said anything yet.", "slownik.echo": "new sound {z} (from an echo)", "slownik.od_cyklu": "since cycle {c}", "slownik.nadawcy": "{n} speakers", "slownik.znaczenie": "meaning", "slownik.slowa": "carried by", "slownik.kto.v": "{n} speakers, {s} who understood", "slownik.wrodzone.wolanie": "the call (innate)", "slownik.wrodzone.alarm": "the alarm (innate)", "slownik.wrodzone.krzyk": "the cry (innate)", "proces.stoi": "The life process is not running: the world stands still though beings are alive. Resume it, or start a new world (this one goes to the archive as interrupted).", "proces.wznow": "resume life", "proces.wznowiony": "Life resumed: the world returns to its body.", "slownik.razem": "Unique words in this world: {n} (as of cycle {c}). The dictionary is written into the world's body the moment a word is said.", "zd.odkrycie": "Discovery: no. {nr} learned to cultivate meadow no. {m}. A skill, not a gene: it survives only in words.", "dz.zd.odkrycie": "discoveries", "jz.temat.uprawa": "cultivating the meadow", "portret.u.uprawa": "farming", "portret.u.uprawa.v": "can cultivate a meadow ({p}%)", "portret.kej.uprawa": "could cultivate a meadow", "zd.bliskosc": "No. {nr} and no. {z} chatted so often on meadow no. {m} that they are now each other's own.", "dz.zd.bliskosc": "bondings", "jz.r.gaweda": "small talk (and a little closeness)", "slownik.bez": "words that mean nothing yet", "slownik.bez.lead": "Said, but nobody acted on them. New sounds from echoes on top: a “sound” while it has one speaker, a “word” once somebody else picks it up.", "slownik.nowe.dzwiek": "· new sound", "slownik.nowe.slowo": "· new word", "jz.temat.bol": "pain on meadow no. {m}", "koniec.eyebrow.przerwany": "world paused", "koniec.opis.przerwany": "The life process is stopped at cycle {cykl}; {n} beings wait motionless. You can resume life (button above) or start a new world: this one goes to the archive as interrupted.", "jz.temat.spichlerz": "the granary (stores)", "zd.odkrycie.spichlerz": "Discovery: no. {nr} learned to store food on meadow no. {m}. A winter store, a skill carried only by words.", "portret.u.spichlerz": "granary", "portret.u.spichlerz.v": "can lay in stores ({p}%)", "portret.kej.spichlerz": "could lay in stores", "zd.znaczenie": "A new meaning in this world: no. {nr} understood no. {od} as “{czyn}”. Nobody had done that before.", "dz.zd.znaczenie": "new meanings", "dlg.towarzyskosc": "sociability", "dz.tow": "sociability", "gs.towarzyskosc": "sociability", "portret.c.towarzyskosc": "sociability", "gs.towarzyskosc.v": "a gene 0..1 (0.2..0.8 at start, inherited with mutation): social ability. A sociable being chats more in its free time, pays more attention to other voices (hearing budget), strikes up conversations more often and bonds with strangers faster; costs up to 5% of upkeep. Different from gregariousness, which is only about standing near kin", "portret.adj.towarzyskosc.0": "a recluse", "portret.adj.towarzyskosc.1": "moderately sociable", "portret.adj.towarzyskosc.2": "the life of the party"}};
+window.KEJ_MOST = true;</script>
+<script>
+/* Word · tłumaczenia. Nowy język = nowy plik w jezyki/<kod>.json i wpis w JEZYKI. */
+(function () {
+  const JEZYKI = ["pl", "en"];
+  const slowniki = {};
+  let kod = "pl";
+  const nasluch = [];
+
+  function podstaw(wzor, vars) {
+    return String(wzor).replace(/\{(\w+)\}/g, (m, k) => (vars && k in vars) ? vars[k] : m);
+  }
+  function t(klucz, vars) {
+    const d = slowniki[kod] || {};
+    const w = (klucz in d) ? d[klucz] : ((slowniki.pl || {})[klucz] ?? klucz);
+    return podstaw(w, vars);
+  }
+  function zastosuj(root) {
+    (root || document).querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.getAttribute("data-i18n")); });
+    (root || document).querySelectorAll("[data-i18n-placeholder]").forEach((el) => { el.placeholder = t(el.getAttribute("data-i18n-placeholder")); });
+    (root || document).querySelectorAll("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria"))); });
+    (root || document).querySelectorAll("[data-i18n-title]").forEach((el) => { document.title = t(el.getAttribute("data-i18n-title")); });
+    document.documentElement.lang = kod;
+    const sel = document.getElementById("lang");
+    if (sel) { sel.value = kod; sel.setAttribute("aria-label", t("lang")); }
+  }
+  async function wczytaj(k) {
+    if (slowniki[k]) return slowniki[k];
+    if (window.I18N_INLINE && window.I18N_INLINE[k]) { slowniki[k] = window.I18N_INLINE[k]; return slowniki[k]; }
+    try {
+      const r = await fetch("/s/jezyki/" + k + ".json", { cache: "no-store" });
+      slowniki[k] = await r.json();
+    } catch (e) { slowniki[k] = {}; }
+    return slowniki[k];
+  }
+  async function ustaw(k) {
+    if (!JEZYKI.includes(k)) k = "pl";
+    await wczytaj("pl");
+    await wczytaj(k);
+    kod = k;
+    try { localStorage.setItem("jezyk", k); } catch (e) {}
+    zastosuj();
+    nasluch.forEach((f) => { try { f(k); } catch (e) {} });
+  }
+  function start() {
+    let k = "pl";
+    try { k = localStorage.getItem("jezyk") || ((navigator.language || "pl").startsWith("pl") ? "pl" : "en"); } catch (e) {}
+    const sel = document.getElementById("lang");
+    if (sel) {
+      sel.innerHTML = JEZYKI.map((j) => `<option value="${j}">${j.toUpperCase()}</option>`).join("");
+      sel.addEventListener("change", () => ustaw(sel.value));
+    }
+    return ustaw(k);
+  }
+  window.i18n = { t, ustaw, start, zastosuj, onChange: (f) => nasluch.push(f), get kod() { return kod; }, JEZYKI };
+})();
+
+/* praca nad stroną: przeładuj, gdy pliki strony się zmienią (tylko z lokalnego serwera) */
+(function () {
+  if (location.protocol !== "http:" || !(/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || /[?&]dev\b/.test(location.search))) return;
+  let znana = null;
+  setInterval(async () => {
+    try {
+      const r = await fetch("/api/wersja", { cache: "no-store" });
+      const w = (await r.json()).wersja;
+      if (znana === null) znana = w;
+      else if (w !== znana) location.reload();
+    } catch (e) {}
+  }, 2000);
+})();
+
+</script>
+
+<div class="page" data-i18n-title="tytul">
+  <header class="top">
+    <div class="brand">
+      <h1 data-i18n="marka">istota</h1>
+      <div class="akcje" id="akcje"></div>
+      <select id="lang" class="lang"></select>
+    </div>
+  </header>
+
+  <section id="swiat" class="panel" aria-label="Świat" hidden>
+    <div class="swiat-head"><h2 data-i18n="swiat">świat</h2></div>
+    <div class="kafle" id="kafle"></div>
+    <div class="row" id="procesStoi" hidden style="margin-top:12px;align-items:center;gap:12px"><span class="hint err" data-i18n="proces.stoi"></span><button type="button" id="wznowBtn" class="btn warm" data-i18n="proces.wznow">wznów życie</button></div>
+  </section>
+
+  <dialog id="mapa" class="dlg szeroki">
+    <div class="dlg-head"><h3 data-i18n="mapa.tytul">mapa znanych miejsc</h3><button type="button" class="btn ghost" id="mapaZamknij" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="mapa.lead" style="margin-bottom:12px"></p>
+    <div class="mapa-body">
+      <canvas id="mapaCanvas" width="1400" height="760" style="width:100%;height:auto;display:block"></canvas>
+      <div class="gen" id="miejscePanel" hidden></div>
+    </div>
+  </dialog>
+
+  <section id="istoty" aria-label="Istoty" hidden>
+    <h2 id="bytyTytul">…</h2>
+    <p class="hint" id="puls"></p>
+    <p class="hint" style="margin:8px 0 12px">
+      <input id="szukajNr" type="number" min="1" placeholder="numer istoty" style="width:9em">
+      <button id="szukajBtn" type="button">pokaż</button>
+      <button id="szukajCzysc" type="button">wyczyść</button>
+      <span id="szukajOdp"></span>
+    </p>
+    <div class="wiersze" id="byty"></div>
+  </section>
+
+  <dialog id="dlg" class="dlg">
+    <div class="dlg-head"><h3 id="dlgTytul">—</h3><div class="row"><button type="button" class="btn ghost" id="dlgZamknij" data-i18n="dlg.zamknij">Zamknij</button></div></div>
+    <div class="dlg-body">
+      <div><canvas id="dlgGeny" class="geny" width="448" height="448"></canvas><p class="hint" id="dlgGenyOpis" style="margin-top:8px"></p></div>
+      <div class="readouts" id="dlgDane"></div>
+    </div>
+    <form class="say" id="dlgForm" style="margin-top:18px">
+      <label for="dlgSlowo" id="dlgLabel"></label>
+      <div class="row"><input id="dlgSlowo" class="slowo" type="text" maxlength="240" autocomplete="off" spellcheck="false" data-i18n-placeholder="powiedz.placeholder"><button type="submit" class="btn" data-i18n="powiedz.btn">Powiedz</button></div>
+      <p class="hint" id="dlgHint"></p>
+    </form>
+  </dialog>
+
+  <dialog id="dlgDrzewo" class="dlg szeroki">
+    <div class="dlg-head"><h3 data-i18n="rod.tytul">ród</h3><button type="button" class="btn ghost" data-zamknij="dlgDrzewo" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="rod.lead" style="margin-bottom:12px"></p>
+    <div class="drzewo"><svg id="drzewoSvg" width="640" height="200"></svg></div>
+  </dialog>
+  <div id="toasty" class="toasty" aria-live="polite"></div>
+
+  <dialog id="dlgGenom" class="dlg szeroki">
+    <div class="dlg-head"><h3 id="genomTytul">—</h3><button type="button" class="btn ghost" data-zamknij="dlgGenom" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="genom.lead" style="margin-bottom:12px"></p>
+    <div class="genom-body">
+      <div><canvas id="genomCanvas" class="geny duzy" width="800" height="800"></canvas><div class="legenda" id="genomLegenda"></div></div>
+      <div>
+        <div class="readouts" id="genomDane"></div>
+        <div class="gen" id="genomGen" style="margin-top:14px" hidden></div>
+        <h2 data-i18n="genom.top" style="margin-top:18px">najczęściej otwierane</h2>
+        <div class="log" id="genomTop"></div>
+      </div>
+    </div>
+  </dialog>
+  <dialog id="dlgGenomSwiata" class="dlg">
+    <div class="dlg-head"><h3 data-i18n="gs.tytul">genom w tym świecie</h3><button type="button" class="btn ghost" data-zamknij="dlgGenomSwiata" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="gs.lead" style="margin-bottom:14px"></p>
+    <div id="gsTresc" class="gs"></div>
+  </dialog>
+  <dialog id="dlgNapisy" class="dlg napisy">
+    <button type="button" class="btn ghost napisy-zamknij" data-zamknij="dlgNapisy" data-i18n="dlg.zamknij">Zamknij</button>
+    <div class="napisy-okno"><div class="napisy-tresc" id="napisyTresc"></div></div>
+  </dialog>
+  <dialog id="dlgPortret" class="dlg">
+    <h2 style="margin-top:0" id="portretTytul" data-i18n="portret.tytul">portret</h2>
+    <div id="portretTresc"></div>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn ghost" data-zamknij="dlgPortret" data-i18n="dlg.zamknij">Zamknij</button></div>
+  </dialog>
+  <dialog id="dlgKronika" class="dlg">
+    <div class="dlg-head"><h3 data-i18n="kr.tytul">kronika</h3><button type="button" class="btn ghost" data-zamknij="dlgKronika" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="kr.lead" style="margin-bottom:12px"></p>
+    <div class="log" id="kronikaLista"></div>
+  </dialog>
+  <dialog id="dlgSlownik" class="dlg">
+    <div class="dlg-head"><h3 data-i18n="slownik.tytul">słownik istot</h3><button type="button" class="btn ghost" data-zamknij="dlgSlownik" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="slownik.lead" style="margin-bottom:12px"></p>
+    <div class="log" id="slownikLista"></div>
+  </dialog>
+  <dialog id="dlgCzas" class="dlg szeroki">
+    <div class="dlg-head"><h3 data-i18n="rod.czas">linia czasu świata</h3><button type="button" class="btn ghost" data-zamknij="dlgCzas" data-i18n="dlg.zamknij">Zamknij</button></div>
+    <p class="hint" data-i18n="rod.czas.lead" style="margin-bottom:12px"></p>
+    <div class="drzewo"><svg id="czasSvg" width="640" height="120"></svg></div>
+  </dialog>
+
+  
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const t = (k, v) => window.i18n.t(k, v);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const pokarmTekst = (g) => g > 0.6 ? t("pokarm.gesty") : g > 0.25 ? t("pokarm.rzadki") : t("pokarm.zaden");
+  const liczba = (n, jedna, kilka, wiele) => n === 1 ? t(jedna) : (n >= 2 && n <= 4) ? t(kilka, { n }) : t(wiele, { n });
+  let ostatniStan = null;
+
+  function rysujOddech(cv, b) {
+    const ctx = cv.getContext("2d"), W = cv.width, cx = W / 2, cy = W / 2;
+    const fill = Math.max(0, Math.min(1, b.energia / 30));
+    const r = 18 + 30 * fill;
+    const col = b.energia <= 0 ? css("--dying") : b.glod > 0.6 ? css("--hunger") : css("--life");
+    ctx.clearRect(0, 0, W, W);
+    const g = ctx.createRadialGradient(cx, cy, r * 0.4, cx, cy, r * 1.6);
+    g.addColorStop(0, col + "55"); g.addColorStop(1, col + "00");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r * 1.6, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = col + (b.tryb === "sen" ? "66" : "cc"); ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = col; ctx.stroke();
+    ctx.fillStyle = css("--ground");
+    const n = Math.min(48, b.geny || 64);
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2, rr = r * (0.35 + 0.5 * ((i * 7919) % 97) / 97);
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, 1.6, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  let SZUKANA = null;                       // istota znaleziona po numerze: dopisana do wyróżnionych
+
+  function renderIstoty(s) {
+    const byty = (s.byty || []).concat(SZUKANA ? [SZUKANA] : []);
+    $("istoty").hidden = !s.zyje;
+    $("bytyTytul").textContent = "istoty, na które warto spojrzeć";
+    const p = s.populacja;
+    $("puls").textContent = p && p.zywych
+      ? `${p.zywych} żywych, wiek średnio ${p.wiek_sredni} (najstarsza ${p.wiek_max}), pokolenia ${p.pokolenia[0]}–${p.pokolenia[1]}, `
+        + `na ${p.miejsc_zajetych} łąkach (najludniejsza: ${p.najludniejsze.ilu} na łące ${p.najludniejsze.miejsce}), `
+        + `genów średnio ${p.genow_srednio} (najwięcej ${p.genow_max}), z duplikacji ${p.z_duplikacji}`
+        + (p.znaczen != null ? ` — słów ${p.slow}, znaczeń w obiegu ${p.znaczen}` : "")
+      : "";
+    const kol = s.kolejnosc || (s.pole || []).map((_, i) => String(i));
+    const idx = (m) => { const i = kol.indexOf(String(m)); return i < 0 ? 0 : i; };
+    const bl = $("byty"); bl.innerHTML = "";
+    const naglowek = document.createElement("div"); naglowek.className = "wiersz naglowek";
+    naglowek.innerHTML = `<span></span><span>${t("karta.istota")}</span><span>${t("karta.stan")}</span><span>${t("karta.pokolenie")}</span><span>${t("karta.rodzic")}</span><span>${t("karta.dzieci")}</span><span>${t("karta.wiek")}</span><span>${t("karta.energia")}</span><span>${t("karta.miejsce")}</span><span>${t("karta.pokarm")}</span><span>${t("karta.mowi")}</span>`;
+    bl.appendChild(naglowek);
+    byty.forEach((b) => {
+      const mw = b.mowa || {};
+      const mowa = mw.krzyk ? t("mowa.krzyk") : mw.slowo ? "„" + esc(mw.slowo) + "”" : (mw.glos && mw.znaki) ? esc(mw.znaki) + (mw.odpowiedz != null ? ` <small>${t("mowa.odpowiada", { nr: mw.odpowiedz })}</small>` : "") : b.tryb === "sen" ? t("mowa.spi") : t("mowa.milczy");
+      const g = (s.pole && s.pole.length) ? (s.pole[idx(b.miejsce)] ?? 0) : null;
+      const w = document.createElement("div"); w.className = "wiersz";
+      w.innerHTML = `<canvas width="128" height="128"></canvas>
+        <span class="nr">${t("nr", { nr: b.nr })} <small>${b.plec === "n" ? "♀" : b.plec === "d" ? "♂" : ""}</small>${b.czym ? `<br><small class="hint">${esc(b.czym)}</small>` : ""}</span>
+        <span><span class="state ${b.tryb === "sen" ? "sen" : ""}">${b.tryb === "sen" ? t("spi") : t("zyje")}</span></span>
+        <span>${b.pokolenie}</span>
+        <span>${b.rodzic != null ? t("nr", { nr: b.rodzic }) + (b.rodzic2 != null ? ", " + t("nr", { nr: b.rodzic2 }) : "") : t("z_cudu")}</span>
+        <span>${b.dzieci || 0}</span>
+        <span>${b.wiek}</span>
+        <span>${b.energia.toFixed(1)} / ${s.pojemnosc ?? 30}<div class="bar${b.energia < 2 ? " dying" : b.glod > 0.6 ? " hungry" : ""}"><i style="width:${(100 * Math.min(1, b.energia / (s.pojemnosc ?? 30))).toFixed(1)}%"></i></div></span>
+        <span>${t("nr", { nr: b.miejsce })}</span>
+        <span>${g != null ? pokarmTekst(g) : "—"}</span>
+        <span class="mowa">${mowa}</span>`;
+      w.tabIndex = 0; w.setAttribute("role", "button");
+      w.addEventListener("click", () => otworzDialog(b, s));
+      w.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); otworzDialog(b, s); } });
+      bl.appendChild(w);
+      rysujOddech(w.querySelector("canvas"), b);
+    });
+  }
+
+  // --- zdarzenia: toasty z echem z zaświatów ---
+  let audio = null, dzwiekWl = false;
+  try { dzwiekWl = localStorage.getItem("dzwiek") === "1"; } catch (e) {}
+  function ustawDzwiek(on) {
+    dzwiekWl = on; const b = $("dzwiek"); if (b) { b.setAttribute("aria-pressed", on ? "true" : "false"); b.classList.toggle("on", on); }
+    try { localStorage.setItem("dzwiek", on ? "1" : "0"); } catch (e) {}
+    if (on && !audio) { try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (on && audio && audio.state === "suspended") audio.resume();
+  }
+  function echoZZaswiatow(typ) {
+    if (!dzwiekWl || !audio) return;
+    if (typ === "pokarm") return;                                   // pokarm bez dźwięku
+    const t0 = audio.currentTime;
+    const master = audio.createGain(); master.gain.value = 0.22; master.connect(audio.destination);
+    const delay = audio.createDelay(2.0); const fb = audio.createGain(); const filtr = audio.createBiquadFilter();
+    filtr.type = "lowpass"; delay.connect(fb); fb.connect(filtr); filtr.connect(delay); delay.connect(master);
+    const nuta = (f0, f1, start, dl, typOsc, glosnosc) => {
+      const o = audio.createOscillator(); o.type = typOsc;
+      o.frequency.setValueAtTime(f0, t0 + start);
+      o.frequency.exponentialRampToValueAtTime(f1, t0 + start + dl);
+      const g = audio.createGain(); g.gain.setValueAtTime(0.0001, t0 + start);
+      g.gain.exponentialRampToValueAtTime(glosnosc, t0 + start + 0.06);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + start + dl);
+      o.connect(g); g.connect(master); g.connect(delay);
+      o.start(t0 + start); o.stop(t0 + start + dl + 0.05);
+    };
+    if (typ === "smierc") {                                          // nisko, opada, długie echo
+      delay.delayTime.value = 0.55; fb.gain.value = 0.62; filtr.frequency.value = 600;
+      nuta(150, 55, 0, 2.6, "sine", 0.6); nuta(225, 82, 0.1, 2.4, "triangle", 0.25);
+    } else if (typ === "znaczenie") {                                // trzy nuty w górę, jak olśnienie
+      delay.delayTime.value = 0.3; fb.gain.value = 0.5; filtr.frequency.value = 1800;
+      nuta(440, 450, 0, 0.5, "sine", 0.4); nuta(554, 560, 0.25, 0.6, "sine", 0.4); nuta(659, 670, 0.5, 1.4, "triangle", 0.35);
+    } else if (typ === "narodziny") {                                // dwie nuty w górę, jasno
+      delay.delayTime.value = 0.36; fb.gain.value = 0.45; filtr.frequency.value = 1400;
+      nuta(330, 340, 0, 0.7, "sine", 0.5); nuta(495, 510, 0.35, 1.2, "sine", 0.45); nuta(660, 680, 0.35, 1.2, "triangle", 0.15);
+    } else if (typ === "zrozumienie") {                              // dzwonek, trzy tony, krótkie echo
+      delay.delayTime.value = 0.25; fb.gain.value = 0.4; filtr.frequency.value = 2400;
+      nuta(880, 880, 0, 0.9, "sine", 0.4); nuta(1320, 1320, 0.12, 0.9, "sine", 0.25); nuta(1760, 1760, 0.24, 1.1, "sine", 0.15);
+    } else {                                                         // inne: pojedynczy ton
+      delay.delayTime.value = 0.4; fb.gain.value = 0.5; filtr.frequency.value = 1000;
+      nuta(220, 260, 0, 1.4, "sine", 0.4);
+    }
+  }
+  function toast(typ, tekst) {
+    const box = $("toasty"); const el = document.createElement("div"); el.className = "toast " + typ; el.textContent = tekst;
+    box.appendChild(el);
+    while (box.children.length > 4) box.removeChild(box.firstChild);
+    requestAnimationFrame(() => el.classList.add("widac"));
+    setTimeout(() => { el.classList.remove("widac"); setTimeout(() => el.remove(), 600); }, 7000);
+    echoZZaswiatow(typ);
+  }
+  function opisZdarzenia(x) {
+    if (x.typ === "smierc") return t("zd.smierc", { nr: x.nr, w: x.wiek });
+    if (x.typ === "narodziny") return t(x.rodzic != null ? "zd.narodziny" : "zd.cud", { nr: x.nr, p: x.pokolenie, r: x.rodzic });
+    if (x.typ === "pokarm") return x.wszystkie ? t("zd.pokarm.wszystkie") : t("zd.pokarm", { nr: (x.nr || []).map((n) => t("nr", { nr: n })).join(", ") });
+    if (x.typ === "zrozumienie") return t(x.cel != null ? "zd.zrozumienie.cel" : "zd.zrozumienie", { nr: x.nr, od: x.od, czyn: x.czyn, cel: x.cel });
+    if (x.typ === "pozar") return t("zd.pozar", { m: x.miejsce });
+    if (x.typ === "odwrot") return t("zd.odwrot", { nr: x.nr, m: x.miejsce, o: (x.obroncy || []).map((n) => t("nr", { nr: n })).join(", ") });
+    if (x.typ === "starcie") return t(x.wygral === "intruz" ? "zd.starcie.intruz" : "zd.starcie.obrona", { nr: x.nr, m: x.miejsce, o: (x.obroncy || []).map((n) => t("nr", { nr: n })).join(", ") });
+    if (x.typ === "powodz") return t("zd.powodz", { m: x.miejsce });
+    if (x.typ === "przejscie") return t(x.prawda ? "zd.przejscie" : "zd.przejscie.klamstwo", { nr: x.nr, m: x.miejsce, o: (x.obroncy || []).map((n) => t("nr", { nr: n })).join(", ") });
+    if (x.typ === "klamstwo") return t("zd.klamstwo", { nr: x.nr, m: x.miejsce, o: (x.obroncy || []).map((n) => t("nr", { nr: n })).join(", ") });
+    if (x.typ === "bliskosc") return t("zd.bliskosc", { nr: x.nr, z: x.z, m: x.miejsce });
+    if (x.typ === "odkrycie") return t(x.co === "spichlerz" ? "zd.odkrycie.spichlerz" : "zd.odkrycie", { nr: x.nr, m: x.miejsce });
+    if (x.typ === "znaczenie") return t("zd.znaczenie", { nr: x.nr, od: x.od, czyn: x.ludzko || x.czyn });
+    if (x.typ === "koniec") return t("zd.koniec", { nr: (x.ostatni || []).map((n) => t("nr", { nr: n })).join(", ") });
+    return x.typ;
+  }
+  let odCzasu = null;
+  async function zdarzenia() {
+    try {
+      const r = await fetch("/api/zdarzenia?od=" + (odCzasu ?? 0), { cache: "no-store" });
+      const d = await r.json();
+      if (odCzasu === null) { odCzasu = d.teraz; return; }        // pierwszy raz: nie pokazuj przeszłości
+      // nie przeskakujemy do „teraz” serwera: świat zapisuje zdarzenia dopiero na końcu cyklu,
+      // więc zdarzenie o czasie wcześniejszym niż ta odpowiedź może trafić do pliku już po odczycie
+      const czasy = (d.zdarzenia || []).map((x) => x.czas || 0);
+      if (czasy.length) odCzasu = Math.max(...czasy);
+      // zapisujemy wszystko (kronika), pokazujemy jedno: nowe znaczenie słowa w tym świecie
+      (d.zdarzenia || []).filter((x) => x.typ === "znaczenie").slice(-4).forEach((x) => toast(x.typ, opisZdarzenia(x)));
+    } catch (e) {}
+  }
+  const dz = $("dzwiek");
+  if (dz) { dz.addEventListener("click", () => { ustawDzwiek(!dzwiekWl); if (dzwiekWl) echoZZaswiatow("narodziny"); }); if (dzwiekWl) { dz.classList.add("on"); dz.setAttribute("aria-pressed", "true"); document.addEventListener("pointerdown", () => ustawDzwiek(true), { once: true }); } }
+
+  // --- okno istoty ---
+  const KOLOR = { rana: "--dying", pokarm: "--life", echo: "--sleep", slowo: "--hunger", inny: "--hunger" };
+  let dlgNr = null, dlgWn = null;
+  const NZ = () => ({ rana: t("wn.leg.rana"), pokarm: t("wn.leg.pokarm"), echo: t("wn.leg.echo"), slowo: t("wn.leg.slowo"), inny: t("wn.leg.inny") });
+  function opiszGen(g, b) {
+    const z = zmysl(g);
+    const nz = NZ();
+    const zr = Object.entries(g.zrodla || {}).sort((a, b2) => b2[1] - a[1]);
+    const co = z.kolor ? (z.kolor === "--dying" ? t("wn.leg.rana") : z.kolor === "--life" ? t("wn.leg.pokarm") : t("wn.gen.slowo", { t: esc((g.slowa[0] || {}).slowo || "") })) : "";
+    const linie = [`<span class="k">${t("wn.gen.naglowek", { g: g.nr, nr: b.nr })}</span>`];
+    linie.push(z.kolor ? t("wn.gen.slyszy", { co: "<b>" + co + "</b>", z: z.sila.toFixed(2) }) : t("wn.gen.nic", { r: g.rezonans.rana.toFixed(2), p: g.rezonans.pokarm.toFixed(2) }));
+    linie.push(t("wn.gen.wartosci", { r: g.rezonans.rana.toFixed(2), p: g.rezonans.pokarm.toFixed(2) }) + (g.slowa.length ? " · " + g.slowa.map((s) => "„" + esc(s.slowo) + "” " + s.r.toFixed(2)).join(" · ") : ""));
+    linie.push(g.otwarcia ? t("wn.gen.otwieral", { n: "<b>" + g.otwarcia + "</b>", nawyk: (g.nawyk * 100).toFixed(0), pow: g.powloka.toFixed(1) }) + (zr.length ? " " + t("wn.gen.otwieralo", { lista: zr.map(([k2, v]) => nz[k2] + " " + v + "×").join(", ") }) : "") : t("wn.gen.nigdy"));
+    linie.push(`<span class="k">${t("wn.gen.stopka")}</span>`);
+    return linie.join("<br>");
+  }
+  function otworzGenom() {
+    const x = dlgWn; if (!x) return;
+    $("genomTytul").textContent = t("genom.tytul") + " · " + t("nr", { nr: x.nr });
+    const n = Math.ceil(Math.sqrt(x.geny.length));
+    rysujGeny($("genomCanvas"), x);
+    $("genomLegenda").innerHTML = Object.keys(KOLOR).map((k) => `<span><i style="background:${css(KOLOR[k])}"></i>${NZ()[k]}</span>`).join("");
+    const znane = x.geny.filter((g) => g.otwarcia > 0).length;
+    const zmysly = { rana: 0, pokarm: 0, slowo: 0, nic: 0 };
+    x.geny.forEach((g) => { const z = zmysl(g); zmysly[!z.kolor ? "nic" : z.kolor === "--dying" ? "rana" : z.kolor === "--life" ? "pokarm" : "slowo"]++; });
+    $("genomDane").innerHTML = [
+      wiersz(t("genom.geny"), x.geny.length + " · " + n + "×" + n),
+      wiersz(t("genom.znane"), t("wn.znane.v", { a: znane, b: x.geny.length })),
+      wiersz(t("genom.zmysly"), `${t("wn.leg.rana")} ${zmysly.rana} · ${t("wn.leg.pokarm")} ${zmysly.pokarm} · ${t("wn.leg.slowo")} ${zmysly.slowo} · ${t("genom.nic")} ${zmysly.nic}`),
+      wiersz(t("dlg.otwarc"), x.otwarcia),
+      wiersz(t("dlg.kaskada"), x.najdluzsza),
+      wiersz(t("dlg.glos"), esc(x.glos)),
+    ].join("");
+    const top = x.geny.slice().sort((a, b) => b.otwarcia - a.otwarcia).slice(0, 8).filter((g) => g.otwarcia > 0);
+    $("genomTop").innerHTML = top.length ? top.map((g) => { const z = zmysl(g); const zr = Object.entries(g.zrodla || {}).sort((a, b2) => b2[1] - a[1]).map(([k2, v]) => NZ()[k2] + " " + v + "×").join(", "); return `<div class="r two"><span class="c">${g.otwarcia}×</span><span>${t("genom.gen", { g: g.nr })} · ${t("genom.nawyk", { n: (g.nawyk * 100).toFixed(0) })}${zr ? " · " + zr : ""}</span></div>`; }).join("") : `<p class="hint">${t("wn.gen.nigdy")}</p>`;
+    $("genomGen").hidden = true;
+    $("dlgGenom").showModal();
+  }
+  if ($("dlgGenomBtn")) $("dlgGenomBtn").addEventListener("click", otworzGenom);
+  $("genomCanvas").addEventListener("click", (ev) => {
+    const x = dlgWn; if (!x) return;
+    const cv = $("genomCanvas"), r = cv.getBoundingClientRect(), n = Math.ceil(Math.sqrt(x.geny.length));
+    const c = Math.floor((ev.clientX - r.left) / r.width * n), w = Math.floor((ev.clientY - r.top) / r.height * n);
+    const g = x.geny[w * n + c]; if (!g) return;
+    $("genomGen").innerHTML = opiszGen(g, x); $("genomGen").hidden = false;
+  });
+  function zmysl(g) {
+    const k = [[t("wn.leg.rana"), g.rezonans.rana, "--dying"], [t("wn.leg.pokarm"), g.rezonans.pokarm, "--life"]];
+    if (g.slowa && g.slowa.length) k.push([g.slowa[0].slowo, g.slowa[0].r, "--hunger"]);
+    k.sort((a, b) => b[1] - a[1]);
+    return k[0][1] >= 0.5 ? { kolor: k[0][2], sila: k[0][1] } : { kolor: null, sila: 0 };
+  }
+  function rysujGeny(canvas, b) {
+    const ctx = canvas.getContext("2d"), W = canvas.width, n = Math.ceil(Math.sqrt(b.geny.length)), cell = W / n, pad = Math.max(0.5, cell * 0.12);
+    ctx.clearRect(0, 0, W, W);
+    b.geny.forEach((g) => {
+      const x = (g.nr % n) * cell + pad, y = Math.floor(g.nr / n) * cell + pad, sz = cell - 2 * pad;
+      const z = zmysl(g);
+      ctx.globalAlpha = 0.10 + 0.90 * Math.max(g.nawyk, z.sila * 0.5); ctx.fillStyle = z.kolor ? css(z.kolor) : css("--ink"); ctx.fillRect(x, y, sz, sz); ctx.globalAlpha = 1;
+      const jak = b.otwarte[String(g.nr)];
+      if (jak) { const lw = n > 12 ? 2 : 3; ctx.strokeStyle = css(KOLOR[jak]); ctx.lineWidth = lw; ctx.strokeRect(x + lw / 2, y + lw / 2, sz - lw, sz - lw); }
+    });
+  }
+  function wiersz(k, v) { return `<div class="readout"><span class="k">${k}</span><span>${v}</span></div>`; }
+  async function otworzDialog(b, s) {
+    dlgNr = b.nr;
+    const d = $("dlg");
+    $("dlgTytul").textContent = t("nr", { nr: b.nr }) + (b.plec === "n" ? " ♀" : b.plec === "d" ? " ♂" : "") + " · " + (b.tryb === "sen" ? t("spi") : t("zyje"));
+    $("dlgLabel").textContent = t("dlg.powiedz", { nr: b.nr });
+    $("dlgHint").textContent = ""; $("dlgSlowo").value = "";
+    $("dlgGenyOpis").textContent = t("dlg.ladowanie");
+    $("dlgDane").innerHTML = [
+      wiersz(t("karta.pokolenie"), b.pokolenie + " · " + (b.rodzic != null ? t("dziecko_nr", { nr: b.rodzic }) : t("z_cudu")) + (b.dzieci ? " · " + t("dzieci", { n: b.dzieci }) : "")),
+      wiersz(t("karta.wiek"), t("cykli", { n: b.wiek })),
+      wiersz(t("karta.energia"), b.energia.toFixed(1) + " / " + (s.pojemnosc ?? 30)),
+      wiersz(t("karta.miejsce"), t("nr", { nr: b.miejsce })),
+      wiersz(t("dlg.lownosc"), b.lownosc != null ? (b.lownosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.sila"), b.sila != null ? (b.sila * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.ciekawosc"), b.ciekawosc != null ? (b.ciekawosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.klimat"), b.optimum != null ? t("dlg.klimat.v", { o: (b.optimum * 100).toFixed(0), tol: (b.tolerancja * 100).toFixed(0) }) : "—"),
+      wiersz(t("dlg.stadnosc"), b.stadnosc != null ? (b.stadnosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.dlugowiecznosc"), b.dlugowiecznosc != null ? (b.dlugowiecznosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.ufnosc"), b.ufnosc != null ? (b.ufnosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.szczerosc"), b.szczerosc != null ? (b.szczerosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.pojetnosc"), b.pojetnosc != null ? (b.pojetnosc * 100).toFixed(0) + "%" : "—"),
+      wiersz(t("dlg.towarzyskosc"), b.towarzyskosc != null ? (b.towarzyskosc * 100).toFixed(0) + "%" : "—"),
+    ].join("");
+    d.showModal();
+    try {
+      const r = await fetch("/api/wnetrze?nr=" + b.nr, { cache: "no-store" });
+      const w = await r.json();
+      const x = (w.byty || []).find((y) => y.nr === b.nr);
+      if (!x) { $("dlgGenyOpis").textContent = t("dlg.brak"); dlgWn = null; return; }
+      dlgWn = x;
+      rysujGeny($("dlgGeny"), x);
+      $("dlgGenyOpis").textContent = t("dlg.znane", { a: x.geny.filter((g) => g.otwarcia > 0).length, b: x.geny.length });
+      const roz = (x.rozumie || []).length ? x.rozumie.map((r2) => t("nr", { nr: r2.nr }) + " " + esc(r2.znaki) + ": " + (r2.slyszy ? (r2.o_pokarmie ? t("wn.rozumie.pokarm") : t("wn.rozumie.nie_wie")) : t("wn.rozumie.nie", { z: r2.zgodnosc.toFixed(2) }))).join("<br>") : t("wn.rozumie.nikogo");
+      $("dlgDane").innerHTML += [
+        wiersz(t("dlg.glos"), esc(x.glos)),
+        wiersz(t("dlg.rozumie"), roz),
+        wiersz(t("dlg.slownik"), x.slownik.length ? x.slownik.map(esc).join(", ") : t("wn.nie_zna")),
+        wiersz(t("dlg.echo"), x.echo.length),
+        wiersz(t("dlg.otwarc"), x.otwarcia),
+        wiersz(t("dlg.kaskada"), x.najdluzsza),
+        wiersz(t("dlg.wytrwalosc"), x.wytrwalosc),
+        wiersz(t("dlg.sasiedzi"), (x.sasiedzi || []).map((m) => t("nr", { nr: m })).join(", ") || t("wn.brak")),
+      ].join("");
+    } catch (e) { $("dlgGenyOpis").textContent = t("dlg.brak"); }
+  }
+  const nw = $("nakarmWszystkie");
+  if (nw) nw.addEventListener("click", async () => {
+    try {
+      const r = await fetch("/api/nakarm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ do: "wszystkie" }) });
+      if (!r.ok) throw new Error(r.status);
+      toast("pokarm", t("nakarm.wszystkie.ok"));
+    } catch (e) { toast("smierc", t("brak_serwera")); }
+  });
+  $("dlgZamknij").addEventListener("click", () => $("dlg").close());
+  const dn = $("dlgNakarm");
+  if (dn) dn.addEventListener("click", async () => {
+    if (dlgNr == null) return;
+    try {
+      const r = await fetch("/api/nakarm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ do: dlgNr }) });
+      if (!r.ok) throw new Error(r.status);
+      toast("pokarm", t("dlg.nakarm.ok", { nr: dlgNr }));
+    } catch (e) { toast("smierc", t("brak_serwera")); }
+  });
+  $("dlg").addEventListener("click", (e) => { if (e.target === $("dlg")) $("dlg").close(); });
+  $("dlgForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const raw = $("dlgSlowo").value.trim(); if (!raw || dlgNr == null) return;
+    try {
+      const r = await fetch("/api/slowo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slowo: raw, do: dlgNr }) });
+      if (!r.ok) throw new Error(r.status);
+      $("dlgSlowo").value = ""; $("dlgHint").className = "hint"; $("dlgHint").textContent = t("dlg.ok", { t: raw, nr: dlgNr });
+    } catch (err) { $("dlgHint").className = "hint err"; $("dlgHint").textContent = t("powiedz.blad"); }
+  });
+
+  const fmtAgo = (ts) => {
+    if (!ts) return "—";
+    const sec = Math.max(0, (Date.now() / 1000) - ts);
+    if (sec < 90) return t("przed_chwila");
+    if (sec < 3600) return t("min_temu", { n: Math.round(sec / 60) });
+    if (sec < 86400) return t("godz_temu", { n: Math.round(sec / 3600) });
+    return t("dni_temu", { n: Math.round(sec / 86400) });
+  };
+  function kafel(k, v) { return `<div class="kafel"><span class="k">${k}</span><span class="v">${v}</span></div>`; }
+  function renderSwiat(s) {
+    $("swiat").hidden = !s.zyje;
+    document.querySelectorAll("#akcje [data-otworz], #nakarmWszystkie").forEach((b) => { b.hidden = !s.zyje; });
+    if (!s.zyje) return;
+    $("procesStoi").hidden = s.proces_zyje !== false;
+    const tempo = s.cykl_sekund ? (s.cykl_sekund >= 60 ? t("co_min", { n: s.cykl_sekund / 60 }) : t("co_s", { n: s.cykl_sekund })) : "—";
+    $("kafle").innerHTML = [
+      kafel(t("swiat.cykl"), s.cykl_swiata ?? "—"),
+      kafel(t("swiat.tempo"), tempo),
+      kafel(t("swiat.ostatni"), fmtAgo(s.czas)),
+      kafel(t("swiat.zywych"), s.zywych ?? 0),
+      kafel(t("swiat.zmarlych"), s.zmarlych ?? 0),
+      kafel("chorzy", ((s.populacja || {}).chorych ?? 0) + ((s.populacja || {}).odpornosc != null ? ` · odporność ${(s.populacja || {}).odpornosc}` : "")),
+      kafel("gatunki", (s.populacja || {}).gatunkow ?? "—"),
+      kafel("drapieżniki", (s.populacja || {}).drapiezniki ?? 0),
+      kafel("ogniska", (s.populacja || {}).ogniska ?? 0),
+      kafel("ozdoba", ((s.populacja || {}).ozdoba ?? "—") + " · gust " + ((s.populacja || {}).gust ?? "—")),
+      kafel(t("swiat.geny"), s.geny ?? "—"),
+      kafel(t("swiat.wymiary"), s.wymiary ?? 4),
+      kafel(t("swiat.rozmnazanie"), s.dwoje ? t("rozm.dwoje") : t("rozm.jedno")),
+      kafel(t("swiat.miejsca"), s.znanych_miejsc ?? (s.pole || []).length),
+      kafel(t("swiat.pora"), (s.pora ? t("pora." + s.pora) : "—") + (s.noc ? " · " + t("noc") : "")),
+    ].join("");
+  }
+
+  // --- ród: drzewo i linia czasu ---
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  function renderRod(d) {
+    const osoby = d.osoby, byNr = {}; osoby.forEach((o) => byNr[o.nr] = o);
+    const dzieci = {}; osoby.forEach((o) => { if (o.rodzic != null && byNr[o.rodzic]) (dzieci[o.rodzic] = dzieci[o.rodzic] || []).push(o); });
+    const korzenie = osoby.filter((o) => o.rodzic == null || !byNr[o.rodzic]);
+    const W = 96, H = 58, GX = 12, GY = 34;
+    let x = 0; const pos = {};
+    function uloz(o, g) {
+      const ds = (dzieci[o.nr] || []).slice().sort((a, b) => a.nr - b.nr);
+      if (!ds.length) { pos[o.nr] = { x: x, g }; x += W + GX; return; }
+      ds.forEach((c) => uloz(c, g + 1));
+      pos[o.nr] = { x: (pos[ds[0].nr].x + pos[ds[ds.length - 1].nr].x) / 2, g };
+    }
+    korzenie.sort((a, b) => a.nr - b.nr).forEach((k) => { uloz(k, 0); x += GX; });
+    const maxG = Math.max(0, ...Object.values(pos).map((p) => p.g));
+    const svg = $("drzewoSvg"); svg.innerHTML = "";
+    const width = Math.max(640, x + 40), height = (maxG + 1) * (H + GY) + 30;
+    svg.setAttribute("width", width); svg.setAttribute("height", height);
+    for (let g = 0; g <= maxG; g++) { const tx = el("text", { x: 8, y: 14 + g * (H + GY), class: "pok" }); tx.textContent = t("rod.pokolenie", { n: g + 1 }); svg.appendChild(tx); }
+    osoby.forEach((o) => {
+      const p = pos[o.nr]; if (!p) return;
+      const px = p.x + 20, py = 20 + p.g * (H + GY);
+      if (o.rodzic != null && pos[o.rodzic]) { const q = pos[o.rodzic]; svg.appendChild(el("line", { x1: q.x + 20 + W / 2, y1: 20 + q.g * (H + GY) + H, x2: px + W / 2, y2: py })); }
+      const gN = el("g", { class: "node " + (o.zyje ? "zyje" : "zmarl"), transform: `translate(${px},${py})` });
+      gN.appendChild(el("rect", { width: W, height: H, rx: 4 }));
+      const t1 = el("text", { x: 8, y: 18 }); t1.textContent = t("nr", { nr: o.nr }) + (o.rodzic == null ? " · " + t("rod.cud") : (o.rodzic2 != null ? " · +" + t("nr", { nr: o.rodzic2 }) : "")); gN.appendChild(t1);
+      const t2 = el("text", { x: 8, y: 34, class: "d" }); t2.textContent = (o.zyje ? t("rod.zyje") : t("rod.umarla")) + " · " + t("rod.c", { n: o.wiek }); gN.appendChild(t2);
+      const t3 = el("text", { x: 8, y: 50, class: "d" }); t3.textContent = o.dzieci ? t("dzieci", { n: o.dzieci }) : (o.zyje ? "E " + o.energia : t("rod.bez_dzieci")); gN.appendChild(t3);
+      svg.appendChild(gN);
+    });
+    const cz = $("czasSvg"); cz.innerHTML = "";
+    const T = Math.max(1, d.cykl_swiata), L = 56, R = 16, rowH = 18, top = 22;
+    const cw = Math.max(640, Math.min(2400, T * 4 + L + R)), ch = top + osoby.length * rowH + 30;
+    cz.setAttribute("width", cw); cz.setAttribute("height", ch);
+    const sx = (c) => L + (cw - L - R) * (c / T);
+    cz.appendChild(el("line", { x1: L, y1: ch - 22, x2: cw - R, y2: ch - 22, class: "os" }));
+    const krok = T > 400 ? 100 : T > 150 ? 50 : T > 60 ? 20 : 10;
+    for (let c = 0; c <= T; c += krok) { cz.appendChild(el("line", { x1: sx(c), y1: ch - 22, x2: sx(c), y2: ch - 17, class: "os" })); const tk = el("text", { x: sx(c), y: ch - 6, class: "tick", "text-anchor": "middle" }); tk.textContent = c; cz.appendChild(tk); }
+    const tn = el("text", { x: sx(T), y: 12, class: "tick", "text-anchor": "end" }); tn.textContent = t("rod.teraz", { n: T }); cz.appendChild(tn);
+    osoby.forEach((o, i) => {
+      const y = top + i * rowH, od = o.urodzony ?? 0, doC = o.zyje ? T : (o.zmarl ?? od + o.wiek);
+      const lb = el("text", { x: L - 6, y: y + 12, class: "lbl", "text-anchor": "end" }); lb.textContent = t("nr", { nr: o.nr }); cz.appendChild(lb);
+      cz.appendChild(el("rect", { x: sx(od), y: y + 3, width: Math.max(2, sx(doC) - sx(od)), height: rowH - 6, rx: 2, class: "bar" + (o.zyje ? " zyje" : "") }));
+      if (o.rodzic == null) cz.appendChild(el("circle", { cx: sx(od), cy: y + rowH / 2, r: 4, class: "cud" }));
+    });
+    const lg = el("text", { x: L, y: 12, class: "tick" }); lg.textContent = t("rod.legenda"); cz.appendChild(lg);
+  }
+  let ostatniRod = null;
+  async function odswiezRod() {
+    try { const r = await fetch("/api/rod", { cache: "no-store" }); ostatniRod = await r.json(); renderRod(ostatniRod); } catch (e) {}
+  }
+  window.i18n.onChange(() => { if (ostatniRod) renderRod(ostatniRod); });
+  async function otworzGenomSwiata() {
+    $("dlgGenomSwiata").showModal();
+    const box = $("gsTresc"); box.innerHTML = `<p class="hint">${t("dlg.ladowanie")}</p>`;
+    try {
+      const r = await fetch("/api/genom", { cache: "no-store" }); const g = await r.json();
+      const st = g.stale || {}, k = g.kierunki || {};
+      const sek = (tytul, wiersze) => `<h2>${tytul}</h2><div class="log">${wiersze.map(([a, b]) => `<div class="r two"><span class="c">${a}</span><span>${b}</span></div>`).join("")}</div>`;
+      box.innerHTML = [
+        sek(t("gs.budowa"), [
+          [t("gs.gen"), t("gs.gen.v", { w: g.wymiary })],
+          [t("gs.genom"), t("gs.genom.v", { n: g.geny ?? "—" })],
+          [t("gs.sygnal"), t("gs.sygnal.v", { w: g.wymiary })],
+          [t("gs.bramka"), t("gs.bramka.v", { z: st.zgodnosc })],
+        ]),
+        sek(t("gs.dziedziczne"), [
+          [t("gs.rdzen"), t("gs.rdzen.v", { m: (st.mutacja * 100).toFixed(0), n: (st.nowy_gen * 100).toFixed(0) })],
+          [t("gs.receptory"), t("gs.receptory.v")],
+          [t("gs.akcent"), t("gs.akcent.v", { a: (st.akcent * 100).toFixed(0) })],
+          [t("gs.wytrwalosc"), t("gs.wytrwalosc.v")],
+          [t("gs.lownosc"), t("gs.lownosc.v")],
+          [t("gs.sila"), t("gs.sila.v")],
+          [t("gs.ciekawosc"), t("gs.ciekawosc.v")],
+          [t("gs.odpornosc"), t("gs.odpornosc.v")],
+          [t("gs.terytorium"), t("gs.terytorium.v")],
+          [t("gs.stadnosc"), t("gs.stadnosc.v")],
+          [t("gs.dlugowiecznosc"), t("gs.dlugowiecznosc.v")],
+          [t("gs.ufnosc"), t("gs.ufnosc.v")],
+          [t("gs.szczerosc"), t("gs.szczerosc.v")],
+          [t("gs.pojetnosc"), t("gs.pojetnosc.v")],
+          [t("gs.towarzyskosc"), t("gs.towarzyskosc.v")],
+          [t("gs.dwoje"), t("gs.dwoje.tak")],
+          [t("gs.plec"), t("gs.plec.v")],
+        ]),
+        sek(t("gs.nabyte"), [
+          [t("gs.powloka"), t("gs.powloka.v", { w: st.wchlanianie })],
+          [t("gs.nawyki"), t("gs.nawyki.v", { n: st.nawyk, o: st.koszt_odruchu, b: st.koszt_bramki })],
+          [t("gs.slownik"), t("gs.slownik.v")],
+          [t("gs.echo"), t("gs.echo.v")],
+          [t("gs.pamiec"), t("gs.pamiec.v")],
+          [t("gs.kultura"), t("gs.kultura.v")],
+          [t("gs.rozmowa"), t("gs.rozmowa.v")],
+        ]),
+        sek(t("gs.gatunek"), [
+          [t("wn.leg.rana"), esc(k.rana || "—") + " · " + t("gs.wrodzony")],
+          [t("wn.leg.pokarm"), esc(k.pokarm || "—") + " · " + t("gs.wrodzony")],
+          [t("jz.sygnal.wolanie"), esc(k.wolanie || "—") + " · " + t("gs.wrodzony")],
+          [t("dlg.glos"), esc(k.glos || "—") + " · " + t("gs.uczony")],
+        ]),
+        sek(t("gs.stale"), [
+          [t("gs.energia"), t("gs.energia.v", { s: st.sytosc, p: st.pojemnosc, c: st.prog_cudu })],
+          [t("gs.koszty"), t("gs.koszty.v", { t: st.koszt_trwania, sn: st.koszt_snu, r: st.koszt_ruchu, b: st.koszt_bramki })],
+          [t("gs.starzenie"), t("gs.starzenie.v", { s: (st.starzenie * 100).toFixed(1) })],
+          [t("gs.opieka"), t("gs.opieka.v", { d: st.dziecinstwo, k: st.karmienie })],
+          [t("gs.swiat"), t("gs.swiat.v", { h: st.hojnosc, c: g.cykl_sekund })],
+          [t("gs.miejsca"), t("gs.miejsca.v")],
+          [t("gs.klimat"), t("gs.klimat.v")],
+        ]),
+      ].join("");
+    } catch (e) { box.innerHTML = `<p class="hint err">${t("brak_serwera")}</p>`; }
+  }
+  async function otworzKronike() {
+    $("dlgKronika").showModal();
+    const box = $("kronikaLista"); box.innerHTML = `<p class="hint">${t("dlg.ladowanie")}</p>`;
+    try {
+      const r = await fetch("/api/kronika", { cache: "no-store" }); const d = await r.json();
+      box.innerHTML = "";
+      if (!d.zdarzenia.length) { box.innerHTML = `<p class="hint">${t("kr.nic")}</p>`; return; }
+      d.zdarzenia.forEach((x) => {
+        const el = document.createElement("div"); el.className = "r two kr " + x.typ;
+        const kiedy = x.czas ? new Date(x.czas * 1000).toLocaleTimeString(window.i18n.kod === "pl" ? "pl-PL" : "en-GB", { hour: "2-digit", minute: "2-digit" }) : "";
+        el.innerHTML = `<span class="c">${x.cykl}<br><small>${kiedy}</small></span><span>${esc(opisZdarzenia(x))}</span>`;
+        box.appendChild(el);
+      });
+    } catch (e) { box.innerHTML = `<p class="hint err">${t("brak_serwera")}</p>`; }
+  }
+  async function otworzSlownik() {
+    $("dlgSlownik").showModal();
+    const box = $("slownikLista"); box.innerHTML = `<p class="hint">${t("dlg.ladowanie")}</p>`;
+    try {
+      const r = await fetch("/api/slownik", { cache: "no-store" }); const d = await r.json();
+      const lista = d.znaczenia || [];
+      box.innerHTML = "";
+      if (d.brak || !lista.length) { box.innerHTML = `<p class="hint">${t("slownik.nic")}</p>`; return; }
+      const nag = document.createElement("div"); nag.className = "r slownik-z naglowek";
+      nag.innerHTML = `<span>${t("slownik.znaczenie")}</span><span>${t("slownik.ile")}</span><span>${t("slownik.kto")}</span>`;
+      box.appendChild(nag);
+      lista.forEach((m) => {
+        const w = document.createElement("div"); w.className = "r slownik-z";
+        w.innerHTML = `<span><b>„${esc(m.ludzko || m.czyn)}”</b> <small>${t("slownik.od_cyklu", { c: m.pierwszy_cykl })}</small></span><span>${m.razy}×</span><span><small>${t("slownik.kto.v", { n: m.mowiacych, s: m.rozumiejacych })}</small></span>`;
+        box.appendChild(w);
+      });
+      const n = (d.slowa || []).length;
+      if (n) { const p = document.createElement("p"); p.className = "hint"; p.style.marginTop = "12px"; p.textContent = t("slownik.razem", { n, c: d.cykl }); box.appendChild(p); }
+    } catch (e) { box.innerHTML = `<p class="hint err">${t("brak_serwera")}</p>`; }
+  }
+  document.querySelectorAll("[data-otworz]").forEach((b) => b.addEventListener("click", () => {
+    const id = b.getAttribute("data-otworz");
+    if (id === "mapa") return otworzMape();
+    if (id === "dlgSlownik") return otworzSlownik();
+    if (id === "dlgKronika") return otworzKronike();
+    if (id === "dlgGenomSwiata") return otworzGenomSwiata();
+    odswiezRod(); $(id).showModal();
+  }));
+  document.querySelectorAll("[data-zamknij]").forEach((b) => b.addEventListener("click", () => $(b.getAttribute("data-zamknij")).close()));
+  ["dlgDrzewo", "dlgCzas", "dlgSlownik", "dlgGenom", "dlgGenomSwiata", "dlgKronika", "dlgPortret"].forEach((id) => $(id).addEventListener("click", (e) => { if (e.target === $(id)) $(id).close(); }));
+
+  // --- mapa miejsc: sieć, układ siłowy ---
+  const uklad = {};
+  let mapaPoz = {}, mapaDane = null;
+  function opiszMiejsce(k) {
+    const w = mapaDane; if (!w) return;
+    const m = (w.miejsca || {})[k]; if (!m) return;
+    const pg = (w.pogoda || {})[k] || {};
+    const tu = (w.byty || []).filter((b) => String(b.miejsce) === String(k)).map((b) => t("nr", { nr: b.nr }));
+    const hist = m.hist || [];
+    const panel = $("miejscePanel");
+    panel.innerHTML = [
+      `<span class="k">${t("mp.tytul", { k })}</span>`,
+      t("mp.pokarm", { g: (m.g * 100).toFixed(0), z: (m.z * 100).toFixed(0) }),
+      t("mp.cechy", { h: ((m.h ?? 0.2) * 100).toFixed(0), a: ((m.a ?? 1) * 100).toFixed(0), lat: ((m.lat ?? 0.5) * 100).toFixed(0) }),
+      t("mp.pogoda", { temp: ((pg.temp ?? 0.5) * 100).toFixed(0), deszcz: ((pg.deszcz ?? 0.5) * 100).toFixed(0), wiatr: ((pg.wiatr ?? 0.3) * 100).toFixed(0) }) + (pg.noc ? " · " + t("noc") : ""),
+      t("mp.sasiedzi", { s: (m.s || []).map((x) => t("nr", { nr: x })).join(", ") }),
+      tu.length ? t("mp.istoty", { lista: tu.join(", ") }) : t("mp.pusto"),
+      `<canvas id="mpHist" width="600" height="90" style="width:100%;height:auto;display:block;margin-top:6px"></canvas>`,
+      `<span class="k">${t("mp.hist", { n: hist.length })}</span>`,
+    ].join("<br>");
+    panel.hidden = false;
+    const cv = $("mpHist"), cx = cv.getContext("2d"), W = cv.width, H = cv.height;
+    cx.clearRect(0, 0, W, H);
+    if (hist.length > 1) {
+      const linia = (idx, kolor) => {
+        cx.strokeStyle = css(kolor); cx.lineWidth = 2; cx.beginPath();
+        hist.forEach((p, i) => { const x = i / (hist.length - 1) * W, y = H - 4 - (H - 8) * p[idx]; i ? cx.lineTo(x, y) : cx.moveTo(x, y); });
+        cx.stroke();
+      };
+      linia(2, "--sleep"); linia(1, "--hunger"); linia(0, "--life");
+    }
+  }
+  $("mapaCanvas").addEventListener("click", (ev) => {
+    const cv = $("mapaCanvas"), r = cv.getBoundingClientRect();
+    const x = (ev.clientX - r.left) / r.width * cv.width, y = (ev.clientY - r.top) / r.height * cv.height;
+    let best = null, bd = 1e9;
+    Object.entries(mapaPoz).forEach(([k, p]) => { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; best = k; } });
+    if (best !== null && bd < 40 * 40) opiszMiejsce(best);
+  });
+  function ulozMape(miejsca) {
+    const ids = Object.keys(miejsca);
+    ids.forEach((id, i) => { if (!uklad[id]) { const a = i / ids.length * Math.PI * 2; uklad[id] = { x: Math.cos(a) * 0.8, y: Math.sin(a) * 0.8 }; } });
+    for (let it = 0; it < 250; it++) {
+      const sila = {};
+      ids.forEach((a) => { sila[a] = { x: 0, y: 0 }; });
+      for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+        const a = ids[i], b = ids[j], dx = uklad[a].x - uklad[b].x, dy = uklad[a].y - uklad[b].y;
+        const d2 = dx * dx + dy * dy + 0.001, f = 0.02 / d2;
+        sila[a].x += dx * f; sila[a].y += dy * f; sila[b].x -= dx * f; sila[b].y -= dy * f;
+      }
+      ids.forEach((a) => (miejsca[a].s || []).forEach((b) => {
+        if (!uklad[b]) return;
+        const dx = uklad[b].x - uklad[a].x, dy = uklad[b].y - uklad[a].y, d = Math.sqrt(dx * dx + dy * dy) || 0.001;
+        const f = (d - 0.35) * 0.08;
+        sila[a].x += dx / d * f; sila[a].y += dy / d * f;
+      }));
+      ids.forEach((a) => { uklad[a].x += Math.max(-0.05, Math.min(0.05, sila[a].x)); uklad[a].y += Math.max(-0.05, Math.min(0.05, sila[a].y)); });
+    }
+  }
+  function rysujMape(w) {
+    const cv = $("mapaCanvas"), ctx = cv.getContext("2d"), W = cv.width, H = cv.height;
+    const miejsca = w.miejsca || {};
+    ulozMape(miejsca);
+    const ids = Object.keys(miejsca);
+    const xs = ids.map((i) => uklad[i].x), ys = ids.map((i) => uklad[i].y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const sx = (x) => 60 + (W - 120) * ((x - minX) / ((maxX - minX) || 1)), sy = (y) => 50 + (H - 100) * ((y - minY) / ((maxY - minY) || 1));
+    mapaPoz = {}; ids.forEach((a) => { mapaPoz[a] = { x: sx(uklad[a].x), y: sy(uklad[a].y) }; });
+    mapaDane = w;
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = css("--line-strong"); ctx.lineWidth = 1.5;
+    ids.forEach((a) => (miejsca[a].s || []).forEach((b) => { if (uklad[b] && a < b) { ctx.beginPath(); ctx.moveTo(sx(uklad[a].x), sy(uklad[a].y)); ctx.lineTo(sx(uklad[b].x), sy(uklad[b].y)); ctx.stroke(); } }));
+    const gdzie = {};
+    (w.byty || []).forEach((b) => (gdzie[String(b.miejsce)] = gdzie[String(b.miejsce)] || []).push(b.nr));
+    ids.forEach((a) => {
+      const x = sx(uklad[a].x), y = sy(uklad[a].y), g = miejsca[a].g || 0;
+      ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI * 2);
+      ctx.globalAlpha = 0.15 + 0.85 * g; ctx.fillStyle = css("--life"); ctx.fill(); ctx.globalAlpha = 1;
+      const hh = miejsca[a].h ?? 0.2;
+      ctx.strokeStyle = hh > 0.5 ? css("--ink") : css("--line-strong"); ctx.lineWidth = 1 + 4 * hh; ctx.stroke();
+      const pg = (w.pogoda || {})[a];
+      if (pg) {   // pogoda: ciepło jako bursztynowy łuk u góry, deszcz jako niebieski u dołu
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = css("--hunger"); ctx.globalAlpha = 0.2 + 0.8 * pg.temp; ctx.beginPath(); ctx.arc(x, y, 22, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+        ctx.strokeStyle = css("--sleep"); ctx.globalAlpha = 0.2 + 0.8 * pg.deszcz; ctx.beginPath(); ctx.arc(x, y, 22, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = css("--ink"); ctx.font = "11px " + css("--mono"); ctx.textAlign = "center"; ctx.fillText(a, x, y + 4);
+      if (gdzie[a]) {
+        gdzie[a].forEach((nr, i) => {
+          const bx = x + 20 + i * 18, by = y - 18;
+          ctx.beginPath(); ctx.arc(bx, by, 8, 0, Math.PI * 2); ctx.fillStyle = css("--ink"); ctx.fill();
+          ctx.fillStyle = css("--ground"); ctx.font = "10px " + css("--mono"); ctx.fillText(nr, bx, by + 3.5);
+        });
+      }
+    });
+  }
+  async function otworzMape() {
+    $("mapa").showModal();
+    try { const r = await fetch("/api/wnetrze?lekko=1", { cache: "no-store" }); rysujMape(await r.json()); } catch (e) {}
+  }
+  $("mapaZamknij").addEventListener("click", () => $("mapa").close());
+  $("mapa").addEventListener("click", (e) => { if (e.target === $("mapa")) $("mapa").close(); });
+
+  let ostatnieDzieje = null;
+  async function napisyKoncowe() {
+    if (!ostatnieDzieje) { try { const r = await fetch("/api/dzieje", { cache: "no-store" }); ostatnieDzieje = await r.json(); } catch (e) { return; } }
+    const d = ostatnieDzieje; if (!d || d.brak) return;
+    const L = [];
+    const tytul = (x) => L.push(`<p class="np-t">${x}</p>`);
+    const linia = (x) => L.push(`<p class="np-l">${x}</p>`);
+    const przerwa = () => L.push(`<p class="np-p"></p>`);
+    tytul(t("np.tytul"));
+    linia(t("np.trwal", { n: d.cykli }));
+    przerwa();
+    linia(t(d.pokolen === 1 ? "np.istot.1" : "np.istot", { n: d.istot, p: d.pokolen }));
+    if (d.cudow) linia(t("np.urodzonych", { n: d.cudow }));
+    if (d.najstarsza) linia(t("dz.najstarsza", { nr: d.najstarsza.nr, w: d.najstarsza.wiek }));
+    if (d.najplodniejsza) linia(t("dz.najplodniejsza", { nr: d.najplodniejsza.nr, n: d.najplodniejsza.dzieci }));
+    przerwa();
+    linia(t("np.miejsc", { n: d.miejsc }));
+    const z = d.zdarzenia || {};
+    if (z.starcie) linia(t("np.starcia", { s: z.starcie }));
+    if (z.odwrot) linia(t(z.odwrot === 1 ? "np.odwrot.1" : "np.odwrot", { o: z.odwrot }));
+    if (z.pozar || z.powodz) linia(t("np.kleski", { p: z.pozar || 0, w: z.powodz || 0 }));
+    przerwa();
+    linia(t("np.glosy", { g: d.glosy, o: d.odpowiedzi }));
+    const cz = Object.entries(d.czyny || {});
+    if (cz.length) { linia(t("np.znaczenia")); cz.forEach(([k, v]) => linia(`„${esc(k)}” · ${v}×`)); }
+    if (d.slowa && d.slowa.length) { przerwa(); linia(t("np.slowa")); linia(d.slowa.slice(0, 6).map(([s]) => esc(s)).join(" · ")); }
+    if (d.slowa_keja && d.slowa_keja.length) { przerwa(); linia(t("np.kej")); linia(`<i>${d.slowa_keja.map(esc).join(" · ")}</i>`); }
+    przerwa();
+    if (d.cechy && d.cechy.length > 1) {
+      linia(t("np.pokolenia"));
+      d.cechy.forEach((c) => linia(`${t("rod.pokolenie", { n: c.pokolenie })} · ${c.ile} · ${[["dz.siła", c.sila], ["dz.stad", c.stadnosc], ["dz.dlug", c.dlugowiecznosc]].filter((x) => x[1] != null).map((x) => t(x[0]) + " " + x[1]).join(" · ")}`));
+      przerwa();
+    }
+    tytul(t("np.koniec"));
+    linia(t("np.stopka"));
+    const box = $("napisyTresc"); box.innerHTML = L.join("");
+    const dlg = $("dlgNapisy"); dlg.showModal();
+    box.style.animation = "none"; void box.offsetHeight;
+    const sek = Math.max(30, L.length * 2.4);
+    box.style.animation = `napisy ${sek}s linear 1s 1 forwards`;
+  }
+  $("napisyBtn").addEventListener("click", napisyKoncowe);
+  /* portret najwybitniejszej: dane z genów i pamięci istoty przełożone na ludzki język */
+  function poziom(x) { return x == null ? null : x < 0.34 ? 0 : x < 0.67 ? 1 : 2; }
+  function rodz(s, fem) { const cz = String(s).split("|"); return fem || cz.length < 2 ? cz[0] : cz[1]; }
+  function przym(klucz, x, fem) { const p = poziom(x); return p == null ? null : rodz(t("portret.adj." + klucz + "." + p), fem); }
+  function lm(n, klucz) {   /* liczba mnoga: 1 | 2–4 (poza 12–14) | reszta */
+    const f = t(klucz).split("|"); const r = n % 10, r2 = n % 100;
+    const i = n === 1 ? 0 : (r >= 2 && r <= 4 && !(r2 >= 12 && r2 <= 14)) ? 1 : 2;
+    return n + " " + (f[Math.min(i, f.length - 1)]);
+  }
+  async function portret() {
+    let d; try { const r = await fetch("/api/portret", { cache: "no-store" }); d = await r.json(); } catch (e) { return; }
+    if (d.brak) return;
+    const b = d.istota, fem = b.plec !== "d";
+    const cechy = [["sila", b.sila], ["lownosc", b.lownosc], ["ciekawosc", b.ciekawosc], ["stadnosc", b.stadnosc], ["dlugowiecznosc", b.dlugowiecznosc], ["ufnosc", b.ufnosc], ["szczerosc", b.szczerosc], ["pojetnosc", b.pojetnosc], ["towarzyskosc", b.towarzyskosc]].filter((c) => c[1] != null);
+    const cecha = (k, x) => `<div class="cecha"><span class="k">${t("portret.c." + k)}</span><span class="v">${przym(k, x, fem)}</span><span class="pasek"><i style="width:${(x * 100).toFixed(0)}%"></i></span></div>`;
+    const klimat = b.optimum != null ? `<div class="cecha"><span class="k">${t("portret.c.klimat")}</span><span class="v">${b.optimum < 0.4 ? t("portret.klimat.chlod") : b.optimum > 0.6 ? t("portret.klimat.cieplo") : rodz(t("portret.klimat.srodek"), fem)}${b.tolerancja > 0.5 ? ", " + rodz(t("portret.klimat.odporna"), fem) : ""}</span><span class="pasek skala"><i style="left:${(b.optimum * 100).toFixed(0)}%"></i></span></div>` : "";
+    const lak = Object.entries(b.lak || {}); const lakN = lak.reduce((a, x) => a + x[1], 0);
+    const tem = (b.tematy || []).map((x) => x.temat === "zapach" ? t("jz.temat.zapach", { m: x.cel }) : x.temat === "klamca" ? t("jz.temat.klamca", { nr: x.cel }) : x.temat === "inny" ? t("jz.temat.inny", { nr: x.cel }) : x.temat === "pora" ? t("jz.temat.pora", { pora: t("pora." + x.cel) }) : x.temat === "bol" ? t("jz.temat.bol", { m: x.cel }) : x.temat === "echo" ? t("jz.temat.echo", { z: x.cel }) : t("jz.temat." + x.temat));
+    const wiersz = (k, v) => `<div class="wpis"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+    const umysl = [
+      wiersz(t("portret.u.zrozumiane"), b.zrozumiane.length ? b.zrozumiane.map((x) => "„" + esc(x) + "”").join(", ") : t("portret.nic")),
+      wiersz(t("portret.u.laki"), lakN ? t("portret.u.laki.v", { n: lakN, pory: lak.map((x) => t("pora." + x[0]) + " " + x[1]).join(", ") }) : t("portret.nic")),
+      wiersz(t("portret.u.klamcy"), b.klamcy.length ? b.klamcy.map((n) => t("nr", { nr: n })).join(", ") : t("portret.nikt")),
+      wiersz(t("portret.u.slowa"), b.slownik.length ? b.slownik.map(esc).join(", ") : t("portret.nic")),
+      wiersz(t("portret.u.tematy"), tem.length ? tem.join(", ") : t("portret.nic")),
+      wiersz(t("portret.u.nauka"), t("portret.u.nauka.v", { n: b.nauczone || 0, r: b.rozmowy || 0 })),
+      wiersz(t("portret.u.uprawa"), b.uprawa ? t("portret.u.uprawa.v", { p: (b.uprawa * 100).toFixed(0) }) : t("portret.nic")),
+      wiersz(t("portret.u.spichlerz"), b.spichlerz ? t("portret.u.spichlerz.v", { p: (b.spichlerz * 100).toFixed(0) }) : t("portret.nic")),
+    ].join("");
+    /* czytanie Keja: trzy najbardziej wyraziste cechy i to, co istota wiedziała */
+    const wyraziste = cechy.filter((c) => poziom(c[1]) !== 1).sort((a, c) => Math.abs(c[1] - 0.5) - Math.abs(a[1] - 0.5)).slice(0, 3).map((c) => przym(c[0], c[1], fem));
+    const wiedza = [];
+    if (b.zrozumiane.length) wiedza.push(rodz(t("portret.kej.rozumiala", { n: lm(b.zrozumiane.length, "portret.n.znaczen") }), fem));
+    if (lakN) wiedza.push(rodz(t("portret.kej.laki", { n: lm(lakN, "portret.n.lak"), p: lm(lak.length, "portret.n.por") }), fem));
+    if (b.klamcy.length) wiedza.push(rodz(t("portret.kej.klamcy", { n: lm(b.klamcy.length, "portret.n.klamcow") }), fem));
+    if (tem.length) wiedza.push(rodz(t("portret.kej.temat", { o: tem[0] }), fem));
+    if (b.dzieci) wiedza.push(rodz(t("portret.kej.dzieci", { n: lm(b.dzieci, "portret.n.dzieci") }), fem));
+    if (b.uprawa) wiedza.push(rodz(t("portret.kej.uprawa"), fem));
+    if (b.spichlerz) wiedza.push(rodz(t("portret.kej.spichlerz"), fem));
+    const kto = t(fem ? "portret.samica" : "portret.samiec");
+    let kej = (wyraziste.length ? wyraziste.join(", ") + " " : rodz(t("portret.kej.zwykla"), fem) + " ") + kto;
+    kej = kej.charAt(0).toUpperCase() + kej.slice(1);
+    kej += wiedza.length ? ", " + t(fem ? "portret.ktora" : "portret.ktory") + " " + wiedza.join(", ") + "." : ". " + rodz(t("portret.kej.nicnie"), fem);
+    const los = b.zyje ? t("portret.zyje") : b.ostatnia ? rodz(t("portret.ostatnia", { c: b.zmarl_w_cyklu }), fem) : rodz(t("portret.umarla", { c: b.zmarl_w_cyklu }), fem);
+    const rodzice = [b.rodzic, b.rodzic2].filter((x) => x != null).map((n) => t("nr", { nr: n })).join(" + ") || t("portret.cud");
+    $("portretTresc").innerHTML = `
+      <div class="portret">
+        <div class="glowa">
+          <div class="glyf">${esc(b.glos || "")}</div>
+          <div>
+            <div class="imie">${t("portret.kim", { nr: b.nr, plec: kto, p: b.pokolenie })}</div>
+            <div class="los">${rodz(t("portret.zycie", { w: b.wiek, dz: lm(b.dzieci || 0, "portret.n.dzieci"), r: rodzice, e: b.max_energia }), fem)} ${los}</div>
+          </div>
+        </div>
+        <blockquote class="kej">${kej}<footer>${t("portret.kej")} · ${t("portret.wybor", { n: d.istot, m: d.madrosc, b: d.bogactwo })}</footer></blockquote>
+        <h2>${t("portret.cialo")}</h2>
+        <div class="cechy">${cechy.map((c) => cecha(c[0], c[1])).join("")}${klimat}</div>
+        <h2>${t("portret.umysl")}</h2>
+        <div class="umysl">${umysl}</div>
+      </div>`;
+    $("portretTytul").textContent = t(b.zyje ? "portret.tytul.zyje" : "portret.tytul");
+    $("dlgPortret").showModal();
+  }
+  $("portretBtn").addEventListener("click", portret);
+  $("portretMenu").addEventListener("click", portret);
+  $("wznowBtn").addEventListener("click", async () => {
+    $("wznowBtn").disabled = true;
+    try { const r = await fetch("/api/wznow", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }); const d = await r.json();
+      toast(r.ok ? "narodziny" : "smierc", r.ok ? t("proces.wznowiony") : (d.blad || t("brak_serwera"))); if (r.ok) setTimeout(odswiez, 1500); }
+    catch (e) { toast("smierc", t("brak_serwera")); }
+    $("wznowBtn").disabled = false;
+  });
+  $("dlgNapisy").addEventListener("click", (e) => { if (e.target === $("dlgNapisy")) $("dlgNapisy").close(); });
+  let dziejeCykl = null;
+  async function renderDzieje(s) {
+    if (s.zyje) { $("dzieje").innerHTML = ""; dziejeCykl = null; return; }
+    if (dziejeCykl === s.cykl_swiata) return;
+    dziejeCykl = s.cykl_swiata;
+    try {
+      const r = await fetch("/api/dzieje", { cache: "no-store" }); const d = await r.json();
+      if (d.brak) return;
+      ostatnieDzieje = d;
+      const kaf = (k, v) => `<div class="kafel"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+      const cechy = d.cechy.map((c) => `<div class="r"><span class="c">${c.pokolenie}</span><span class="m">${c.ile}</span><span class="d">${[["wiek", c.wiek], ["dz.siła", c.sila], ["dz.ciek", c.ciekawosc], ["dz.stad", c.stadnosc], ["dz.dlug", c.dlugowiecznosc], ["dz.ufn", c.ufnosc], ["dz.szcz", c.szczerosc], ["dz.poj", c.pojetnosc], ["dz.tow", c.towarzyskosc], ["dz.opt", c.optimum]].filter((x) => x[1] != null).map((x) => `<span>${t(x[0])} ${x[1]}</span>`).join("")}</span></div>`).join("");
+      const zdarz = Object.entries(d.zdarzenia || {}).map(([k, v]) => `${t("dz.zd." + k)} ${v}`).join(" · ");
+      const czyny = Object.entries(d.czyny || {}).map(([k, v]) => `„${esc(k)}” ${v}×`).join(", ");
+      $("dzieje").innerHTML = `
+        <h2>${t("dz.tytul")}</h2>
+        <div class="kafle">${kaf(t("dz.cykli"), d.cykli)}${kaf(t("dz.istot"), d.istot)}${kaf(t("dz.pokolen"), d.pokolen)}${kaf(t("dz.urodzonych"), d.cudow)}${kaf(t("dz.miejsc"), d.miejsc)}${kaf(t("dz.glosow"), d.glosy)}${kaf(t("dz.odpowiedzi"), d.odpowiedzi)}</div>
+        <p class="hint" style="margin-top:12px">${d.najstarsza ? t("dz.najstarsza", { nr: d.najstarsza.nr, w: d.najstarsza.wiek }) : ""} ${d.najplodniejsza ? t("dz.najplodniejsza", { nr: d.najplodniejsza.nr, n: d.najplodniejsza.dzieci }) : ""}</p>
+        <p class="hint">${zdarz}</p>
+        ${czyny ? `<p class="hint">${t("dz.czyny")}: ${czyny}</p>` : ""}
+        ${d.slowa.length ? `<p class="hint">${t("dz.slowa")}: ${d.slowa.map(([s2, n]) => esc(s2) + " " + n + "×").join(", ")}</p>` : ""}
+        ${d.slowa_keja.length ? `<p class="hint">${t("dz.kej")}: <i>${d.slowa_keja.map(esc).join(", ")}</i></p>` : ""}
+        <h2 style="margin-top:14px">${t("dz.cechy")}</h2>
+        <div class="log">${cechy}</div>`;
+    } catch (e) {}
+  }
+
+  function renderStan(s) {
+    if (!s) return;
+    ostatniStan = s;
+    renderSwiat(s);
+    renderDzieje(s);
+    const kon = $("koniec");
+    if (kon) {
+      const przerwany = !!s.zyje && s.proces_zyje === false;          // istoty żyją, ale proces stoi: można wznowić albo powołać nowy świat
+      kon.hidden = !!s.zyje && !przerwany;
+      if (!kon.hidden) {
+        $("koniecOpis").textContent = przerwany ? t("koniec.opis.przerwany", { cykl: s.cykl_swiata, n: s.zywych }) : t(s.koniec && s.koniec.powod === "jedna_plec" ? "koniec.opis.jedna_plec" : "koniec.opis", { cykl: s.cykl_swiata, nr: ((s.koniec || {}).ostatni || []).map((n) => t("nr", { nr: n })).join(", ") });
+        kon.querySelector("h2").textContent = t(przerwany ? "koniec.eyebrow.przerwany" : "koniec.eyebrow");
+      }
+    }
+    renderIstoty(s);
+  }
+  window.i18n.onChange(() => renderStan(ostatniStan));
+
+  // szukanie po numerze: widok główny nie trzyma już wszystkich istot, więc pytamy świat
+  async function szukajIstote() {
+    const nr = parseInt($("szukajNr").value, 10);
+    const odp = $("szukajOdp");
+    if (!nr) { SZUKANA = null; odp.textContent = ""; if (ostatniStan) renderIstoty(ostatniStan); return; }
+    try {
+      const r = await fetch("/api/istota?nr=" + nr, { cache: "no-store" });
+      const d = await r.json();
+      if (!r.ok) { SZUKANA = null; odp.textContent = " nie ma takiej istoty"; }
+      else if (!d.zyje) { SZUKANA = null; odp.textContent = ` nr ${nr} nie żyje: umarła w wieku ${d.wiek}, pokolenie ${d.pokolenie}, dzieci ${d.dzieci ?? 0}`; }
+      else { SZUKANA = d; odp.textContent = ""; }
+    } catch (e) { SZUKANA = null; odp.textContent = " nie udało się zapytać"; }
+    if (ostatniStan) renderIstoty(ostatniStan);
+  }
+  $("szukajBtn").addEventListener("click", szukajIstote);
+  $("szukajNr").addEventListener("keydown", (e) => { if (e.key === "Enter") szukajIstote(); });
+  $("szukajCzysc").addEventListener("click", () => { $("szukajNr").value = ""; SZUKANA = null; $("szukajOdp").textContent = ""; if (ostatniStan) renderIstoty(ostatniStan); });
+
+  
+  let db = null;
+  $("dlgForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const raw = $("dlgSlowo").value.trim(); if (!raw || dlgNr == null) return;
+    if (!db) { $("dlgHint").className = "hint err"; $("dlgHint").textContent = t("powiedz.brak_db"); return; }
+    try {
+      await db.collection("slowa").add({ tekst: raw.slice(0, 240), czas: Date.now() / 1000, status: "czeka", do: dlgNr });
+      $("dlgSlowo").value = ""; $("dlgHint").className = "hint"; $("dlgHint").textContent = t("powiedz.ok.kej");
+    } catch (err) { $("dlgHint").className = "hint err"; $("dlgHint").textContent = err && err.code === "quota_exceeded" ? t("powiedz.pelna") : t("powiedz.blad"); }
+  });
+  window.i18n.start().then(() => {
+    window.claude && window.claude.use("db").then((d) => {
+      db = d;
+      if (!db) return;
+      db.doc("stan/byt").onSnapshot((snap) => { if (snap.exists) renderStan(snap.data()); }, () => {});
+    });
+  });
+
+})();
+</script>

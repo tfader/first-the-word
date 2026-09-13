@@ -1,0 +1,121 @@
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="%23e8e4d9"/><circle cx="16" cy="16" r="9" fill="%237fa47f"/></svg>'>
+  <title>Język istot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="/s/wspolne.css">
+<script src="/s/i18n.js"></script>
+
+<div class="page" data-i18n-title="tytul.jezyk">
+  <header class="top">
+    <div class="brand">
+      <h1 data-i18n="jz.tytul">język</h1>
+      <div class="meta"><span id="cykl">—</span><select id="lang" class="lang"></select></div>
+    </div>
+    <nav class="nav"><a href="/" data-i18n="nav.istoty">istoty</a><a href="/wnetrze" data-i18n="nav.wnetrze">wnętrze</a><a href="/rod" data-i18n="nav.rod">ród</a><a href="/jezyk" aria-current="page" data-i18n="nav.jezyk">język</a></nav>
+  </header>
+  <p class="lead" data-i18n="jz.lead"></p>
+  <section aria-label="Głosy">
+    <h2 data-i18n="jz.glosy">głosy</h2>
+    <div class="glosy" id="glosy"></div>
+  </section>
+  <section aria-label="Znaczenia">
+    <h2 data-i18n="jz.znaczenia">znaczenia</h2>
+    <p class="hint" data-i18n="jz.znaczenia.lead" style="margin-bottom:12px"></p>
+    <div class="log" id="znaczenia"></div>
+  </section>
+  <section aria-label="Nowe słowa">
+    <h2 data-i18n="jz.nowe">nowe słowa</h2>
+    <p class="hint" data-i18n="jz.nowe.lead" style="margin-bottom:12px"></p>
+    <div class="log" id="nowe"></div>
+  </section>
+  <section aria-label="Tematy">
+    <h2 data-i18n="jz.tematy">o czym mówią</h2>
+    <p class="hint" data-i18n="jz.tematy.lead" style="margin-bottom:12px"></p>
+    <div class="log" id="tematy"></div>
+  </section>
+  <section aria-label="Słowa">
+    <h2 data-i18n="jz.slowa">słowa, które padły w tym świecie</h2>
+    <p class="hint" id="czekaja" style="margin-bottom:12px"></p>
+    <div class="log" id="slowa"></div>
+  </section>
+  <section aria-label="Rozmowy">
+    <h2 data-i18n="jz.rozmowy">co między nimi padło</h2>
+    <div class="log" id="rozmowy"></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const t = (k, v) => window.i18n.t(k, v);
+  const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let ostatnie = null;
+  function render(d) {
+    ostatnie = d;
+    $("cykl").textContent = t("jz.cykl", { n: d.cykl_swiata, w: d.wymiary || 4 });
+    const g = $("glosy"); g.innerHTML = "";
+    if (!d.glosy.length) g.innerHTML = `<p class="hint">${t("jz.nikogo")}</p>`;
+    d.glosy.forEach((x) => {
+      const el = document.createElement("div"); el.className = "glos" + (x.zyje ? "" : " zmarla");
+      const roz = (x.rozumie || []).map((r) => `${t("nr", { nr: r.nr })} ${esc(r.znaki)}: ${r.slyszy ? (r.o_pokarmie ? "<b>" + t("jz.rozumie.pokarm") + "</b>" : t("jz.rozumie.nie_wie")) : t("jz.rozumie.nie")}`).join("<br>");
+      el.innerHTML = `<div class="znaki">${esc(x.znaki)}</div><div class="opis">
+        <div><b>${t("jz.glos.opis", { nr: x.nr, los: x.zyje ? t("zyje") : t("umarla"), n: x.wydany })}</b></div>
+        ${x.zyje ? "<div>" + (roz || t("jz.glos.nikogo")) + "</div>" : ""}
+        ${x.slownik && x.slownik.length ? "<div>" + t("jz.glos.slowa", { lista: x.slownik.map(esc).join(", ") }) + "</div>" : ""}
+      </div>`;
+      g.appendChild(el);
+    });
+    const zn = $("znaczenia"); zn.innerHTML = "";
+    if (!d.znaczenia || !d.znaczenia.length) zn.innerHTML = `<p class="hint">${t("jz.znaczenia.nic")}</p>`;
+    (d.znaczenia || []).forEach((z) => {
+      const el = document.createElement("div"); el.className = "r two";
+      el.innerHTML = `<span class="c">${z.razy}×</span><span>${t("jz.znaczenie", { sygnal: z.typ === "wolanie" ? t("jz.sygnal.wolanie") : t("jz.sygnal.glos", { z: esc(z.znaki || "") }), kto: z.kto, czyn: '<span class="ok">' + esc(z.ludzko || z.czyn) + "</span>", dla: z.dla.map((n) => t("nr", { nr: n })).join(", ") })}</span>`;
+      zn.appendChild(el);
+    });
+    const nw = $("nowe"); nw.innerHTML = "";
+    if (!d.nowe_slowa || !d.nowe_slowa.length) nw.innerHTML = `<p class="hint">${t("jz.nowe.nic")}</p>`;
+    (d.nowe_slowa || []).forEach((x) => {
+      const el = document.createElement("div"); el.className = "r two" + (x.nadawcy.length > 1 ? "" : " zmarla");
+      el.innerHTML = `<span class="c">${x.razy}×</span><span><span class="znaki" style="font-size:inherit">${esc(x.znaki)}</span> ${t("jz.nowe.opis", { nr: x.pierwszy, c: x.pierwszy_cykl, n: x.nadawcy.length, p: x.powtorzone })}${x.nadawcy.length > 1 ? " <b>" + t("jz.nowe.slowo") + "</b>" : ""}</span>`;
+      nw.appendChild(el);
+    });
+    const tm = $("tematy"); tm.innerHTML = "";
+    if (!d.tematy || !d.tematy.length) tm.innerHTML = `<p class="hint">${t("jz.tematy.nic")}</p>`;
+    (d.tematy || []).forEach((x) => {
+      const el = document.createElement("div"); el.className = "r two";
+      const o = x.temat === "zapach" ? t("jz.temat.zapach", { m: x.cel }) : x.temat === "klamca" ? t("jz.temat.klamca", { nr: x.cel }) : x.temat === "inny" ? t("jz.temat.inny", { nr: x.cel }) : x.temat === "pora" ? t("jz.temat.pora", { pora: t("pora." + x.cel) }) : x.temat === "bol" ? t("jz.temat.bol", { m: x.cel }) : x.temat === "echo" ? t("jz.temat.echo", { z: x.cel }) : t("jz.temat." + x.temat);
+      el.innerHTML = `<span class="c">${x.razy}×</span><span><span class="znaki" style="font-size:inherit">${esc(x.znaki)}</span> ${t("nr", { nr: x.kto })} + <b>${esc(o)}</b></span>`;
+      tm.appendChild(el);
+    });
+    const sl = $("slowa"); sl.innerHTML = "";
+    $("czekaja").textContent = (d.czekaja && d.czekaja.length) ? t("jz.kolejka", { lista: d.czekaja.map((x) => "„" + x + "”").join(", ") }) : "";
+    if (!d.slowa.length) sl.innerHTML = `<p class="hint">${t("jz.slowa.nic")}</p>`;
+    d.slowa.forEach((s) => {
+      const el = document.createElement("div"); el.className = "r two";
+      el.innerHTML = `<span class="c">${s.padlo}×</span><span>${esc(s.tekst)}</span>`;
+      sl.appendChild(el);
+    });
+    const r = $("rozmowy"); r.innerHTML = "";
+    if (!d.rozmowy.length) r.innerHTML = `<p class="hint">${t("jz.rozmowy.nic")}</p>`;
+    d.rozmowy.slice().reverse().forEach((x) => {
+      const el = document.createElement("div"); el.className = "r two";
+      let tx;
+      if (x.krzyk) tx = `<span class="krzyk">${t("jz.r.krzyk", { kto: x.kto })}</span>`;
+      else if (x.odpowiedz) tx = `<span class="ok">${t("jz.r.odpowiedz", { kto: x.kto, do: x.do, z: esc(x.znaki || "") })}</span>`;
+      else if (x.gawedza) tx = t("jz.r.gawedza", { kto: x.kto, do: x.do, co: esc(x.co.startsWith("slowo:") ? "„" + x.co.slice(6) + "”" : x.co.startsWith("klamca:") ? t("jz.r.klamca", { nr: x.co.slice(7) }) : x.co.startsWith("mapa:") ? t("jz.r.mapa", { pora: t("pora." + x.co.split(":")[1]), m: x.co.split(":")[2] }) : x.co === "gaweda" ? t("jz.r.gaweda") : t("jz.r.miejsce")) });
+      else if (x.wolanie) tx = `<span class="slowo">${t("jz.r.wolanie", { kto: x.kto })}</span>`;
+      else if (x.typ === "wolanie") tx = t("jz.r.wolanie_do", { kto: x.kto, do: x.do, los: x.otworzyl ? '<span class="ok">' + t(x.czyn ? "jz.r.uslyszala_idzie" : "jz.r.uslyszala") + "</span>" : t("jz.r.nie_uslyszala") });
+      else if (x.slowo) tx = `<span class="slowo">${t("jz.r.slowo", { kto: x.kto, t: esc(x.slowo) })}</span>`;
+      else tx = t("jz.r.glos", { kto: x.kto, z: esc(x.znaki), do: x.do, los: x.otworzyl ? '<span class="ok">' + t(x.czyn ? "jz.r.zrozumiala" : "jz.r.otworzylo") + "</span>" : t("jz.r.nic") });
+      el.innerHTML = `<span class="c">${x.cykl}</span><span>${tx}</span>`;
+      r.appendChild(el);
+    });
+  }
+  async function odswiez() {
+    try { const q = await fetch("/api/jezyk", { cache: "no-store" }); render(await q.json()); }
+    catch (e) { $("cykl").textContent = t("brak_serwera"); }
+  }
+  window.i18n.onChange(() => { if (ostatnie) render(ostatnie); });
+  window.i18n.start().then(() => { odswiez(); setInterval(odswiez, 15000); });
+})();
+</script>

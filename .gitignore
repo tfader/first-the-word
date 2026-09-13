@@ -1,0 +1,30 @@
+# Świat i jego dane — powstają przy uruchomieniu, ważą gigabajty, nie wchodzą do repozytorium
+swiat.json
+stan.json
+stan_snap.json
+cialo/
+groby/
+swiaty/
+dziennik.jsonl
+zdarzenia.jsonl
+slowa_swiata.json
+slowa_update.json
+slowa_keja.jsonl
+wejscie.txt
+wejscie.txt.czytam
+karma.txt
+karma.txt.czytam
+cud.txt
+
+# procesy i logi
+*.log
+*.pid
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# system
+.DS_Store

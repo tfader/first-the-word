@@ -1,0 +1,104 @@
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="%23e8e4d9"/><circle cx="16" cy="16" r="9" fill="%237fa47f"/></svg>'>
+  <title>Ród istoty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="/s/wspolne.css">
+<script src="/s/i18n.js"></script>
+
+<div class="page" data-i18n-title="tytul.rod">
+  <header class="top">
+    <div class="brand">
+      <h1 data-i18n="rod.tytul">ród</h1>
+      <div class="meta"><span id="cykl">—</span><select id="lang" class="lang"></select></div>
+    </div>
+    <nav class="nav"><a href="/" data-i18n="nav.istoty">istoty</a><a href="/wnetrze" data-i18n="nav.wnetrze">wnętrze</a><a href="/rod" aria-current="page" data-i18n="nav.rod">ród</a><a href="/jezyk" data-i18n="nav.jezyk">język</a></nav>
+  </header>
+  <p class="lead" data-i18n="rod.lead"></p>
+  <div class="drzewo"><svg id="svg" width="640" height="200"></svg></div>
+  <section aria-label="Linia czasu">
+    <h2 data-i18n="rod.czas">linia czasu świata</h2>
+    <p class="hint" data-i18n="rod.czas.lead" style="margin-bottom:12px"></p>
+    <div class="drzewo"><svg id="czas" width="640" height="120"></svg></div>
+  </section>
+  <section aria-label="Wszyscy">
+    <h2 data-i18n="rod.wszyscy">wszyscy, którzy byli</h2>
+    <div class="pre" id="lista">—</div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const t = (k, v) => window.i18n.t(k, v);
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  let ostatnie = null;
+  function render(d) {
+    ostatnie = d;
+    $("cykl").textContent = t("rod.cykl", { n: d.cykl_swiata });
+    const osoby = d.osoby, byNr = {}; osoby.forEach((o) => byNr[o.nr] = o);
+    const dzieci = {}; osoby.forEach((o) => { if (o.rodzic != null && byNr[o.rodzic]) (dzieci[o.rodzic] = dzieci[o.rodzic] || []).push(o); });
+    const korzenie = osoby.filter((o) => o.rodzic == null || !byNr[o.rodzic]);
+    const W = 96, H = 58, GX = 12, GY = 34;
+    let x = 0; const pos = {};
+    function uloz(o, g) {
+      const ds = (dzieci[o.nr] || []).slice().sort((a, b) => a.nr - b.nr);
+      if (!ds.length) { pos[o.nr] = { x: x, g }; x += W + GX; return; }
+      ds.forEach((c) => uloz(c, g + 1));
+      pos[o.nr] = { x: (pos[ds[0].nr].x + pos[ds[ds.length - 1].nr].x) / 2, g };
+    }
+    korzenie.sort((a, b) => a.nr - b.nr).forEach((k) => { uloz(k, 0); x += GX; });
+    const maxG = Math.max(0, ...Object.values(pos).map((p) => p.g));
+    const svg = $("svg"); svg.innerHTML = "";
+    const width = Math.max(640, x + 40), height = (maxG + 1) * (H + GY) + 30;
+    svg.setAttribute("width", width); svg.setAttribute("height", height);
+    for (let g = 0; g <= maxG; g++) { const tx = el("text", { x: 8, y: 14 + g * (H + GY), class: "pok" }); tx.textContent = t("rod.pokolenie", { n: g + 1 }); svg.appendChild(tx); }
+    osoby.forEach((o) => {
+      const p = pos[o.nr]; if (!p) return;
+      const px = p.x + 20, py = 20 + p.g * (H + GY);
+      if (o.rodzic != null && pos[o.rodzic]) {
+        const q = pos[o.rodzic];
+        svg.appendChild(el("line", { x1: q.x + 20 + W / 2, y1: 20 + q.g * (H + GY) + H, x2: px + W / 2, y2: py }));
+      }
+      const gN = el("g", { class: "node " + (o.zyje ? "zyje" : "zmarl"), transform: `translate(${px},${py})` });
+      gN.appendChild(el("rect", { width: W, height: H, rx: 4 }));
+      const t1 = el("text", { x: 8, y: 18 }); t1.textContent = t("nr", { nr: o.nr }) + (o.rodzic == null ? " · " + t("rod.cud") : (o.rodzic2 != null ? " · +" + t("nr", { nr: o.rodzic2 }) : "")); gN.appendChild(t1);
+      const t2 = el("text", { x: 8, y: 34, class: "d" }); t2.textContent = (o.zyje ? t("rod.zyje") : t("rod.umarla")) + " · " + t("rod.c", { n: o.wiek }); gN.appendChild(t2);
+      const t3 = el("text", { x: 8, y: 50, class: "d" }); t3.textContent = o.dzieci ? t("dzieci", { n: o.dzieci }) : (o.zyje ? "E " + o.energia : t("rod.bez_dzieci")); gN.appendChild(t3);
+      svg.appendChild(gN);
+    });
+    const cz = $("czas"); cz.innerHTML = "";
+    const T = Math.max(1, d.cykl_swiata), L = 56, R = 16, rowH = 18, top = 22;
+    const cw = Math.min(2400, Math.max(640, T * 4 + L + R)), ch = top + osoby.length * rowH + 30;
+    cz.setAttribute("width", cw); cz.setAttribute("height", ch);
+    const sx = (c) => L + (cw - L - R) * (c / T);
+    cz.appendChild(el("line", { x1: L, y1: ch - 22, x2: cw - R, y2: ch - 22, class: "os" }));
+    const krok = T > 400 ? 100 : T > 150 ? 50 : T > 60 ? 20 : 10;
+    for (let c = 0; c <= T; c += krok) {
+      cz.appendChild(el("line", { x1: sx(c), y1: ch - 22, x2: sx(c), y2: ch - 17, class: "os" }));
+      const tk = el("text", { x: sx(c), y: ch - 6, class: "tick", "text-anchor": "middle" }); tk.textContent = c; cz.appendChild(tk);
+    }
+    const tn = el("text", { x: sx(T), y: 12, class: "tick", "text-anchor": "end" }); tn.textContent = t("rod.teraz", { n: T }); cz.appendChild(tn);
+    osoby.forEach((o, i) => {
+      const y = top + i * rowH, od = o.urodzony ?? 0, doC = o.zyje ? T : (o.zmarl ?? od + o.wiek);
+      const lb = el("text", { x: L - 6, y: y + 12, class: "lbl", "text-anchor": "end" }); lb.textContent = t("nr", { nr: o.nr }); cz.appendChild(lb);
+      cz.appendChild(el("rect", { x: sx(od), y: y + 3, width: Math.max(2, sx(doC) - sx(od)), height: rowH - 6, rx: 2, class: "bar" + (o.zyje ? " zyje" : "") }));
+      if (o.rodzic == null) cz.appendChild(el("circle", { cx: sx(od), cy: y + rowH / 2, r: 4, class: "cud" }));
+    });
+    const lg = el("text", { x: L, y: 12, class: "tick" }); lg.textContent = t("rod.legenda"); cz.appendChild(lg);
+    $("lista").textContent = osoby.map((o) => t("rod.wpis", {
+      nr: o.nr, p: o.pokolenie,
+      skad: o.rodzic == null ? t("rod.skad.cud") : (o.rodzic2 != null ? t("rod.skad.dziecko2", { a: o.rodzic, b: o.rodzic2 }) : t("rod.skad.dziecko", { a: o.rodzic })),
+      u: o.urodzony ?? 0,
+      los: o.zyje ? t("rod.los.zyje", { w: o.wiek }) : t("rod.los.umarla", { w: o.wiek, c: o.zmarl }),
+      dzieci: o.dzieci ? t("rod.dzieci", { n: o.dzieci }) : "",
+    })).join("\n");
+  }
+  async function odswiez() {
+    try { const r = await fetch("/api/rod", { cache: "no-store" }); render(await r.json()); }
+    catch (e) { $("cykl").textContent = t("brak_serwera"); }
+  }
+  window.i18n.onChange(() => { if (ostatnie) render(ostatnie); });
+  window.i18n.start().then(() => { odswiez(); setInterval(odswiez, 10000); });
+})();
+</script>

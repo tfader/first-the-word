@@ -1,0 +1,135 @@
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="%23e8e4d9"/><circle cx="16" cy="16" r="9" fill="%237fa47f"/></svg>'>
+  <title>Wnętrze istoty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="/s/wspolne.css">
+<script src="/s/i18n.js"></script>
+
+<div class="page" data-i18n-title="tytul.wnetrze">
+  <header class="top">
+    <div class="brand">
+      <h1 data-i18n="wn.tytul">wnętrze</h1>
+      <div class="meta"><span id="cykl">—</span><select id="lang" class="lang"></select></div>
+    </div>
+    <nav class="nav"><a href="/" data-i18n="nav.istoty">istoty</a><a href="/wnetrze" aria-current="page" data-i18n="nav.wnetrze">wnętrze</a><a href="/rod" data-i18n="nav.rod">ród</a><a href="/jezyk" data-i18n="nav.jezyk">język</a></nav>
+  </header>
+  <p class="lead" id="lead"></p>
+  <div id="byty"></div>
+  <section aria-label="Zmarli">
+    <h2 data-i18n="wn.groby">groby</h2>
+    <div class="pre" id="groby">—</div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const t = (k, v) => window.i18n.t(k, v);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const KOLOR = { rana: "--dying", pokarm: "--life", echo: "--sleep", slowo: "--hunger", inny: "--hunger" };
+  const bok = (b) => Math.ceil(Math.sqrt(b.geny.length));
+  let ostatnie = null;
+
+  function zmysl(g) {
+    const k = [[t("wn.leg.rana"), g.rezonans.rana, "--dying"], [t("wn.leg.pokarm"), g.rezonans.pokarm, "--life"]];
+    if (g.slowa && g.slowa.length) k.push([t("wn.gen.slowo", { t: esc(g.slowa[0].slowo) }), g.slowa[0].r, "--hunger"]);
+    k.sort((a, b) => b[1] - a[1]);
+    const [nazwa, r, kolor] = k[0];
+    return r >= 0.5 ? { nazwa, sila: r, kolor } : { nazwa: "", sila: 0, kolor: null };
+  }
+  function rysujGeny(canvas, b) {
+    const ctx = canvas.getContext("2d"), W = canvas.width, n = bok(b), cell = W / n, pad = Math.max(0.5, cell * 0.12);
+    ctx.clearRect(0, 0, W, W);
+    const ink = css("--ink"), line = css("--line");
+    b.geny.forEach((g) => {
+      const x = (g.nr % n) * cell + pad, y = Math.floor(g.nr / n) * cell + pad, s = cell - 2 * pad;
+      const z = zmysl(g);
+      const a = 0.10 + 0.90 * Math.max(g.nawyk, z.sila * 0.5);
+      ctx.globalAlpha = a; ctx.fillStyle = z.kolor ? css(z.kolor) : ink; ctx.fillRect(x, y, s, s); ctx.globalAlpha = 1;
+      ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.strokeRect(x + .5, y + .5, s - 1, s - 1);
+      const jak = b.otwarte[String(g.nr)];
+      if (jak) { const lw = n > 12 ? 2 : 3; ctx.strokeStyle = css(KOLOR[jak]); ctx.lineWidth = lw; ctx.strokeRect(x + lw / 2, y + lw / 2, s - lw, s - lw); }
+    });
+  }
+  function rysujEcho(canvas, echa) {
+    const ctx = canvas.getContext("2d"), W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    const col = css("--sleep");
+    echa.slice(-60).forEach((e, i, arr) => {
+      const x = 8 + (W - 16) * (i / Math.max(1, arr.length - 1));
+      const r = 3 + Math.min(6, e.sila * 0.6);
+      ctx.globalAlpha = Math.max(0.15, 1 - e.wiek * 0.12);
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, H / 2, r, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+  function opisz(g, b) {
+    const z = zmysl(g);
+    const NZ = { rana: t("wn.leg.rana"), pokarm: t("wn.leg.pokarm"), echo: t("wn.leg.echo"), slowo: t("wn.leg.slowo"), inny: t("wn.leg.inny") };
+    const zr = Object.entries(g.zrodla || {}).sort((a, b2) => b2[1] - a[1]);
+    const linie = [`<span class="k">${t("wn.gen.naglowek", { g: g.nr, nr: b.nr })}</span>`];
+    linie.push(z.kolor ? t("wn.gen.slyszy", { co: "<b>" + z.nazwa + "</b>", z: z.sila.toFixed(2) }) : t("wn.gen.nic", { r: g.rezonans.rana.toFixed(2), p: g.rezonans.pokarm.toFixed(2) }));
+    linie.push(t("wn.gen.wartosci", { r: g.rezonans.rana.toFixed(2), p: g.rezonans.pokarm.toFixed(2) }) + (g.slowa.length ? " · " + g.slowa.map((s) => "„" + esc(s.slowo) + "” " + s.r.toFixed(2)).join(" · ") : ""));
+    linie.push(g.otwarcia ? t("wn.gen.otwieral", { n: "<b>" + g.otwarcia + "</b>", nawyk: (g.nawyk * 100).toFixed(0), pow: g.powloka.toFixed(1) }) + (zr.length ? " " + t("wn.gen.otwieralo", { lista: zr.map(([k2, v]) => NZ[k2] + " " + v + "×").join(", ") }) : "") : t("wn.gen.nigdy"));
+    linie.push(`<span class="k">${t("wn.gen.stopka")}</span>`);
+    return linie.join("<br>");
+  }
+  function render(d) {
+    ostatnie = d;
+    $("cykl").textContent = t("wn.cykl", { n: d.cykl_swiata, w: d.wymiary || 4 });
+    $("lead").textContent = t("wn.lead", { geny: d.byty.length ? d.byty[0].geny.length : 64 });
+    const box = $("byty"); box.innerHTML = "";
+    if (!d.byty.length) box.innerHTML = `<p class="hint">${t("wn.nikt")}</p>`;
+    d.byty.forEach((b) => {
+      const znane = b.geny.filter((g) => g.otwarcia > 0).length;
+      const el = document.createElement("section"); el.className = "byt";
+      const roz = (b.rozumie || []).length ? b.rozumie.map((r) => t("nr", { nr: r.nr }) + " " + esc(r.znaki) + (r.slyszy ? (r.o_pokarmie ? " · " + t("wn.rozumie.pokarm") : " · " + t("wn.rozumie.nie_wie")) : " · " + t("wn.rozumie.nie", { z: r.zgodnosc.toFixed(2) }))).join("<br>") : t("wn.rozumie.nikogo");
+      const mowa = b.mowa && b.mowa.krzyk ? t("wn.mowi.wola") : (b.mowa && b.mowa.slowo) ? "„" + esc(b.mowa.slowo) + "”" : t("wn.mowi.milczy");
+      el.innerHTML = `
+        <div class="head"><h3>${t("wn.istota_nr", { nr: b.nr })}</h3><span class="state ${b.tryb === "sen" ? "sen" : ""}">${b.tryb === "sen" ? t("spi") : t("zyje")}</span></div>
+        <div class="cialo">
+          <div>
+            <canvas class="geny" width="448" height="448"></canvas>
+            <div class="legenda">${Object.keys(KOLOR).map((k) => `<span><i style="background:${css(KOLOR[k])}"></i>${t("wn.leg." + k)}</span>`).join("")}</div>
+          </div>
+          <div class="readouts">
+            <div class="readout"><span class="k">${t("wn.pokolenie")}</span><span>${b.pokolenie}${b.dzieci ? " · " + t("dzieci", { n: b.dzieci }) : ""}</span></div>
+            <div class="readout"><span class="k">${t("wn.wiek")}</span><span>${t("cykli", { n: b.wiek })}</span></div>
+            <div class="readout"><span class="k">${t("wn.energia")}</span><span>${b.energia.toFixed(1)} / 30</span></div>
+            <div class="readout"><span class="k">${t("wn.znane")}</span><span>${t("wn.znane.v", { a: znane, b: b.geny.length })}</span></div>
+            <div class="readout"><span class="k">${t("wn.otwarc")}</span><span>${b.otwarcia}</span></div>
+            <div class="readout"><span class="k">${t("wn.kaskada")}</span><span>${b.najdluzsza}</span></div>
+            <div class="readout"><span class="k">${t("wn.echo")}</span><span>${b.echo.length}</span></div>
+            <canvas class="echo" width="600" height="28"></canvas>
+            <div class="readout"><span class="k">${t("wn.miejsce")}</span><span>${t("wn.miejsce.v", { m: b.miejsce, s: (b.sasiedzi || []).map((x) => t("nr", { nr: x })).join(", ") || t("wn.brak"), g: ((d.miejsca || {})[b.miejsce] || {}).g?.toFixed(2) ?? "?", z: d.znanych_miejsc || d.pole.length, w: b.wytrwalosc })}</span></div>
+            <div class="readout"><span class="k">${t("wn.glos")}</span><span>${esc(b.glos)} <span class="k">${t("wn.glos.dopisek")}</span></span></div>
+            <div class="readout"><span class="k">${t("wn.rozumie")}</span><span>${roz}</span></div>
+            <div class="readout"><span class="k">${t("wn.mowi")}</span><span>${mowa}</span></div>
+            <div class="slownik">${b.slownik.length ? t("wn.zna") + " <b>" + b.slownik.map(esc).join("</b>, <b>") + "</b>" : t("wn.nie_zna")}</div>
+          </div>
+        </div>`;
+      box.appendChild(el);
+      const cv = el.querySelector("canvas.geny");
+      rysujGeny(cv, b);
+      rysujEcho(el.querySelector("canvas.echo"), b.echo);
+      const panel = document.createElement("div"); panel.className = "gen"; panel.hidden = true; el.appendChild(panel);
+      cv.addEventListener("click", (ev) => {
+        const r = cv.getBoundingClientRect(), n = bok(b);
+        const c = Math.floor((ev.clientX - r.left) / r.width * n), w = Math.floor((ev.clientY - r.top) / r.height * n);
+        const g = b.geny[w * n + c]; if (!g) return;
+        panel.innerHTML = opisz(g, b); panel.hidden = false;
+        try { localStorage.setItem("gen-" + b.nr, String(g.nr)); } catch (e) {}
+      });
+      try { const z = localStorage.getItem("gen-" + b.nr); if (z !== null && b.geny[+z]) { panel.innerHTML = opisz(b.geny[+z], b); panel.hidden = false; } } catch (e) {}
+    });
+    $("groby").textContent = d.zmarli.length ? d.zmarli.map((z) => t("wn.grob", { nr: z.nr, p: z.pokolenie, w: z.wiek, o: z.otwarcia }) + (z.dzieci ? " · " + t("dzieci", { n: z.dzieci }) : "")).join("\n") : t("wn.groby.nikt");
+  }
+  async function odswiez() {
+    try { const r = await fetch("/api/wnetrze?limit=24", { cache: "no-store" }); render(await r.json()); }
+    catch (e) { $("cykl").textContent = t("brak_serwera"); }
+  }
+  window.i18n.onChange(() => { if (ostatnie) render(ostatnie); });
+  window.i18n.start().then(() => { odswiez(); setInterval(odswiez, 20000); });
+})();
+</script>
