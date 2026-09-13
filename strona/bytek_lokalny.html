@@ -870,10 +870,11 @@
       d = await (await fetch("/api/dzieje", { cache: "no-store" })).json();
       s2 = await (await fetch("/api/stan", { cache: "no-store" })).json();
     } catch (e) { box.innerHTML = `<p class='hint'>${t("cyw.blad")}</p>`; return; }
+    if (d.cykli == null) { box.innerHTML = `<p class='hint'>${t("cyw.rodzi")}</p>`; return; }   // świat jeszcze nie zapisał ciała
     const p = s2.populacja || {};
     const tempo = s2.cykl_sekund ? (s2.cykl_sekund >= 60 ? t("co_min", { n: s2.cykl_sekund / 60 }) : t("co_s", { n: s2.cykl_sekund })) : "—";
     const zd = d.zdarzenia || {};
-    const wiersz = (k, v) => `<div class="wiersz" style="grid-template-columns:220px 1fr"><span>${k}</span><span>${v}</span></div>`;
+    const wiersz = (k, v) => `<div class="wiersz" style="grid-template-columns:220px 1fr"><span>${k}</span><span>${v ?? "—"}</span></div>`;
     const cechy = (d.cechy || []).filter((x) => x.ile >= 15).slice(-10);
     const kol = ["pokolenie", "ile", "wiek", "sila", "stadnosc", "pojetnosc", "towarzyskosc", "dlugowiecznosc", "ozdoba", "gust", "troska", "odpornosc"];
     const tab = `<div style="overflow-x:auto"><table style="border-collapse:collapse;font:400 12px/1.4 var(--mono)">
