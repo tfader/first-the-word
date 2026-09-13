@@ -79,7 +79,7 @@ def byt_do_slownika(b):
         "idzie": b.idzie, "krokow": b.krokow, "srednio": b.srednio,
         "dobre_miejsce": b.dobre_miejsce, "dobre_ile": b.dobre_ile, "zrozumiane": sorted(b.zrozumiane),
         "poprzednio_zjadl": b.poprzednio_zjadl, "ryt": b.ryt, "zimy": getattr(b, "zimy", 0), "spuscizna": getattr(b, "spuscizna", False), "u_kresu": getattr(b, "u_kresu", False), "wyryte": sorted(getattr(b, "wyryte", set())),
-        "ozdoba": b.ozdoba, "gust": b.gust, "troska": b.troska, "odpornosc": b.odpornosc, "chora": list(b.chora) if b.chora else None, "przechorowane": sorted(b.przechorowane),
+        "ozdoba": b.ozdoba, "gust": b.gust, "troska": b.troska, "plochliwosc": getattr(b, "plochliwosc", 0.5), "odpornosc": b.odpornosc, "chora": list(b.chora) if b.chora else None, "przechorowane": sorted(b.przechorowane),
         "po_slowie": {k: {"n": v["n"], "v": [round(x, 4) for x in v["v"]], "b": round(v["b"], 3)} for k, v in b.po_slowie.items() if "n" in v}, "czeka_skutek": b.czeka_skutek,
         "sen": b.sen, "otwarcia": b.otwarcia, "najdluzsza": b.najdluzsza, "dzieci": b.dzieci,
     }
@@ -117,6 +117,7 @@ def byt_ze_slownika(d):
     b.po_slowie = {k: v for k, v in (d.get("po_slowie") or {}).items() if isinstance(v, dict) and "n" in v}   # skutki z listy (stary zapis) przepadają: teraz skutek jest wektorem; b.czeka_skutek = d.get("czeka_skutek", []) or []
     b.ozdoba = d.get("ozdoba", b.ozdoba); b.gust = d.get("gust", b.gust)
     b.troska = d.get("troska", b.troska)
+    b.plochliwosc = d.get("plochliwosc", b.plochliwosc)
     b.odpornosc = d.get("odpornosc", b.odpornosc)
     b.chora = tuple(d["chora"]) if d.get("chora") else None
     b.przechorowane = set(d.get("przechorowane", []))
@@ -314,7 +315,7 @@ def wpis_zmarlej(b, swiat, ostatnia=False):
             "zmarl_w_cyklu": swiat["cykl_swiata"], "urodzony_w_cyklu": getattr(b, "urodzony_w_cyklu", None),
             "sila": b.sila, "lownosc": getattr(b, "lownosc", None), "ciekawosc": b.ciekawosc, "wytrwalosc": b.wytrwalosc,
             "stadnosc": b.stadnosc, "dlugowiecznosc": b.dlugowiecznosc, "optimum": b.optimum, "tolerancja": b.tolerancja, "towarzyskosc": b.towarzyskosc,
-            "ufnosc": b.ufnosc, "szczerosc": b.szczerosc, "pojetnosc": b.pojetnosc, "uprawa": b.uprawa, "spichlerz": b.spichlerz,
+            "ufnosc": b.ufnosc, "szczerosc": b.szczerosc, "pojetnosc": b.pojetnosc, "uprawa": b.uprawa, "spichlerz": b.spichlerz, "troska": b.troska, "plochliwosc": getattr(b, "plochliwosc", 0.5),
             "zrozumiane": sorted(b.zrozumiane), "mapa": b.mapa, "klamcy": sorted(b.klamcy), "nauczone": getattr(b, "nauczone", 0),
             "rozmowy": getattr(b, "rozmowy", 0), "slownik": sorted(b.slownik.keys()), "krokow": b.krokow, "sen": b.sen}
 
@@ -413,9 +414,9 @@ def pole_cykl(swiat):
             del h[:-ROK]
         r = random.random()
         if r < KLESKA:
-            m["g"] = 0.0; zdarzenie(swiat, "pozar", miejsce=k)      # pożar: łąka znika, odrośnie
+            m["g"] = 0.0; m["kleska"] = swiat["cykl_swiata"]; zdarzenie(swiat, "pozar", miejsce=k)      # pożar: łąka znika, odrośnie
         elif r < 2 * KLESKA:
-            m["h"] = round(m["h"] * 0.3, 2); m["g"] *= 0.5; zdarzenie(swiat, "powodz", miejsce=k)
+            m["h"] = round(m["h"] * 0.3, 2); m["g"] *= 0.5; m["kleska"] = swiat["cykl_swiata"]; zdarzenie(swiat, "powodz", miejsce=k)
     swiat["pole"] = [round(swiat["miejsca"][k]["g"], 3) for k in swiat["kolejnosc"]]
 
 
@@ -652,7 +653,16 @@ def main():
             dalej = None                        # cel wędrówki, gdy jest dalej niż jeden krok
             rodzice = [x for x in zywi if x.nr in (b.rodzic, b.rodzic2) and x.zyje()] if b.wiek < word.DZIECINSTWO else []
             unikana_obok = any(b.unika(x.nr) for x in zywi if x.nr != b.nr and x.zyje() and str(x.miejsce) == str(b.miejsce)) if b.unikani else False
-            if unikana_obok and b.energia > word.KOSZT_RUCHU * 2 and random.random() < 0.5:
+            # odruch: sygnał zagrożenia (pożar albo powódź na tej łące w tym cyklu, drapieżnik obok) to próba ruchu,
+            # bez czekania na głód. Dokąd: najlepsza łąka z pamięci na tę porę, a gdy nic nie pamięta, losowy sąsiad.
+            zagrozenie = str(b.miejsce) in (swiat.get("drapiezniki") or {}) or swiat["miejsca"][str(b.miejsce)].get("kleska") == swiat["cykl_swiata"]
+            sasiedzi_b = swiat["miejsca"][str(b.miejsce)].get("s") or []
+            if zagrozenie and sasiedzi_b and b.energia > word.KOSZT_RUCHU and not b.spala and random.random() < getattr(b, "plochliwosc", 0.5):   # gen: płochliwa ucieka, odważna zostaje; dobór wybierze
+                cel_u = b.najlepsze_z_mapy(pora_roku(swiat), poza=b.miejsce)
+                dokad_u = krok_do(swiat, b.miejsce, cel_u) if cel_u is not None else None
+                b.krok(dokad_u if dokad_u is not None else random.choice(sasiedzi_b))
+                b.uciekla = True
+            elif unikana_obok and b.energia > word.KOSZT_RUCHU * 2 and random.random() < 0.5:
                 b.krok(random.choice(swiat["miejsca"][str(b.miejsce)]["s"]))     # „unikaj istoty”: nie stoi z nią na jednej łące
             elif b.energia <= word.SYTOSC and b.chce_isc(glod):
                 cel = None
@@ -741,8 +751,15 @@ def main():
                 elif poprzednie.get(x.nr):
                     w = max(poprzednie[x.nr], key=lambda v: sum(t * t for t in v))
                     inni_syg.append((x.nr, w, "wyjscie"))
+            # śmierć obok jest widoczna: kto stał w zasięgu, gdy ktoś umarł w poprzednim cyklu, dostaje sygnał: ból plus głos
+            # zmarłej, ze wskazaniem na łąkę. Nikt nie wpisuje, co to znaczy: jeśli po takim sygnale bywa źle, nauczą się unikać.
+            for nr_z, m_z, glos_z in swiat.get("_smierci_obok", []):
+                if m_z in blisko and len(glos_z) == word.ROZMIAR:
+                    r_ = word.rana(); nr_r = (sum(v * v for v in r_) ** 0.5) or 1.0
+                    ng = (sum(v * v for v in glos_z) ** 0.5) or 1.0
+                    inni_syg.append((nr_z, [a / nr_r + g_ / ng for a, g_ in zip(r_, glos_z)], "smierc", None, {"temat": "smierc", "cel": m_z}))
             random.shuffle(inni_syg)
-            inni_syg.sort(key=lambda s: {"alarm": 0, "wolanie": 1, "krzyk": 2, "glos": 3, "odpowiedz": 3}.get(s[2], 4))   # najpierw to, co ważne
+            inni_syg.sort(key=lambda s: {"alarm": 0, "wolanie": 1, "krzyk": 2, "smierc": 2, "glos": 3, "odpowiedz": 3}.get(s[2], 4))   # najpierw to, co ważne
             inny = inni_syg[0] if inni_syg else None
             mm = swiat["miejsca"][tu]
             g = mm["g"]
@@ -1115,6 +1132,11 @@ def main():
                     break
         zmarli = [b for b in zywi if not b.zyje()]
         zywi = [b for b in zywi if b.zyje()] + nowi
+        swiat["_smierci_obok"] = [(b.nr, str(b.miejsce), [float(v) for v in b.glos]) for b in zmarli]   # sygnał dla sąsiadów w następnym cyklu
+        for b in zmarli:
+            obok = set([str(b.miejsce)] + list(swiat["miejsca"].get(str(b.miejsce), {}).get("s", [])))
+            swiat.setdefault("_korpus", []).append({"c": swiat["cykl_swiata"], "r": "smierc", "kto": b.nr, "miejsce": str(b.miejsce),
+                                                    "widzieli": [x.nr for x in zywi if str(x.miejsce) in obok][:32]})
         for b in zmarli:
             swiat["zmarli"].append(wpis_zmarlej(b, swiat))
             print(f"byt {b.nr} umarł w wieku {b.wiek} cykli.", flush=True)

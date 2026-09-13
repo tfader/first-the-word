@@ -1609,3 +1609,29 @@ nie zależy od liczby istot. Reszta bez zmian.
 Spuścizna i odczytanie rytu to sprawy jednej istoty i zdarzają się często,
 więc na osi dziejów cywilizacji ich nie ma; zostają w kronice. Na osi
 zostaje odkrycie rytu (przełom) i to, co dotyka wielu naraz.
+
+## Kawałek 96 (2026-09-13): śmierć obok jest widoczna
+Istoty nie mają śmierci jako pojęcia; mają ból, głód i przewidywanie.
+Strachu nie dopisujemy. Dajemy tylko to, co mają zwierzęta: kto stoi
+w zasięgu, gdy ktoś umiera, w następnym cyklu dostaje sygnał: ból plus głos
+zmarłej, ze wskazaniem na tę łąkę (temat „śmierć”, cel: miejsce). Sygnał
+przechodzi jak każdy inny: otwiera bramki, wchodzi w pamięć, czeka na
+skutek. Jeśli po nim bywa źle, powstanie znaczenie „unikaj łąki”; jeśli
+nie, sygnał zostanie szumem. Śmierć trafia też do korpusu z listą tych,
+którzy ją widzieli. Strach urośnie sam albo nie urośnie wcale.
+
+## Kawałek 97 (2026-09-13): odruch ucieczki
+Cztery pożary przed zimą zabrały jedzenie, a istoty stały na spalonych
+łąkach, aż głód po kilku cyklach kazał im ruszyć. Teraz każdy sygnał
+zagrożenia (pożar albo powódź na tej łące w tym cyklu, drapieżnik obok)
+to próba ruchu od razu, bez czekania na głód: krok ku najlepszej łące
+z pamięci na tę porę roku, a gdy nic nie pamięta, do losowego sąsiada.
+Odruch, nie znaczenie: wrodzony, jak krzyk. Kosztuje tyle, co każdy krok;
+śpiąca go nie ma.
+
+## Doprecyzowanie (2026-09-13): ucieczka to gen
+Odruch ucieczki nie jest wspólny dla wszystkich: gen płochliwości
+(dziedziczny, z mutacją 0,06, na start 0,2–0,8) mówi, z jakim
+prawdopodobieństwem istota na zagrożenie ucieka, a z jakim zostaje.
+Ucieczka kosztuje krok i łąkę, zostanie może kosztować życie. Dobór wybierze;
+średnia po pokoleniach w tabeli cech.

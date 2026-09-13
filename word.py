@@ -366,6 +366,7 @@ class Byt:
         self.ozdoba = random.uniform(0.0, 0.15)     # dziedziczna: bezużyteczna ozdoba, kosztowna i widoczna
         self.gust = random.uniform(0.0, 0.5)        # dziedziczny: ile wybierająca waży cudzą ozdobę
         self.troska = random.uniform(0.2, 0.8)      # dziedziczna: ile sił oddaje na uczenie dziecka (i ile mu przekazuje)
+        self.plochliwosc = random.uniform(0.2, 0.8) # dziedziczna: czy na zagrożenie (pożar, powódź, drapieżnik) ucieka, czy zostaje
         self.odpornosc = random.uniform(0.2, 0.8)   # dziedziczna: jak trudno ją zarazić i jak szybko zdrowieje; kosztuje trwanie
         self.chora = None                           # (szczep, ile cykli już choruje) albo None
         self.przechorowane = set()                  # szczepy, na które ma już odporność nabytą
@@ -788,6 +789,8 @@ class Byt:
         d.gust = max(0.0, min(1.0, zrodlo_g.gust + random.gauss(0, 0.06)))                   # gen gustu (co się podoba)
         zrodlo_t2 = partner if (partner is not None and random.random() < 0.5) else self
         d.troska = max(0.0, min(1.0, zrodlo_t2.troska + random.gauss(0, 0.06)))              # gen troski
+        zrodlo_pl = partner if (partner is not None and random.random() < 0.5) else self
+        d.plochliwosc = max(0.0, min(1.0, zrodlo_pl.plochliwosc + random.gauss(0, 0.06)))   # gen płochliwości
         zrodlo_o = partner if (partner is not None and random.random() < 0.5) else self
         d.odpornosc = max(0.0, min(1.0, zrodlo_o.odpornosc + random.gauss(0, 0.06)))          # gen odporności
         zrodlo_p = partner if (partner is not None and random.random() < 0.5) else self
@@ -1023,7 +1026,7 @@ class Byt:
                         elif nauczony is not None:
                             # znaczenie z doświadczenia, nie z listy: słowo znaczy to, co po nim zwykle następowało.
                             # Każda istota uczy się osobno, więc to samo słowo może dla dwóch znaczyć co innego.
-                            if meta.get("temat") in ("zapach", "bol", "choroba") and meta.get("cel") is not None:
+                            if meta.get("temat") in ("zapach", "bol", "choroba", "smierc") and meta.get("cel") is not None:
                                 obiekt_n, cel_n = "laka", str(meta["cel"])
                             elif meta.get("temat") == "inny" and meta.get("cel") is not None and int(meta["cel"]) != self.nr:
                                 obiekt_n, cel_n = "istota", int(meta["cel"])
@@ -1047,7 +1050,7 @@ class Byt:
                             glowne = max(zr, key=zr.get)
                             czasownik = {"pokarm": "idz", "slowo": "idz", "rana": "unikaj", "echo": "zapamietaj", "inny": "odpowiedz"}.get(glowne)
                             if czasownik is not None:
-                                if meta.get("temat") in ("zapach", "bol", "choroba") and meta.get("cel") is not None:
+                                if meta.get("temat") in ("zapach", "bol", "choroba", "smierc") and meta.get("cel") is not None:
                                     obiekt, cel = "laka", str(meta["cel"])
                                 elif meta.get("temat") == "inny" and meta.get("cel") is not None and int(meta["cel"]) != self.nr:
                                     obiekt, cel = "istota", int(meta["cel"])

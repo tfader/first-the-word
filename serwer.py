@@ -412,7 +412,7 @@ def genom_swiata():
     }
 
 
-CECHY_PORTRETU = ("sila", "lownosc", "ciekawosc", "stadnosc", "dlugowiecznosc", "ufnosc", "szczerosc", "pojetnosc", "towarzyskosc", "optimum", "tolerancja", "ozdoba", "gust", "troska", "odpornosc")
+CECHY_PORTRETU = ("sila", "lownosc", "ciekawosc", "stadnosc", "dlugowiecznosc", "ufnosc", "szczerosc", "pojetnosc", "towarzyskosc", "optimum", "tolerancja", "ozdoba", "gust", "troska", "plochliwosc", "odpornosc")
 
 
 def portret():
@@ -499,7 +499,7 @@ def dzieje():
                       "ciekawosc": srednia(g, "ciekawosc"), "stadnosc": srednia(g, "stadnosc"),
                       "dlugowiecznosc": srednia(g, "dlugowiecznosc"), "optimum": srednia(g, "optimum"), "tolerancja": srednia(g, "tolerancja"),
                       "ufnosc": srednia(g, "ufnosc"), "szczerosc": srednia(g, "szczerosc"), "pojetnosc": srednia(g, "pojetnosc"), "towarzyskosc": srednia(g, "towarzyskosc"), "nauczone": srednia(g, "nauczone"),
-                      "ozdoba": srednia(g, "ozdoba"), "gust": srednia(g, "gust"), "troska": srednia(g, "troska"), "odpornosc": srednia(g, "odpornosc")})
+                      "ozdoba": srednia(g, "ozdoba"), "gust": srednia(g, "gust"), "troska": srednia(g, "troska"), "plochliwosc": srednia(g, "plochliwosc"), "odpornosc": srednia(g, "odpornosc")})
     zliczenia = {}
     for x in zd:
         zliczenia[x["typ"]] = zliczenia.get(x["typ"], 0) + 1

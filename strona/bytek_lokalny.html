@@ -961,7 +961,7 @@
     const zd = d.zdarzenia || {};
     const wiersz = (k, v) => `<div class="wiersz" style="grid-template-columns:220px 1fr"><span>${k}</span><span>${v ?? "—"}</span></div>`;
     const cechy = (d.cechy || []).filter((x) => x.ile >= 15).slice(-10);
-    const kol = ["pokolenie", "ile", "wiek", "sila", "stadnosc", "pojetnosc", "towarzyskosc", "dlugowiecznosc", "ozdoba", "gust", "troska", "odpornosc"];
+    const kol = ["pokolenie", "ile", "wiek", "sila", "stadnosc", "pojetnosc", "towarzyskosc", "dlugowiecznosc", "ozdoba", "gust", "troska", "plochliwosc", "odpornosc"];
     const tab = `<div style="overflow-x:auto"><table style="border-collapse:collapse;font:400 12px/1.4 var(--mono)">
       <tr>${kol.map((k) => `<th style="text-align:left;padding:4px 10px;color:var(--muted)">${k}</th>`).join("")}</tr>
       ${cechy.map((x) => `<tr>${kol.map((k) => `<td style="padding:4px 10px">${x[k] ?? "—"}</td>`).join("")}</tr>`).join("")}</table></div>`;
