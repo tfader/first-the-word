@@ -202,6 +202,8 @@
   const liczba = (n, jedna, kilka, wiele) => n === 1 ? t(jedna) : (n >= 2 && n <= 4) ? t(kilka, { n }) : t(wiele, { n });
   let ostatniStan = null;
   let czekamNaSwiat = 0;                     // chwila powołania świata: do tego czasu formularz się nie pokazuje
+  let swiatSieRodzi = false;                 // podsumowanie stwierdziło, że świat nie zapisał jeszcze ciała
+  const rodzacySie = () => swiatSieRodzi || Date.now() - czekamNaSwiat < 30000;
 
   function rysujOddech(cv, b) {
     const ctx = cv.getContext("2d"), W = cv.width, cx = W / 2, cy = W / 2;
@@ -543,7 +545,7 @@
     // kafle zniknęły ze strony: te same liczby są w podsumowaniu cywilizacji, w kontekście
     document.querySelectorAll("#akcje [data-otworz]").forEach((b) => { b.hidden = !s.zyje; });
     if (!s.zyje) return;
-    $("procesStoi").hidden = s.proces_zyje !== false || Date.now() - czekamNaSwiat < 30000;
+    $("procesStoi").hidden = s.proces_zyje !== false || rodzacySie();   // rodzącego się świata nie wznawia się
     $("cywilizacja").hidden = !s.zyje;
   }
 
@@ -870,7 +872,13 @@
       d = await (await fetch("/api/dzieje", { cache: "no-store" })).json();
       s2 = await (await fetch("/api/stan", { cache: "no-store" })).json();
     } catch (e) { box.innerHTML = `<p class='hint'>${t("cyw.blad")}</p>`; return; }
-    if (d.cykli == null) { box.innerHTML = `<p class='hint'>${t("cyw.rodzi")}</p>`; return; }   // świat jeszcze nie zapisał ciała
+    if (d.cykli == null) {                       // świat jeszcze nie zapisał ciała
+      swiatSieRodzi = true;
+      $("procesStoi").hidden = true;             // póki się rodzi, nie ma czego wznawiać
+      box.innerHTML = `<p class='hint'>${t("cyw.rodzi")}</p>`;
+      return;
+    }
+    swiatSieRodzi = false;
     const p = s2.populacja || {};
     const tempo = s2.cykl_sekund ? (s2.cykl_sekund >= 60 ? t("co_min", { n: s2.cykl_sekund / 60 }) : t("co_s", { n: s2.cykl_sekund })) : "—";
     const zd = d.zdarzenia || {};
@@ -1017,7 +1025,7 @@
   $("dlgNapisy").addEventListener("click", (e) => { if (e.target === $("dlgNapisy")) $("dlgNapisy").close(); });
   let dziejeCykl = null;
   async function renderDzieje(s) {
-    if (s.zyje || Date.now() - czekamNaSwiat < 30000) { $("dzieje").innerHTML = ""; dziejeCykl = null; return; }   // stary świat już nie jest tym światem
+    if (s.zyje || rodzacySie()) { $("dzieje").innerHTML = ""; dziejeCykl = null; return; }   // stary świat już nie jest tym światem
     if (dziejeCykl === s.cykl_swiata) return;
     dziejeCykl = s.cykl_swiata;
     try {
@@ -1051,7 +1059,7 @@
       const przerwany = !!s.zyje && s.proces_zyje === false;          // istoty żyją, ale proces stoi: można wznowić albo powołać nowy świat
       // świeżo powołany świat jeszcze nie zapisał pierwszego cyklu, więc stan mówi „nikt nie żyje”.
       // Formularz ma wtedy zostać schowany, inaczej wygląda, jakby nic się nie stało.
-      kon.hidden = (!!s.zyje && !przerwany) || (Date.now() - czekamNaSwiat < 30000);
+      kon.hidden = (!!s.zyje && !przerwany) || rodzacySie();
       if (!kon.hidden) {
         $("koniecOpis").textContent = przerwany ? t("koniec.opis.przerwany", { cykl: s.cykl_swiata, n: s.zywych }) : t(s.koniec && s.koniec.powod === "jedna_plec" ? "koniec.opis.jedna_plec" : "koniec.opis", { cykl: s.cykl_swiata, nr: ((s.koniec || {}).ostatni || []).map((n) => t("nr", { nr: n })).join(", ") });
         kon.querySelector("h2").textContent = t(przerwany ? "koniec.eyebrow.przerwany" : "koniec.eyebrow");
