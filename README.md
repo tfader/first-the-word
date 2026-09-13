@@ -70,6 +70,25 @@ Read-only: anything that would change the world is refused.
 The world writes its data next to the code (`swiat.json`, `cialo/`, `swiaty/`, journals). None of it belongs
 in the repository — `.gitignore` keeps it out. A fresh clone has no world; it makes one on first run.
 
+### Contributing
+
+The world is far from finished, and every layer of it can be pushed further — this is an open invitation.
+
+What is worth doing next is written down in `WORD.md` under **Odłożone** (things set aside): more verbs
+and objects in meanings, sentences carrying two topics at once, division of labour, stories passed between
+generations, crossing-over inside a gene. Beyond that: whatever you think this world is missing.
+
+Two things worth knowing before you start:
+
+- **Read `WORD.md` first.** Every piece has a why, usually with the measurement that settled it. The project
+  is closer to biology than to engineering: a change is judged by what the world does with it, not by how
+  clean the code looks. Run it, measure, and put the numbers in the pull request.
+- **Nothing in this world is designed.** Genes come from multiplying random matrices, meanings come from
+  experience, and what is good is decided by energy. If your change writes down an answer that selection was
+  supposed to find, it is probably the wrong change.
+
+Issues, pull requests, forks and worlds run on entirely different settings are all welcome.
+
 ### License
 
 MIT — see [`LICENSE`](LICENSE).
@@ -134,6 +153,25 @@ Tylko do oglądania: wszystko, co zmienia świat, jest odmawiane.
 
 Świat zapisuje dane obok kodu (`swiat.json`, `cialo/`, `swiaty/`, dzienniki). Nic z tego nie należy do
 repozytorium — pilnuje tego `.gitignore`. Świeża kopia nie ma świata; tworzy go przy pierwszym uruchomieniu.
+
+### Współtworzenie
+
+Ten świat jest daleki od skończenia i każdą jego warstwę da się pchnąć dalej — zapraszamy.
+
+Co warto zrobić dalej, spisane jest w `WORD.md` w sekcji **Odłożone**: więcej czasowników i przedmiotów
+w znaczeniach, wypowiedzi z dwoma tematami naraz, podział pracy, opowieści między pokoleniami,
+crossing-over wewnątrz genu. Poza tym: cokolwiek, czego według Ciebie temu światu brakuje.
+
+Dwie rzeczy warto wiedzieć, zanim zaczniesz:
+
+- **Najpierw przeczytaj `WORD.md`.** Każdy kawałek ma swoje dlaczego, zwykle z pomiarem, który przeważył.
+  Projekt jest bliższy biologii niż inżynierii: zmianę ocenia się po tym, co świat z nią robi, nie po tym,
+  jak czysty jest kod. Uruchom, zmierz i włóż liczby do pull requesta.
+- **Nic w tym świecie nie jest zaprojektowane.** Geny biorą się z mnożenia losowych macierzy, znaczenia
+  z doświadczenia, a o tym, co dobre, rozstrzyga energia. Jeśli Twoja zmiana wpisuje odpowiedź, którą miał
+  znaleźć dobór, to prawdopodobnie zła zmiana.
+
+Zgłoszenia, pull requesty, forki i światy puszczone na zupełnie innych ustawieniach — wszystko mile widziane.
 
 ### Licencja
 
