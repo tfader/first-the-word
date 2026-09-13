@@ -6,6 +6,8 @@ and the words they invent get their meaning from what happened next. Nobody writ
 Świat, który toczy się sam: istoty zbudowane z macierzy-genów jedzą, starzeją się, mówią, chorują i umierają —
 a słowa, które wymyślają, biorą znaczenie z tego, co po nich nastąpiło. Nikt nie pisze słownika; robi to dobór.
 
+**[What this is and how it works →](IDEA.md)** · **[Czym to jest i jak działa →](IDEA.md)**
+
 ---
 
 ## English
