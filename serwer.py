@@ -50,6 +50,7 @@ def stan_dla_strony():
     import zycie as _zycie
     doc["warunki"] = cialo_.get("warunki") or _zycie.losuj_warunki("stale")   # planeta tego świata; stary świat: domyślna
     doc["warunki_tryb"] = cialo_.get("warunki_tryb")
+    doc["skladnia"] = bool(cialo_.get("skladnia", False))
     doc["slowa"] = sorted(
         [{"tekst": s["tekst"], "status": s["status"], "czas": s.get("czas", 0), "do": s.get("do")} for s in slowa.values()],
         key=lambda s: -(s["czas"] or 0))[:40]
@@ -214,6 +215,14 @@ def slownik():
         except Exception:
             return "?"
         return "?"
+    znaki1 = znaki
+    def znaki(temat, cel):
+        """Para tematów (składnia) ma klucz „t1:c1+t2:c2”: znaki obu, rozdzielone plusem."""
+        if cel is not None and "+" in str(cel):
+            c1, reszta = str(cel).split("+", 1)
+            t2, _, c2 = reszta.partition(":")
+            return znaki1(temat, c1 or None) + "+" + znaki1(t2, c2 or None)
+        return znaki1(temat, cel)
     def slowo_znaczenia(k, n):
         """Wpis słowa przy znaczeniu: wrodzone (@wolanie, @alarm), wyuczone (temat:cel) albo nieznane („?”)."""
         if k.startswith("@"):
@@ -692,7 +701,7 @@ def wznow_zycie():
     return 200, {"wznowiony": True, "pid": proc.pid}
 
 
-def nowy_swiat(geny=None, dwoje=False, cykl=None, wymiary=None, istot=None, rozmiar=None, pojemnosc=None, jezyk=None, warunki=None):
+def nowy_swiat(geny=None, dwoje=False, cykl=None, wymiary=None, istot=None, rozmiar=None, pojemnosc=None, jezyk=None, warunki=None, skladnia=None):
     """Stary świat idzie do archiwum (rzeczywistość równoległa), rusza nowy proces życia.
     Tylko gdy w obecnym świecie nikt nie żyje. geny: ile genów ma mieć pierwszy byt."""
     def liczba(x, dom):
@@ -709,6 +718,7 @@ def nowy_swiat(geny=None, dwoje=False, cykl=None, wymiary=None, istot=None, rozm
     pojemnosc = max(10, min(20000, int(liczba(pojemnosc, os.environ.get("POJEMNOSC_SWIATA", "2000")))))   # ilu żywych świat uniesie
     jezyk = jezyk if jezyk in ("pl", "en") else os.environ.get("JEZYK", "pl")   # język nazw czynów w tym świecie
     warunki = warunki if warunki in ("stale", "losowe") else "stale"          # planeta: domyślna albo wylosowana raz
+    skladnia = "1" if skladnia in (True, 1, "1", "tak", "true") else "0"        # składnia: dwa tematy w wypowiedzi
     swiat = most.czytaj_json(most.CIALO, None)
     if proces_zyje():
         return 409, {"blad": "proces życia jeszcze działa"}
@@ -735,7 +745,7 @@ def nowy_swiat(geny=None, dwoje=False, cykl=None, wymiary=None, istot=None, rozm
     with open(os.path.join(KATALOG, "zycie.log"), "a") as log:
         proc = subprocess.Popen([sys.executable, os.path.join(KATALOG, "zycie.py")],
                             cwd=KATALOG, stdout=log, stderr=subprocess.STDOUT,
-                            env={**os.environ, "CYKL": str(cykl), "GENY": str(geny), "DWOJE": "1" if dwoje else "0", "WYMIARY": str(wymiary), "ISTOT": str(istot), "ROZMIAR": rozmiar, "POJEMNOSC_SWIATA": str(pojemnosc), "JEZYK": jezyk, "WARUNKI": warunki},
+                            env={**os.environ, "CYKL": str(cykl), "GENY": str(geny), "DWOJE": "1" if dwoje else "0", "WYMIARY": str(wymiary), "ISTOT": str(istot), "ROZMIAR": rozmiar, "POJEMNOSC_SWIATA": str(pojemnosc), "JEZYK": jezyk, "WARUNKI": warunki, "SKLADNIA": skladnia},
                             start_new_session=True)
     with open(ZYCIE_PID, "w") as f:
         f.write(str(proc.pid))
@@ -949,7 +959,7 @@ class Bytek(BaseHTTPRequestHandler):
         if sciezka == "/api/nowy_swiat":
             try:
                 with BLOKADA:
-                    kod, odp = nowy_swiat(dane.get("geny"), bool(dane.get("dwoje")), dane.get("cykl"), dane.get("wymiary"), dane.get("istot"), dane.get("rozmiar"), dane.get("pojemnosc"), dane.get("jezyk"), dane.get("warunki"))
+                    kod, odp = nowy_swiat(dane.get("geny"), bool(dane.get("dwoje")), dane.get("cykl"), dane.get("wymiary"), dane.get("istot"), dane.get("rozmiar"), dane.get("pojemnosc"), dane.get("jezyk"), dane.get("warunki"), dane.get("skladnia"))
             except (TypeError, ValueError):
                 return self._json(400, {"blad": "złe parametry"})
             return self._json(kod, odp)

@@ -27,9 +27,20 @@ the life process itself. In the form you choose how many genes, how many dimensi
 beings to begin with, how large the world is, how many it can hold at once, and **which language** it names
 its meanings in (`pl` / `en`).
 
-To keep it running after you close the terminal:
+To keep it running after you close the terminal, and to keep the Mac awake for as long as it runs:
 
     nohup python3 serwer.py >> serwer.log 2>&1 &
+    echo $! > serwer.pid
+    caffeinate -i -w $(cat serwer.pid) &
+
+The life process the page starts writes its own `zycie.pid`; to keep the Mac awake for the world too:
+
+    caffeinate -i -w $(cat zycie.pid) &
+
+A closed laptop lid still puts the machine to sleep; leave the lid open (the screen may go dark) and the
+power adapter connected. Check what is running with `ps -Ao pid,args | grep "[s]erwer.py\|[z]ycie.py"`.
+The form also lets you pick **planet conditions** (fixed, or drawn once at random for this world) and
+**syntax** (whether an utterance may carry two topics).
 
 The command line is only needed if you want to start the world without the page:
 
@@ -111,9 +122,20 @@ Otwórz <http://localhost:8080> i przyciskiem powołaj świat. To wszystko: serw
 W formularzu wybierasz, ile genów, ile wymiarów ma sygnał, ile istot na początek, jak duży jest świat,
 ilu najwyżej uniesie i **w jakim języku** nazywa swoje znaczenia (`pl` / `en`).
 
-Żeby działał po zamknięciu terminala:
+Żeby działał po zamknięciu terminala i żeby Mac nie zasnął, dopóki serwer żyje:
 
     nohup python3 serwer.py >> serwer.log 2>&1 &
+    echo $! > serwer.pid
+    caffeinate -i -w $(cat serwer.pid) &
+
+Proces życia uruchomiony ze strony zapisuje własny `zycie.pid`; żeby Mac nie zasnął także dla świata:
+
+    caffeinate -i -w $(cat zycie.pid) &
+
+Zamknięta klapa laptopa i tak go uśpi: klapa otwarta (ekran może zgasnąć), zasilacz podłączony.
+Co działa, sprawdzisz przez `ps -Ao pid,args | grep "[s]erwer.py\|[z]ycie.py"`.
+W formularzu wybierasz też **warunki planety** (stałe albo wylosowane raz dla tego świata) i **składnię**
+(czy wypowiedź może nieść dwa tematy).
 
 Linia komend jest potrzebna tylko wtedy, gdy chcesz powołać świat bez strony:
 

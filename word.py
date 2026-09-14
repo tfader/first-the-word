@@ -52,6 +52,8 @@ ODCZYT = 0.3                 # szansa na cykl (× ciekawość), że istota na ł
 RYT_SLABIEJ = 0.7            # odczytane znaczenie jest słabsze niż od rodzica (pismo bez nauczyciela)
 RYT_BLEDNIE = 0.004          # o tyle blednie ryt na cykl (bez odnowienia zaciera się po ~250 cyklach)
 RYTOW_NA_LACE = 8            # więcej się nie mieści
+SKLADNIA = False             # parametr świata: czy wypowiedź może nieść dwa tematy naraz (składnia); ustawiany przy wczytaniu ciała
+KOSZT_SKLADNI = 0.1          # drugi temat w wypowiedzi kosztuje: dłuższa mowa to więcej energii
 KOSZT_WSKAZANIA = 0.2       # tyle kosztuje wskazanie głodnemu łąki z pamięci (mowa o tym, czego słuchacz nie widzi)
 PROG_KRESU = 1.0             # poniżej tylu energii, bez jedzenia, istota jest u kresu: nie zapłaci następnego cyklu
 PRZEKAZ = 0.8                # ile poziomu nauczyciela dostaje uczeń ze słowa (było 0,6: umiejętność gasła z każdym przekazem)
@@ -218,6 +220,15 @@ def nazwa_bo(verb, skutek):
     return d["@bo"].format(cz=d["@" + verb], s=skutek)
 
 
+def klucz_pary(temat, cel=None, slowo_id=None, temat2=None, cel2=None):
+    """Klucz wypowiedzi: jeden temat albo para tematów (składnia). Para to osobne słowo: inaczej brzmi, osobno się jej uczy."""
+    k1 = klucz_slowa(temat, cel, slowo_id)
+    if not temat2 or not k1:
+        return k1
+    k2 = klucz_slowa(temat2, cel2)
+    return k1 + "+" + k2 if k2 else k1
+
+
 def klucz_slowa(temat, cel=None, slowo_id=None):
     """Klucz słowa w słowniku świata: temat i to, do czego się odnosi. Powtórzone cudze słowo liczy się do tamtego słowa
     (po identyfikatorze nowego dźwięku); powtórzenie bez identyfikatora nie jest osobnym słowem."""
@@ -319,6 +330,7 @@ class Byt:
         self.skad_wyjscia = {}                      # wektor wyjścia -> gen, z którego wypadł (czyszczone co cykl)
         self.gen_slowa = None                       # gen, z którego wyszedł nowy dźwięk w tym cyklu
         self.temat = None                           # o czym mówi: (nazwa, wektor sygnatury, cel) — to, co w tym cyklu brzmiało najgłośniej
+        self.temat2 = None                          # składnia: drugi temat w tej samej wypowiedzi (parametr świata)
         self.wypowiedz = None                       # co wydaje z siebie: własny głos + sygnatura tematu
         self.przylapala = None                      # (nr, głos) kłamcy przyłapanego w poprzednim cyklu: temat na dziś
         self.czyn_cel = None                        # do czego odnosi się zrozumiany czyn (miejsce albo nr istoty)
@@ -607,6 +619,21 @@ class Byt:
             self.ryt = max(self.ryt, PRZEKAZ * (0.7 + 0.6 * self.pojetnosc) * rodzic.ryt)   # umiejętność rytu idzie jak inne: przez naukę
         self.nauczone = getattr(self, "nauczone", 0) + 1
 
+    def zloz(self, meta, obiekt, cel):
+        """Składnia: drugi temat zmienia sens pierwszego. Pora: łąka na tę porę roku. Istota: czyn odnosi się do niej
+        (ból + istota: unikaj jej). Zapach przy temacie bez miejsca (pokarm, choroba, uprawa): rzecz jest na tamtej łące."""
+        self.czyn_pora = None
+        t2, c2 = meta.get("temat2"), meta.get("cel2")
+        if not t2:
+            return obiekt, cel
+        if t2 == "pora" and c2:
+            self.czyn_pora = str(c2)
+        elif t2 == "inny" and c2 is not None and int(c2) != self.nr:
+            obiekt, cel = "istota", int(c2)
+        elif t2 in ("zapach", "bol", "choroba") and c2 is not None and obiekt == "nadawca":
+            obiekt, cel = "laka", str(c2)
+        return obiekt, cel
+
     def znaczenia_rozumiane(self):
         """Skojarzenia słowo -> skutek, które są już pewne (n ≥ 3, wektory się nie rozjeżdżają). To można wyryć."""
         out = []
@@ -842,6 +869,7 @@ class Byt:
         self.czyn_verb = self.czyn_skutek = None
         self.czyn_slowo = None                      # jakie słowo (klucz) wywołało czyn: do słownika świata
         self.czyn_obiekt = None
+        self.czyn_pora = None                       # składnia: łąka na wskazaną porę roku
         self.gawedzi = False
         ilu_teraz = klimat.get("towarzystwo")
         if self.czeka_skutek:
@@ -984,7 +1012,7 @@ class Byt:
                 if len(syg) > 4 and isinstance(syg[4], dict) and syg[4].get("slowo_id"):
                     slowa_od[syg[0]] = syg[4]["slowo_id"]
                 if len(syg) > 4 and isinstance(syg[4], dict):
-                    kl_ = klucz_slowa(syg[4].get("temat"), syg[4].get("cel"), syg[4].get("slowo_id"))
+                    kl_ = klucz_pary(syg[4].get("temat"), syg[4].get("cel"), syg[4].get("slowo_id"), syg[4].get("temat2"), syg[4].get("cel2"))
                     if kl_ and kl_ not in self.czeka_skutek and len(self.czeka_skutek) < 4:
                         self.czeka_skutek.append(kl_)             # usłyszane: skutek oceni następny cykl
                 typ = syg[2] if len(syg) > 2 else "wyjscie"
@@ -998,7 +1026,7 @@ class Byt:
                     elif typ in ("glos", "odpowiedz"):
                         meta = syg[4] if len(syg) > 4 and isinstance(syg[4], dict) else {}
                         zr = self.zrodla.get(str(o[0]), {})
-                        kl = klucz_slowa(meta.get("temat"), meta.get("cel"), meta.get("slowo_id"))
+                        kl = klucz_pary(meta.get("temat"), meta.get("cel"), meta.get("slowo_id"), meta.get("temat2"), meta.get("cel2"))
                         nauka = self.po_slowie.get(kl) if kl else None
                         nauczony, bilans_n = None, 0.0
                         if nauka and nauka.get("n", 0) >= 3:
@@ -1011,7 +1039,7 @@ class Byt:
                             if random.random() < self.ufnosc:
                                 self.klamcy.add(int(meta["cel"]))
                                 self.czyn, self.czyn_verb, self.czyn_do, self.czyn_cel = nazwa_czynu("nie_wierz"), "nie_wierz", syg[0], int(meta["cel"])
-                                self.czyn_slowo = klucz_slowa(meta.get("temat"), meta.get("cel"), meta.get("slowo_id"))
+                                self.czyn_slowo = klucz_pary(meta.get("temat"), meta.get("cel"), meta.get("slowo_id"), meta.get("temat2"), meta.get("cel2"))
                         elif meta.get("temat") == "spichlerz" and (meta.get("spichlerz") or 0) > self.spichlerz * 1.2 and (meta.get("swoj") or random.random() < self.ufnosc):
                             # spichlerz przekazuje się tylko słowem, jak uprawa
                             self.spichlerz = max(self.spichlerz, min(float(meta["spichlerz"]), PRZEKAZ * (0.7 + 0.6 * self.pojetnosc) * float(meta["spichlerz"])))
@@ -1040,6 +1068,7 @@ class Byt:
                                 verb_n = "unikaj"
                             else:
                                 verb_n = "zapamietaj"
+                            obiekt_n, cel_n = self.zloz(meta, obiekt_n, cel_n)
                             self.czyn, self.czyn_verb, self.czyn_skutek = nazwa_bo(verb_n, nauczony), verb_n, nauczony
                             self.czyn_do, self.czyn_cel, self.czyn_obiekt = syg[0], cel_n, obiekt_n
                             self.czyn_slowo = kl
@@ -1056,6 +1085,7 @@ class Byt:
                                     obiekt, cel = "istota", int(meta["cel"])
                                 else:
                                     obiekt, cel = "nadawca", syg[0]
+                                obiekt, cel = self.zloz(meta, obiekt, cel)
                                 if czasownik == "idz" and glod < GLOD_RUCHU:
                                     czasownik = "zapamietaj"                          # syta nie idzie za pokarmem, ale zapamiętuje
                                 if czasownik == "odpowiedz":
@@ -1064,7 +1094,7 @@ class Byt:
                                 if nazwa:
                                     self.czyn, self.czyn_verb = nazwa, czasownik
                                     self.czyn_do, self.czyn_cel, self.czyn_obiekt = syg[0], cel, obiekt
-                                    self.czyn_slowo = klucz_slowa(meta.get("temat"), meta.get("cel"), meta.get("slowo_id"))
+                                    self.czyn_slowo = klucz_pary(meta.get("temat"), meta.get("cel"), meta.get("slowo_id"), meta.get("temat2"), meta.get("cel2"))
             else:
                 typ = syg[2] if len(syg) > 2 else "wyjscie"
                 if typ in ("glos", "odpowiedz") and o_p:
@@ -1220,6 +1250,15 @@ class Byt:
             kand = [((50 if k[1] == wolny else k[0]), *k[1:]) for k in kand]
         random.shuffle(kand)
         self.temat = max(kand, key=lambda k: k[0])[1:] if kand else None
+        # składnia (parametr świata): gdy drugi temat jest co najmniej w połowie tak głośny jak pierwszy, wypowiedź niesie oba.
+        # Słuchacz słyszy jedno, inne brzmienie i uczy się pary jak osobnego słowa; co z pary składa, zależy od drugiego tematu.
+        self.temat2 = None
+        if SKLADNIA and self.temat is not None and len(kand) > 1 and self.energia > SYTOSC + KOSZT_SKLADNI:
+            najg = max(kand, key=lambda k: k[0])[0]
+            reszta = sorted([k for k in kand if k[1] != self.temat[0]], key=lambda k: -k[0])
+            if reszta and reszta[0][0] >= 0.5 * najg:
+                self.temat2 = tuple(reszta[0][1:])
+                self.energia -= KOSZT_SKLADNI
         # identyfikator nowego dźwięku: własne echo dostaje nazwę; powtórzone cudze słowo niesie nazwę dalej
         self.slowo_id = None
         if self.temat is None or self.temat[0] != "echo":
@@ -1282,7 +1321,13 @@ class Byt:
         if glos and self.temat is not None:
             tv = np.asarray(self.temat[1], dtype=float)
             nt = float(np.linalg.norm(tv)) or 1.0
-            wyp = g + TEMAT_W_GLOSIE * tv / nt * ng
+            tv = tv / nt
+            t2 = getattr(self, "temat2", None)
+            if t2 is not None:
+                tv2 = np.asarray(t2[1], dtype=float)
+                tv = tv + 0.8 * tv2 / (float(np.linalg.norm(tv2)) or 1.0)   # para tematów: jedno brzmienie, inne niż każdy z osobna
+                tv = tv / (float(np.linalg.norm(tv)) or 1.0)
+            wyp = g + TEMAT_W_GLOSIE * tv * ng
             wyp = wyp / (float(np.linalg.norm(wyp)) or 1.0) * ng
             self.wypowiedz = wyp.tolist()
             if self.temat[0] == "klamca":
@@ -1295,7 +1340,9 @@ class Byt:
                 "slowo_id": getattr(self, "slowo_id", None) if (glos and self.temat is not None) else None,
                 "uprawa": round(self.uprawa, 2) if (glos and self.temat is not None and self.temat[0] == "uprawa") else None,
                 "spichlerz": round(self.spichlerz, 2) if (glos and self.temat is not None and self.temat[0] == "spichlerz") else None,
-                "cel": self.temat[2] if (glos and self.temat is not None) else None}
+                "cel": self.temat[2] if (glos and self.temat is not None) else None,
+                "temat2": self.temat2[0] if (glos and self.temat is not None and getattr(self, "temat2", None) is not None) else None,
+                "cel2": self.temat2[2] if (glos and self.temat is not None and getattr(self, "temat2", None) is not None) else None}
 
     def zapis(self, tryb, oferta, o_r, o_p, o_e, wyjscie, zjedzone, glod=0.0, dziecko=None,
               o_s=(), slowo=None, inny=None, czyn=None, inni=0):

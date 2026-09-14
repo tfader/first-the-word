@@ -235,7 +235,7 @@ def do_slownika(swiat, b):
     sl = swiat.setdefault("slownik", {"slowa": {}, "znaczenia": {}})
     m = b.mowa or {}
     if m.get("glos") and m.get("temat"):
-        k = word.klucz_slowa(m.get("temat"), m.get("cel"), m.get("slowo_id"))
+        k = word.klucz_pary(m.get("temat"), m.get("cel"), m.get("slowo_id"), m.get("temat2"), m.get("cel2"))
         if k:
             temat, cel = k.split(":", 1)
             gen = getattr(b, "gen_slowa", None)                       # z którego genu wypadł ten dźwięk
@@ -296,7 +296,7 @@ def do_korpusu(swiat, b, tu, blisko, zywi):
     m = b.mowa or {}
     if m.get("glos") or m.get("krzyk") or m.get("wolanie") or m.get("alarm"):
         if m.get("glos"):
-            klucz, znaki = word.klucz_slowa(m.get("temat"), m.get("cel"), m.get("slowo_id")), m.get("znaki")
+            klucz, znaki = word.klucz_pary(m.get("temat"), m.get("cel"), m.get("slowo_id"), m.get("temat2"), m.get("cel2")), m.get("znaki")
         else:
             klucz = "@alarm" if m.get("alarm") else "@wolanie" if m.get("wolanie") else "@krzyk"
             znaki = {"@alarm": "!", "@wolanie": "♪", "@krzyk": "!!"}[klucz]
@@ -322,6 +322,7 @@ def wpis_zmarlej(b, swiat, ostatnia=False):
 
 
 POJEMNOSC_SWIATA = int(os.environ.get("POJEMNOSC_SWIATA", "2000"))
+SKLADNIA = os.environ.get("SKLADNIA", "0") == "1"     # parametr świata: wypowiedź z dwoma tematami (tylko przy powołaniu)
 WARUNKI_TRYB = os.environ.get("WARUNKI", "stale")   # stale: wartości domyślne; losowe: świat losuje swoją planetę raz, przy powołaniu
 GESTOSC = 4                                          # istot na łąkę na start (z warunków)
 # macierz warunków X: pokrętła planety, którymi dotąd kręciliśmy ręką. Każdy świat dostaje je raz i żyje pod nimi.
@@ -599,7 +600,7 @@ def main():
         swiat = {
             "narodziny": time.time(), "cykl_swiata": 0, "losowan_cudu": proby, "dwoje": DWOJE,
             "cykl_sekund": CYKL_SEKUND, "wymiary": WYMIARY, "istot_na_start": ISTOT, "geny": GENY, "rozmiar": ROZMIAR,
-            "pojemnosc_swiata": POJEMNOSC_SWIATA, "jezyk": JEZYK, "warunki": warunki, "warunki_tryb": WARUNKI_TRYB,
+            "pojemnosc_swiata": POJEMNOSC_SWIATA, "jezyk": JEZYK, "warunki": warunki, "warunki_tryb": WARUNKI_TRYB, "skladnia": SKLADNIA,
             "miejsca": nowe_miejsca(zyznosc), "kolejnosc": [str(i) for i in range(len(zyznosc))],
             "pole": list(zyznosc),
             "kierunek_rany": word.KIERUNEK_RANY, "kierunek_pokarmu": word.KIERUNEK_POKARMU,
@@ -623,6 +624,7 @@ def main():
         if "mapa" in zm:
             zm["lak"] = {p: len(m) for p, m in (zm.pop("mapa") or {}).items()}
     zastosuj_warunki(swiat)                                       # planeta tego świata (stare światy: domyślna)
+    word.SKLADNIA = bool(swiat.get("skladnia", False))            # składnia: parametr świata, nie procesu
     word.ustaw_wymiary(swiat.get("wymiary", 4))
     if "kierunek_wolania" not in swiat:
         swiat["kierunek_wolania"] = word.losowy_kierunek()
@@ -684,7 +686,7 @@ def main():
         alarmowal = {b.nr: b.mowa.get("alarm", False) for b in zywi}
         glosil = {b.nr: b.mowa.get("glos", False) for b in zywi}
         # migawka brzmienia i tematu sprzed cyklu: słuchacz słyszy to, co nadawca wydał w poprzednim cyklu, nie w trakcie tego
-        mowy = {b.nr: (list(b.wypowiedz or b.glos), b.mowa.get("odpowiedz"), b.mowa.get("temat"), b.mowa.get("cel"), b.mowa.get("slowo_id"), b.mowa.get("uprawa"), b.mowa.get("spichlerz")) for b in zywi}
+        mowy = {b.nr: (list(b.wypowiedz or b.glos), b.mowa.get("odpowiedz"), b.mowa.get("temat"), b.mowa.get("cel"), b.mowa.get("slowo_id"), b.mowa.get("uprawa"), b.mowa.get("spichlerz"), b.mowa.get("temat2"), b.mowa.get("cel2")) for b in zywi}
         cykl_istoty = list(zywi)
         wolal = {b.nr: b.mowa.get("wolanie", False) for b in zywi}
         random.shuffle(zywi)
@@ -795,8 +797,8 @@ def main():
                 elif glosil.get(x.nr):
                     # głos: własny język, do skojarzenia. Odpowiedź brzmi tak samo, ale na nią już się nie odpowiada.
                     # Brzmienie = głos + temat; metadane mówią, do czego temat się odnosi (łąka, kłamca): to „wskazanie”.
-                    brzm, odp, tem, cel_t, sid, upr, spi = mowy[x.nr]
-                    inni_syg.append((x.nr, brzm, "odpowiedz" if odp is not None else "glos", None, {"temat": tem, "cel": cel_t, "slowo_id": sid, "uprawa": upr, "spichlerz": spi, "swoj": b.swoj(x)}))
+                    brzm, odp, tem, cel_t, sid, upr, spi, tem2, cel2 = mowy[x.nr]
+                    inni_syg.append((x.nr, brzm, "odpowiedz" if odp is not None else "glos", None, {"temat": tem, "cel": cel_t, "slowo_id": sid, "uprawa": upr, "spichlerz": spi, "swoj": b.swoj(x), "temat2": tem2, "cel2": cel2}))
                 elif poprzednie.get(x.nr):
                     w = max(poprzednie[x.nr], key=lambda v: sum(t * t for t in v))
                     inni_syg.append((x.nr, w, "wyjscie"))
@@ -932,7 +934,7 @@ def main():
                 ob, cel = getattr(b, "czyn_obiekt", None), b.czyn_cel
                 if v in ("idz", "chodz", "bron"):
                     if ob == "laka" and str(cel) in swiat["miejsca"]:
-                        m_ = b.mapa.setdefault(pora_roku(swiat), {})          # usłyszana łąka wchodzi do mapy (z drugiej ręki)
+                        m_ = b.mapa.setdefault(getattr(b, "czyn_pora", None) or pora_roku(swiat), {})          # usłyszana łąka wchodzi do mapy (z drugiej ręki)
                         m_[str(cel)] = max(m_.get(str(cel), 0.0), word.KOSZT_TRWANIA * 2)
                         dokad_ = str(cel)
                     else:
@@ -953,7 +955,7 @@ def main():
                             b.krok(random.choice(swiat["miejsca"][str(b.miejsce)]["s"]))   # odsuwa się od unikanej
                 elif v == "zapamietaj":
                     if ob == "laka" and str(cel) in swiat["miejsca"]:
-                        m_ = b.mapa.setdefault(pora_roku(swiat), {})
+                        m_ = b.mapa.setdefault(getattr(b, "czyn_pora", None) or pora_roku(swiat), {})
                         m_[str(cel)] = max(m_.get(str(cel), 0.0), word.KOSZT_TRWANIA * 2)
                     else:
                         kogo = int(cel) if ob == "istota" else int(b.czyn_do)

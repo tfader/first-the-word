@@ -1672,3 +1672,20 @@ Po 6000 cykli ciało świata ważyło 146 MB, z czego 110 MB to mapy łąk
 Zmarła w ciele zostawia liczbę znanych łąk na porę roku, nie mapę. Pełny
 wpis z mapą idzie do `zmarli.jsonl` obok ciała (archiwizowany ze światem).
 Stare ciała odchudzają się przy wczytaniu.
+
+## Kawałek 99 (2026-09-14): składnia, jako parametr świata
+Dotąd słowo wskazywało jedną rzecz. Składnia (wybierana przy powołaniu,
+zapisana w ciele, świat jej nie zmienia; światy ze składnią i bez da się
+porównać) w trzech częściach naraz:
+1) Mówiąca: gdy drugi temat jest co najmniej w połowie tak głośny jak
+pierwszy, wypowiedź niesie oba (jedno brzmienie: głos plus suma sygnatur,
+inne niż każdy temat z osobna). Kosztuje 0,1 energii; tylko syta.
+2) Słuchacz: para „t1:c1+t2:c2” jest osobnym słowem w pamięci skutków;
+uczy się jej jak każdego słowa: ze skutku, po trzech spójnych razach.
+3) Składanie: drugi temat zmienia sens pierwszego. Pora roku: wskazana
+łąka wchodzi do mapy na tę porę, nie na dzisiejszą („tam, na zimę”).
+Istota: czyn odnosi się do niej („ból + istota” → unikaj jej). Zapach przy
+temacie bez miejsca („pokarm + zapach”, „choroba + zapach”): rzecz jest na
+tamtej łące. Nic więcej nie składamy; reszta ma wyjść ze skutków.
+Korpus i słownik zapisują parę jako jedno słowo ze znakami obu tematów
+rozdzielonymi plusem. W podsumowaniu świata widać, czy ma składnię.

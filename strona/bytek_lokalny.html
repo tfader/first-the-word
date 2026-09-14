@@ -171,6 +171,11 @@
           <option value="stale" selected data-i18n="nowy.warunki.stale"></option>
           <option value="losowe" data-i18n="nowy.warunki.losowe"></option>
         </select></label>
+      <label><span data-i18n="nowy.skladnia"></span>
+        <select id="skladnia" class="pick">
+          <option value="0" selected data-i18n="nowy.skladnia.nie"></option>
+          <option value="1" data-i18n="nowy.skladnia.tak"></option>
+        </select></label>
       <label><span data-i18n="nowy.istot"></span>
         <select id="istot" class="pick">
           <option value="2" data-i18n="nowy.istot.2"></option>
@@ -728,6 +733,7 @@
   function oCzym(klucz) {
     if (!klucz) return "";
     if (klucz.startsWith("@")) return t("slownik.wrodzone." + klucz.slice(1)) || klucz;
+    if (klucz.includes("+")) return klucz.split("+").map(oCzym).join(" + ");   // para tematów (składnia)
     const [temat, cel] = klucz.split(":");
     const nazwa = t("slownik.temat." + temat);
     if (nazwa === "slownik.temat." + temat) return temat;
@@ -1000,6 +1006,7 @@
       ${wiersz(t("cyw.geny"), t("cyw.geny.v", { s: p.genow_srednio ?? "—", m: p.genow_max ?? "—", d: p.z_duplikacji ?? "—" }))}
       ${wiersz(t("cyw.wymiary"), s2.wymiary ?? "—")}
       ${wiersz(t("cyw.rozmnazanie"), s2.dwoje ? t("rozm.dwoje") : t("rozm.jedno"))}
+      ${wiersz(t("cyw.skladnia"), s2.skladnia ? t("nowy.skladnia.tak") : t("nowy.skladnia.nie"))}
       ${wiersz(t("cyw.ozdoba"), `${p.ozdoba ?? "—"} / ${p.gust ?? "—"}`)}
       </div></div>
       <div><h4>${t("cyw.planeta")}</h4><div class="wiersze">
@@ -1214,7 +1221,7 @@
   $("nowySwiat").addEventListener("click", async () => {
     const b = $("nowySwiat"); b.disabled = true; $("nowyHint").textContent = t("nowy.trwa");
     try {
-      const r = await fetch("/api/nowy_swiat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ geny: +$("geny").value, dwoje: true, cykl: +$("cykl").value, wymiary: +$("wymiary").value, istot: +$("istot").value, rozmiar: $("rozmiar").value, pojemnosc: +$("pojemnosc").value, jezyk: $("jezykSwiata").value, warunki: $("warunki").value }) });
+      const r = await fetch("/api/nowy_swiat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ geny: +$("geny").value, dwoje: true, cykl: +$("cykl").value, wymiary: +$("wymiary").value, istot: +$("istot").value, rozmiar: $("rozmiar").value, pojemnosc: +$("pojemnosc").value, jezyk: $("jezykSwiata").value, warunki: $("warunki").value, skladnia: $("skladnia").value === "1" }) });
       const o = await r.json();
       if (!r.ok) { $("nowyHint").textContent = o.blad || t("nowy.blad"); b.disabled = false; return; }
       $("nowyHint").textContent = t("nowy.ok", { ile: o.istot, geny: o.geny, gdzie: o.poprzedni_w ? o.poprzedni_w.split("/").slice(-2).join("/") : "—" });
