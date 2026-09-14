@@ -195,14 +195,22 @@ def slownik():
                 return W.glos_na_znaki(swiat["sygnatury"][cel if temat == "pora" else "noc"])
             if temat == "klamca":
                 return glosy.get(int(cel), "?")
-            if temat == "echo":
-                return str(cel)
+            if temat in ("echo", "sen"):
+                return str(cel)                                   # dźwięk z echa albo ze snu: jego nazwa to już znaki
             if temat == "uprawa":
                 return W.glos_na_znaki(swiat["sygnatury"]["uprawa"])
             if temat == "spichlerz":
                 return W.glos_na_znaki(swiat["sygnatury"]["spichlerz"])
             if temat == "bol":
                 return W.glos_na_znaki([a + c for a, c in zip(swiat["kierunek_rany"], swiat["miejsca"][str(cel)]["zapach"])])
+            if temat == "choroba":
+                # o chorobie mówi się gorączką (sygnatura choroby), a w ognisku gorączką plus zapachem tej łąki
+                ch = swiat["sygnatury"]["choroba"]
+                if cel is not None and str(cel) in swiat["miejsca"]:
+                    return W.glos_na_znaki([a + c for a, c in zip(ch, swiat["miejsca"][str(cel)]["zapach"])])
+                return W.glos_na_znaki(ch)
+            if temat in (swiat.get("sygnatury") or {}):
+                return W.glos_na_znaki(swiat["sygnatury"][temat])     # każda rzecz świata z sygnaturą ma znaki
         except Exception:
             return "?"
         return "?"
@@ -445,7 +453,7 @@ def portret():
         b.setdefault("zrozumiane", []); b.setdefault("mapa", {}); b.setdefault("klamcy", []); b.setdefault("slownik", [])
         if isinstance(b.get("slownik"), dict):
             b["slownik"] = sorted(b["slownik"].keys())
-        lak = sum(len(m) for m in (b.get("mapa") or {}).values())
+        lak = sum(len(m) for m in (b.get("mapa") or {}).values()) if b.get("mapa") else sum((b.get("lak") or {}).values()) if isinstance(b.get("lak"), dict) else 0
         t = tematy.get(b["nr"], {})
         madrosc = 3 * len(b["zrozumiane"]) + lak + 2 * len(b["klamcy"]) + 2 * len(b["slownik"]) + b.get("rozmowy", 0) + min(b.get("nauczone", 0), 8) / 2 + len(t) + 4 * float(b.get("uprawa") or 0) + 4 * float(b.get("spichlerz") or 0)
         bogactwo = 3 * b.get("dzieci", 0) + max_e.get(b["nr"], 0.0) / 5
@@ -466,7 +474,7 @@ def portret():
             b["glos"] = "?"
     b["max_energia"] = round(max_e.get(b["nr"], 0.0), 1)
     b["tematy"] = sorted(({"temat": k.split(":")[0], "cel": k.split(":")[1] if ":" in k else None, "razy": n} for k, n in t.items()), key=lambda x: -x["razy"])[:5]
-    b["lak"] = {p: len(m) for p, m in (b.get("mapa") or {}).items()}
+    b["lak"] = {p: len(m) for p, m in (b.get("mapa") or {}).items()} if b.get("mapa") else (b.get("lak") if isinstance(b.get("lak"), dict) else {})
     pola = ("nr", "plec", "pokolenie", "wiek", "dzieci", "rodzic", "rodzic2", "glos", "zmarl_w_cyklu", "urodzony_w_cyklu", "ostatnia", "zyje",
             "zrozumiane", "klamcy", "slownik", "nauczone", "rozmowy", "krokow", "sen", "otwarcia", "max_energia", "tematy", "lak", "uprawa", "spichlerz") + CECHY_PORTRETU
     b = {k: b.get(k) for k in pola}
@@ -645,7 +653,7 @@ if ARCHIWUM:
     most.ustaw_katalog(DANE)
     Z.GENY_DIR = os.path.join(DANE, "cialo")
 PLIKI_SWIATA = ["swiat.json", "dziennik.jsonl", "slowa_keja.jsonl", "slowa_swiata.json", "slowa_update.json",
-                "wejscie.txt", "wejscie.txt.czytam", "stan.json", "zycie.log", "karma.txt", "karma.txt.czytam", "cud.txt", "cialo", "zdarzenia.jsonl", "korpus.jsonl"]
+                "wejscie.txt", "wejscie.txt.czytam", "stan.json", "zycie.log", "karma.txt", "karma.txt.czytam", "cud.txt", "cialo", "zdarzenia.jsonl", "korpus.jsonl", "zmarli.jsonl"]
 
 
 _PROCES_CACHE = {"czas": 0.0, "pid": None, "wynik": False}

@@ -1665,3 +1665,10 @@ zaraźliwość 0,03–0,12, rok 240–720, starzenie 0,001–0,004, gęstość n
 2–8 istot na łąkę. Warunki zapisane w ciele świata, widoczne w podsumowaniu
 jako „planeta”. Biologia istot zostaje stała: światy różnią się planetą, nie
 gatunkiem. Od tej pory kalibracja to zmiana przedziału, między światami.
+
+## Porządki (2026-09-14): lekkie ciało
+Po 6000 cykli ciało świata ważyło 146 MB, z czego 110 MB to mapy łąk
+31 tysięcy zmarłych; cykl trwał 8 s zamiast 5, strona nie odpowiadała.
+Zmarła w ciele zostawia liczbę znanych łąk na porę roku, nie mapę. Pełny
+wpis z mapą idzie do `zmarli.jsonl` obok ciała (archiwizowany ze światem).
+Stare ciała odchudzają się przy wczytaniu.

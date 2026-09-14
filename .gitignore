@@ -1,5 +1,8 @@
 # Świat i jego dane — powstają przy uruchomieniu, ważą gigabajty, nie wchodzą do repozytorium
 swiat.json
+swiat.json.tmp
+*.tmp
+*.tmp.npy
 stan.json
 stan_snap.json
 cialo/
@@ -8,6 +11,7 @@ swiaty/
 dziennik.jsonl
 zdarzenia.jsonl
 korpus.jsonl
+zmarli.jsonl
 slowa_swiata.json
 slowa_update.json
 slowa_keja.jsonl

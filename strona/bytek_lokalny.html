@@ -692,14 +692,15 @@
       if (!ob.length) { const p = document.createElement("p"); p.className = "hint"; p.textContent = t("slownik.obs.nic"); box.appendChild(p); }
       else {
         const n1 = document.createElement("div"); n1.className = "r slownik-z slownik-o naglowek";
-        n1.innerHTML = `<span>${t("slownik.obs.znaki")}</span><span>${t("slownik.obs.reakcja")}</span><span>${t("slownik.obs.pewnosc")}</span>`;
+        n1.innerHTML = `<span>${t("slownik.obs.znaki")}</span><span>${t("slownik.obs.reakcja")}</span><span>${t("slownik.obs.pewnosc")}</span><span class="hint">${t("slownik.obs.oczym")}</span>`;
         box.appendChild(n1);
         ob.forEach((m) => {
           const w = document.createElement("div"); w.className = "r slownik-z slownik-o";
           const inne = Object.entries(m.reakcje).filter(([k]) => k !== m.glowna).map(([k, n]) => `${t("slownik.r." + k)} ${n}×`).join(", ");
           w.innerHTML = `<span><b class="mono">${esc(m.znaki)}</b>${m.nadawcow != null ? ` <small>${t("slownik.nadawcy", { n: m.nadawcow })}</small>` : ""}</span>` +
             `<span>${t("slownik.r." + m.glowna)} <small>${m.reakcje[m.glowna]}×${inne ? " · " + esc(inne) : ""}</small></span>` +
-            `<span>${Math.round(m.pewnosc * 100)}% <small>${t("slownik.obs.z", { n: m.razy })}</small></span>`;
+            `<span>${Math.round(m.pewnosc * 100)}% <small>${t("slownik.obs.z", { n: m.razy })}</small></span>` +
+            `<span class="hint" style="font-size:12px">${esc(oCzym(m.klucz))}</span>`;
           box.appendChild(w);
         });
       }
@@ -723,6 +724,15 @@
     } catch (e) { box.innerHTML = `<p class="hint err">${t("brak_serwera")}</p>`; }
   }
 
+  // interpretacja z wnętrza: o czym istota mówiła (temat i odniesienie), nie co to znaczy
+  function oCzym(klucz) {
+    if (!klucz) return "";
+    if (klucz.startsWith("@")) return t("slownik.wrodzone." + klucz.slice(1)) || klucz;
+    const [temat, cel] = klucz.split(":");
+    const nazwa = t("slownik.temat." + temat);
+    if (nazwa === "slownik.temat." + temat) return temat;
+    return cel ? nazwa + " · " + cel : nazwa;
+  }
   function fmtWar(k, v) {
     if (k === "kleska" || k === "wybuch") return "1 / " + Math.round(1 / v);
     if (k === "rok" || k === "gestosc") return String(v);

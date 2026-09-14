@@ -21,6 +21,7 @@ DZIENNIK = os.path.join(KATALOG, "dziennik.jsonl")
 CUD = os.path.join(KATALOG, "cud.txt")          # obecność pliku = prośba o nowy cud
 KARMA = os.path.join(KATALOG, "karma.txt")      # świat odpowiada na wołanie: dokłada pokarm
 ZDARZENIA = os.path.join(KATALOG, "zdarzenia.jsonl")   # narodziny, śmierci, pokarm ze świata, zrozumienia
+ZMARLI = os.path.join(KATALOG, "zmarli.jsonl")         # pełne wpisy zmarłych (z mapą łąk): ciało trzyma tylko lekkie
 KORPUS = os.path.join(KATALOG, "korpus.jsonl")         # każde słowo z kontekstem i każda widoczna reakcja: do odczytania języka kiedyś, z zewnątrz
 CYKL_SEKUND = float(os.environ.get("CYKL", 60))
 GENY = int(os.environ.get("GENY", 64))
@@ -316,7 +317,7 @@ def wpis_zmarlej(b, swiat, ostatnia=False):
             "sila": b.sila, "lownosc": getattr(b, "lownosc", None), "ciekawosc": b.ciekawosc, "wytrwalosc": b.wytrwalosc,
             "stadnosc": b.stadnosc, "dlugowiecznosc": b.dlugowiecznosc, "optimum": b.optimum, "tolerancja": b.tolerancja, "towarzyskosc": b.towarzyskosc,
             "ufnosc": b.ufnosc, "szczerosc": b.szczerosc, "pojetnosc": b.pojetnosc, "uprawa": b.uprawa, "spichlerz": b.spichlerz, "troska": b.troska, "plochliwosc": getattr(b, "plochliwosc", 0.5),
-            "zrozumiane": sorted(b.zrozumiane), "mapa": b.mapa, "klamcy": sorted(b.klamcy), "nauczone": getattr(b, "nauczone", 0),
+            "zrozumiane": sorted(b.zrozumiane), "lak": {p: len(m) for p, m in b.mapa.items()}, "klamcy": sorted(b.klamcy), "nauczone": getattr(b, "nauczone", 0),
             "rozmowy": getattr(b, "rozmowy", 0), "slownik": sorted(b.slownik.keys()), "krokow": b.krokow, "sen": b.sen}
 
 
@@ -618,6 +619,9 @@ def main():
         uzupelnij_tlumaczenia(swiat)
 
     CYKL_SEKUND = float(swiat.get("cykl_sekund", CYKL_SEKUND))
+    for zm in swiat.get("zmarli", []):                              # stare ciała: mapy zmarłych na liczby łąk (odchudzenie)
+        if "mapa" in zm:
+            zm["lak"] = {p: len(m) for p, m in (zm.pop("mapa") or {}).items()}
     zastosuj_warunki(swiat)                                       # planeta tego świata (stare światy: domyślna)
     word.ustaw_wymiary(swiat.get("wymiary", 4))
     if "kierunek_wolania" not in swiat:
@@ -1183,7 +1187,10 @@ def main():
             swiat.setdefault("_korpus", []).append({"c": swiat["cykl_swiata"], "r": "smierc", "kto": b.nr, "miejsce": str(b.miejsce),
                                                     "widzieli": [x.nr for x in zywi if str(x.miejsce) in obok][:32]})
         for b in zmarli:
-            swiat["zmarli"].append(wpis_zmarlej(b, swiat))
+            wpis = wpis_zmarlej(b, swiat)
+            swiat["zmarli"].append(wpis)                               # ciało: wpis lekki (31 tys. zmarłych z mapami ważyło 110 MB)
+            with open(ZMARLI, "a") as f:                               # pełny wpis, z mapą łąk, do pliku obok ciała
+                f.write(json.dumps({**wpis, "mapa": b.mapa}, ensure_ascii=False) + "\n")
             print(f"byt {b.nr} umarł w wieku {b.wiek} cykli.", flush=True)
             zdarzenie(swiat, "smierc", nr=b.nr, wiek=b.wiek, pokolenie=b.pokolenie)
         for b in nowi:
